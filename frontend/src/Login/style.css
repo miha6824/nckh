@@ -1,0 +1,73 @@
+.login-page {
+    background-image: url('../images/backgroung_login.jpg'); /* Đường dẫn đến ảnh nền */
+    background-size: cover; /* Đảm bảo ảnh nền bao phủ toàn bộ khu vực */
+    background-position: center; /* Căn chỉnh ảnh nền vào giữa trang */
+    display: flex; /* Sử dụng flexbox để căn giữa phần tử con */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    height: 100vh; /* Đặt chiều cao của phần tử để nó chiếm toàn bộ chiều cao của trang */
+    /* Thêm các thuộc tính CSS khác tùy chỉnh theo nhu cầu */
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 40px ;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+p {
+    margin-top: 20px;
+    text-align: center;
+}
+
+span {
+    color: #007bff;
+    cursor: pointer;
+}
+
+span:hover {
+    text-decoration: underline;
+}

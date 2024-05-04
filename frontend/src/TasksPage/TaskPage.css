@@ -1,0 +1,44 @@
+.task-page {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+.task-header {
+    display: flex;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.line {
+    flex: 1;
+    height: 1px;
+    background-color: #ccc;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.task-list-table {
+    width: 90%;
+    margin: 0 auto; /* Để căn giữa bảng theo chiều ngang */
+    border-collapse: collapse; /* Sử dụng border-collapse: collapse để loại bỏ các đường line giữa các ô */
+}
+
+.task-list-table th,
+.task-list-table td {
+    text-align: center;
+    padding: 8px;
+    border: none; /* Loại bỏ border cho tất cả các ô */
+}
+
+.task-list-table th {
+    background-color: #f2f2f2;
+}
+
+.task-list-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.task-list-table tbody tr:hover {
+    background-color: #ddd;
+}

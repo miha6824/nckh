@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import LoginPage from './Login/LoginPage';
+import RegisterPage from './Register/RegisterPage'
+import Homepage from './Homepage/Homepage';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

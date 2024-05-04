@@ -1,0 +1,54 @@
+/* TaskItem.css */
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.task-details {
+    display: flex;
+    align-items: center;
+}
+
+.task-actions {
+    position: relative;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    display: none;
+}
+
+.dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.complete-icon {
+    color: green;
+}

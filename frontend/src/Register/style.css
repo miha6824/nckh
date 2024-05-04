@@ -1,0 +1,76 @@
+.register-page {
+    background-image: url('../images/backgroung_login.jpg'); /* Đường dẫn đến ảnh nền */
+    background-size: cover; /* Đảm bảo ảnh nền bao phủ toàn bộ khu vực */
+    background-position: center; /* Căn chỉnh ảnh nền vào giữa trang */
+    display: flex; /* Sử dụng flexbox để căn giữa phần tử con */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    height: 100vh; /* Đặt chiều cao của phần tử để nó chiếm toàn bộ chiều cao của trang */
+    /* Thêm các thuộc tính CSS khác tùy chỉnh theo nhu cầu */
+}
+
+.register-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 40px ;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.register-form {
+    display: flex;
+    margin-bottom: 20px; /* Khoảng cách giữa form và button container */
+}
+
+.column {
+    flex: 1;
+    padding: 10px;
+}
+
+.gender-radio {
+    display: flex;
+    align-items: center;
+}
+
+.gender-radio label {
+    margin-top: 30px;
+    margin-right: 100px; /* Khoảng cách giữa label "Giới tính" và radio buttons */
+}
+
+.radio-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.radio-buttons input[type="radio"] {
+    margin-top: 33px;
+    margin-right: 10px; /* Khoảng cách giữa các radio buttons */
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.register-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+     /* Khoảng cách giữa nút Đăng ký và nút Đăng nhập */
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
