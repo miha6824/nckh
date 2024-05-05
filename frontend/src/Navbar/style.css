@@ -54,7 +54,7 @@
 }
 
 .dropdown-menu ul li:first-child {
-    margin-bottom: 20px; /* Tăng khoảng cách cho mục đầu tiên */
+    margin-bottom: 10px; /* Tăng khoảng cách cho mục đầu tiên */
 }
 
 .dropdown-menu ul li a {

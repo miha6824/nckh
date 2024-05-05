@@ -43,6 +43,7 @@ const Navbar = () => {
                         <div className="dropdown-menu">
                             <ul>
                                 <li><Link to="/profile">{language === 'vi' ? 'Thông tin cá nhân' : 'Profile'}</Link></li>
+                                <li><Link to="/change_password">{language === 'vi' ? 'Đổi mật khẩu' : 'Change password'}</Link></li>
                                 <li><Link to="/logout">{language === 'vi' ? 'Đăng xuất' : 'Logout'}</Link></li>
                             </ul>
                         </div>

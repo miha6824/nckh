@@ -8,8 +8,9 @@ const TaskList = ({ tasks }) => {
                 <tr>
                     <th>ID</th>
                     <th>Title</th>
-                    <th>Date</th>
                     <th>Assignment</th>
+                    <th>Date</th>
+
                 </tr>
             </thead>
             <tbody>

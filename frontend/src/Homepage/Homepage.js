@@ -13,33 +13,36 @@ const Homepage = () => {
 
 
     return (
-        <div className="homepage">
+        <div>
             <Navbar />
-            <div className="attendance-history">
-                <h2>Lịch sử chấm công</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ngày</th>
-                            <th>Trạng thái</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {attendanceHistory.map((record, index) => (
-                            <tr key={index}>
-                                <td>{record.date}</td>
-                                <td>{record.status}</td>
-                                <td>{record.checkIn || '-'}</td>
-                                <td>{record.checkOut || '-'}</td>
+            <div className="homepage">
+                <div className="attendance-history">
+                    <h2>Lịch sử chấm công</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Trạng thái</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
                             </tr>
-                        ))}
-                    </tbody>
+                        </thead>
+                        <tbody>
+                            {attendanceHistory.map((record, index) => (
+                                <tr key={index}>
+                                    <td>{record.date}</td>
+                                    <td>{record.status}</td>
+                                    <td>{record.checkIn || '-'}</td>
+                                    <td>{record.checkOut || '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
 
-                </table>
+                    </table>
+                </div>
             </div>
         </div>
+
     );
 };
 
