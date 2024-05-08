@@ -1,5 +1,3 @@
-// Trong file TaskPage.js
-
 import React from 'react';
 import NavBar from '../Navbar/Navbar';
 import TaskList from './TaskList';
