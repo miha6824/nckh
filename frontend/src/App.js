@@ -5,8 +5,11 @@ import LoginPage from './Login/LoginPage';
 import TasksPage from './User/TasksPage/TasksPage';
 import AttendancePage from './User/attendance/AttendancePage';
 import ProfilePage from './User/Profile/ProfilePage';
-import CRUD_User from './Admin/CRUD_User';
-import UserCreate from './Admin/UserCreate';
+import CRUD_User from './Admin/crud_user/CRUD_User';
+import UserCreate from './Admin/crud_user/UserCreate';
+import UserUpdate from './Admin/crud_user/UserUpdate';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 function App() {
   return (
@@ -20,6 +23,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/CRUD_User" element={<CRUD_User />} />
         <Route path="/create_User" element={<UserCreate />} />
+        <Route path="/update_user/:id" element={<UserUpdate />} />
       </Routes>
     </Router>
   );

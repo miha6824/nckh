@@ -19,7 +19,7 @@ function UserCreate() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:8081/create', formData) // Sửa thành 'http://localhost:8081/create'
+        axios.post('http://localhost:8081/create_user', formData)
             .then(res => console.log(res.data))
             .catch(err => console.log(err));
     };

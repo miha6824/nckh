@@ -22,17 +22,17 @@ const TaskPage = () => {
                     <input type="text" placeholder="Tìm kiếm công việc..." className="search-input" />
                 </div>
                 <div className="task-header">
-                    <h2 className="progress">Công việc hiện tại</h2>
+                    <h2>Công việc hiện tại</h2>
                     <hr className="line" />
                 </div>
                 <TaskList tasks={tasks.filter(task => task.status === 'Công việc hiện tại')} />
                 <div className="task-header">
-                    <h2 className="outdate">Công việc quá hạn</h2>
+                    <h2>Công việc quá hạn</h2>
                     <hr className="line" />
                 </div>
                 <TaskList tasks={tasks.filter(task => task.status === 'Công việc quá hạn')} />
                 <div className="task-header">
-                    <h2 className="complete">Công việc hoàn thành</h2>
+                    <h2>Công việc hoàn thành</h2>
                     <hr className="line" />
                 </div>
                 <TaskList tasks={tasks.filter(task => task.status === 'Công việc hoàn thành')} />

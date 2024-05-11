@@ -3,7 +3,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    background-color: #333;
+    background-color: #000000;
     color: #fff;
 }
 
@@ -32,7 +32,7 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #333;
+    background-color: #070707;
     border-radius: 5px;
     padding: 10px;
     display: none;
@@ -41,12 +41,14 @@
 
 .avatar:hover .dropdown-menu {
     display: block;
+    background-color: #1b1b1b;
 }
 
 .dropdown-menu ul {
     list-style: none;
     padding: 0;
     margin: 0;
+
 }
 
 .dropdown-menu ul li {
@@ -58,7 +60,8 @@
 }
 
 .dropdown-menu ul li a {
-    color: #fff;
+    color: #ffffff;
     text-decoration: none;
+    margin-left: 10px;
 }
 

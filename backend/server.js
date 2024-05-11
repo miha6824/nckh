@@ -21,7 +21,7 @@ app.get("/CRUD_User", (req, res) => {
     });
 });
 
-app.post('/create', (req, res) => { // Sửa thành '/create'
+app.post('/create_user', (req, res) => {
     const sql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
     const values = [
         [
@@ -41,6 +41,26 @@ app.post('/create', (req, res) => { // Sửa thành '/create'
     });
 });
 
+
+
+app.put('/update_user/:id', (req, res) => {
+    const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
+    const values = [
+        req.body.email,
+        req.body.fullName,
+        req.body.sex,
+        req.body.dob,
+        req.body.phoneNumber,
+        req.body.address,
+        req.body.id_departments,
+        req.body.hsl
+    ]
+    const id = req.params.id;
+    db.query(sql, [...values, id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("User update successfully");
+    });
+});
 
 app.listen(8081, () => {
     console.log("listening");
