@@ -58,7 +58,7 @@ function UserCreate() {
                     <input type="text" name="id_departments" value={formData.id_departments} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
-                    <label>Hourly Salary:</label>
+                    <label>Hệ Số Lương:</label>
                     <input type="text" name="hsl" value={formData.hsl} onChange={handleChange} required />
                 </div>
                 <button type="submit">Create</button>
