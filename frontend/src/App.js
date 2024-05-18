@@ -9,10 +9,11 @@ import CRUD_User from './Admin/crud_user/CRUD_User';
 import UserCreate from './Admin/crud_user/UserCreate';
 import UserUpdate from './Admin/crud_user/UserUpdate';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import './App.css';
 
 function App() {
   return (
+
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -26,6 +27,7 @@ function App() {
         <Route path="/update_user/:id" element={<UserUpdate />} />
       </Routes>
     </Router>
+
   );
 }
 
