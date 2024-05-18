@@ -1,10 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser")
+
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:3000"],
+    methods: ["POST,GET"],
+    credentials: true
+}));
+app.use(cookieParser());
 
 const db = mysql.createConnection({
     host: "localhost",
@@ -41,8 +49,6 @@ app.post('/create_user', (req, res) => {
     });
 });
 
-
-
 app.put('/update_user/:id', (req, res) => {
     const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
     const values = [
@@ -70,6 +76,23 @@ app.delete('/Delete_user/:id', (req, res) => {
         return res.status(200).json("User delete successfully");
     });
 });
+
+app.post('/login', (req, res) => {
+    const sql = "SELECT * FROM account WHERE `Email` = ? AND `Password` = ?";
+    db.query(sql, [req.body.email, req.body.password], (err, data) => {
+        if (err) return res.json({ Message: "Server side error" });
+        if (data.length > 0) {
+            const name = data[0].name;
+            const token = jwt.sign({ name }, "our-jsontoken-secret-key", { expiresIn: '1d' });
+            res.cookie('token', token);
+            return res.json({ Status: "Success" })
+        } else {
+            return res.json({ Message: "NO Record existed" });
+        }
+    })
+})
+
+
 app.listen(8081, () => {
     console.log("listening");
 });
