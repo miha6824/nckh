@@ -1,5 +1,5 @@
 import React from 'react';
-import NavBar from '../Navbar/Navbar';
+import UserNavbar from '../Navbar/UserNavbar';
 import TaskList from './TaskList';
 import './TaskPage.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,7 +15,7 @@ const TaskPage = () => {
 
     return (
         <div>
-            <NavBar />
+            <UserNavbar />
             <div className="task-page">
                 <div className="actions">
                     <button className="add-task-button"><FontAwesomeIcon icon={faPlus} /> Thêm việc</button>

@@ -23,21 +23,16 @@ function AdSidebar() {
                 <CNavTitle>Nav Title</CNavTitle>
                 <CNavItem href="/home">
                     <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
-                    Nav item
+                    Dashbroad
                 </CNavItem>
-                <CNavItem href="#">
-                    <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
-                    With badge
-                    <CBadge color="primary ms-auto">NEW</CBadge>
-                </CNavItem>
-                <CNavGroup toggler={<><CIcon customClassName="nav-icon" icon={cilPuzzle} /> Nav dropdown</>}>
+                <CNavGroup toggler={<><CIcon customClassName="nav-icon" icon={cilPuzzle} /> Quản lý</>}>
                     <CNavItem href="/CRUD_User">
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
                         Quản lý nhân sự
                     </CNavItem>
                     <CNavItem href="/create_User">
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Nav dropdown item
+                        Quản lý tài khoản
                     </CNavItem>
                 </CNavGroup>
                 <CNavItem href="https://coreui.io">

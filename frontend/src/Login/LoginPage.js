@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,13 +10,20 @@ const LoginPage = () => {
 
     const navigate = useNavigate('/')
 
-    axios.defaults.withCredentials = true;
     const handleSubmit = (e) => {
         e.preventDefault();
+        console.log("Logging in with email:", values.email);
         axios.post('http://localhost:8081/login', values)
             .then(res => {
+                console.log("Login response:", res.data);
                 if (res.data.Status === "Success") {
-                    navigate('/home')
+                    // Giả định vai trò của người dùng dựa trên email
+                    const role = values.email === 'admin1@gmail.com' ? 'admin' : 'user';
+                    if (role === 'admin') {
+                        navigate('/Dashbroad');
+                    } else if (role === 'user') {
+                        navigate('/home');
+                    }
                 } else {
                     alert(res.data.Message)
                 }

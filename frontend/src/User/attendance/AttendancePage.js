@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as faceapi from 'face-api.js';
-import Navbar from '../Navbar/Navbar';
+import UserNavbar from '../Navbar/UserNavbar';
 import './Atendance.css';
 
 function AttendancePage() {
@@ -57,7 +57,7 @@ function AttendancePage() {
 
     return (
         <div>
-            <Navbar />
+            <UserNavbar />
             <div className='App'>
 
                 {initializing && <span>Initializing...</span>}

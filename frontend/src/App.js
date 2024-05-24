@@ -8,6 +8,7 @@ import ProfilePage from './User/Profile/ProfilePage';
 import CRUD_User from './Admin/crud_user/CRUD_User';
 import UserCreate from './Admin/crud_user/UserCreate';
 import UserUpdate from './Admin/crud_user/UserUpdate';
+import Dashbroad from './Admin/Dashbroad/Dashbroad';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="/CRUD_User" element={<CRUD_User />} />
         <Route path="/create_User" element={<UserCreate />} />
         <Route path="/update_user/:id" element={<UserUpdate />} />
+        <Route path="/Dashbroad" element={<Dashbroad />} />
       </Routes>
     </Router>
 

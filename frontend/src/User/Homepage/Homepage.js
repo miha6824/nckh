@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '../Navbar/Navbar';
+import UserNavbar from '../Navbar/UserNavbar';
 import './style.css';
 
 const Homepage = () => {
@@ -14,7 +14,7 @@ const Homepage = () => {
 
     return (
         <div>
-            <Navbar />
+            <UserNavbar />
             <div className="homepage">
                 <div className="attendance-history">
                     <h2>Lịch sử chấm công</h2>

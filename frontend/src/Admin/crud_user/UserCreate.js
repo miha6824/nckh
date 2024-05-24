@@ -31,7 +31,7 @@ function UserCreate() {
             <AdSidebar />
             <div className="d-flex flex-column flex-grow-1">
                 <AdNavbar />
-                <div className="container">
+                <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
                     <h2>Create User</h2>
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">

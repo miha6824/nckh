@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../Navbar/Navbar';
+import UserNavbar from '../Navbar/UserNavbar';
 import './ProfilePage.css';
 
 const Profile = () => {
@@ -28,7 +28,7 @@ const Profile = () => {
 
     return (
         <div>
-            <Navbar />
+            <UserNavbar />
             <div className="profile-container">
                 <h2>Thông tin cá nhân</h2>
                 <form onSubmit={handleSubmit}>

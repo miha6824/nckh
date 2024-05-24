@@ -1,0 +1,20 @@
+.custom-navbar {
+    border-bottom: 2px solid white; /* Thêm viền trắng ở dưới */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    height: 20px; /* Giới hạn chiều cao */
+    display: flex;
+    align-items: center; /* Canh giữa theo chiều dọc */
+}
+
+.custom-navbar .cdropdown-toggle {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.custom-navbar .cnavbar-nav {
+    height: 100%; /* Chiều cao 100% của navbar */
+}
+
+.custom-navbar .ccontainer-fluid {
+    height: 100%; /* Chiều cao 100% của container */
+}
