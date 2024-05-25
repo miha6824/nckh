@@ -9,6 +9,8 @@ import CRUD_User from './Admin/crud_user/CRUD_User';
 import UserCreate from './Admin/crud_user/UserCreate';
 import UserUpdate from './Admin/crud_user/UserUpdate';
 import Dashbroad from './Admin/Dashbroad/Dashbroad';
+import CRUD_ImgUser from './Admin/crud_image_user/CRUD_ImgUser'
+import ImgUserCreate from './Admin/crud_image_user/ImgUserCreate'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -26,6 +28,8 @@ function App() {
         <Route path="/CRUD_User" element={<CRUD_User />} />
         <Route path="/create_User" element={<UserCreate />} />
         <Route path="/update_user/:id" element={<UserUpdate />} />
+        <Route path="/CRUD_ImgUser" element={<CRUD_ImgUser />} />
+        <Route path="/create_ImgUser" element={<ImgUserCreate />} />
         <Route path="/Dashbroad" element={<Dashbroad />} />
       </Routes>
     </Router>

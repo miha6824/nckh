@@ -34,6 +34,10 @@ function AdSidebar() {
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
                         Quản lý tài khoản
                     </CNavItem>
+                    <CNavItem href="/CRUD_ImgUser">
+                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
+                        Quản lý ảnh nhân viên
+                    </CNavItem>
                 </CNavGroup>
                 <CNavItem href="https://coreui.io">
                     <CIcon customClassName="nav-icon" icon={cilCloudDownload} />

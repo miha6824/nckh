@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({
     origin: ["http://localhost:3000"],
-    methods: ["POST", "GET"],
+    methods: ["POST", "GET", " PUT", "DELETE"],
     credentials: true
 }));
 app.use(cookieParser());
@@ -75,6 +75,40 @@ app.delete('/Delete_user/:id', (req, res) => {
         return res.status(200).json("User delete successfully");
     });
 });
+
+
+app.get("/CRUD_ImgUser", (req, res) => {
+    const sql = "SELECT * FROM userimage";
+    db.query(sql, (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json(data);
+    });
+});
+
+app.delete('/Delete_ImgUser/:id', (req, res) => {
+    const sql = "DELETE FROM userimage WHERE ID=?";
+    const id = req.params.id;
+    db.query(sql, [id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("Img delete successfully");
+    });
+});
+
+app.post('/create_ImgUser', (req, res) => {
+    const sql = "INSERT INTO userimage (UserName,Image, ID_User) VALUES ?";
+    const values = [
+        [
+            req.body.username,
+            req.body.image,
+            req.body.id_user,
+        ]
+    ];
+    db.query(sql, [values], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("Img created successfully");
+    });
+});
+
 
 // Thêm vào endpoint đăng nhập  
 app.post('/login', (req, res) => {
