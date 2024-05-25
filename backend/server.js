@@ -2,16 +2,19 @@ const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql");
 const jwt = require("jsonwebtoken");
-const cookieParser = require("cookie-parser")
+const cookieParser = require("cookie-parser");
+const path = require("path");
+const multer = require('multer'); // Thêm dòng này để yêu cầu module multer
 
 const app = express();
-app.use(express.json());
+app.use(express.static('public'));
 app.use(cors({
     origin: ["http://localhost:3000"],
-    methods: ["POST", "GET", " PUT", "DELETE"],
+    methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true
 }));
 app.use(cookieParser());
+app.use('public/Images', express.static(path.join(__dirname, 'public/Images'))); // Serve static files from the "uploads" directory
 
 const db = mysql.createConnection({
     host: "localhost",
@@ -19,6 +22,17 @@ const db = mysql.createConnection({
     password: "",
     database: "qlcc"
 });
+
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/Images');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
 app.get("/CRUD_User", (req, res) => {
     const sql = "SELECT * FROM user";
@@ -76,7 +90,6 @@ app.delete('/Delete_user/:id', (req, res) => {
     });
 });
 
-
 app.get("/CRUD_ImgUser", (req, res) => {
     const sql = "SELECT * FROM userimage";
     db.query(sql, (err, data) => {
@@ -94,17 +107,25 @@ app.delete('/Delete_ImgUser/:id', (req, res) => {
     });
 });
 
-app.post('/create_ImgUser', (req, res) => {
-    const sql = "INSERT INTO userimage (UserName,Image, ID_User) VALUES ?";
+app.post('/create_ImgUser', upload.single('image'), (req, res) => {
+    const sql = "INSERT INTO userimage (UserName, Image, ID_User) VALUES ?";
     const values = [
         [
             req.body.username,
-            req.body.image,
-            req.body.id_user,
+            req.file.filename,
+            req.body.id_user
         ]
     ];
+
+    if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+    }
+
     db.query(sql, [values], (err, data) => {
-        if (err) return res.status(500).json("Error");
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json("Error");
+        }
         return res.status(200).json("Img created successfully");
     });
 });

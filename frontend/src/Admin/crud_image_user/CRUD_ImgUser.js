@@ -6,24 +6,21 @@ import AdNavbar from '../AdNav/AdNavbar';
 import './CRUD_ImgUser.css';
 
 function CRUD_ImgUser() {
-    const [userimage, setUserImg] = useState([]);
+    const [userImages, setUserImages] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
 
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_ImgUser')
             .then(res => {
-                const formattedUser = res.data.map(item => ({
-                    ...item
-                }));
-                setUserImg(formattedUser);
+                setUserImages(res.data);
             })
             .catch(err => console.log(err));
     }, []);
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete('http://localhost:8081/Delete_ImgUser/' + id);
-            window.location.reload();
+            await axios.delete(`http://localhost:8081/Delete_ImgUser/${id}`);
+            setUserImages(userImages.filter(image => image.ID !== id));
         } catch (err) {
             console.log(err);
         }
@@ -32,6 +29,8 @@ function CRUD_ImgUser() {
     const handleViewUser = (user) => {
         setSelectedUser(user);
     };
+
+    console.log(selectedUser);
 
     return (
         <div className="d-flex vh-100">
@@ -54,16 +53,18 @@ function CRUD_ImgUser() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {userimage.map((data, i) => (
-                                    <tr key={i}>
-                                        <td>{data.ID}</td>
-                                        <td>{data.UserName}</td>
-                                        <td>{data.Image}</td>
-                                        <td>{data.ID_User}</td>
+                                {userImages.map(image => (
+                                    <tr key={image.ID}>
+                                        <td>{image.ID}</td>
+                                        <td>{image.UserName}</td>
                                         <td>
-                                            <Link to={`/update_ImgUser/${data.ID}`} className="btn btn-primary">Sửa</Link>
-                                            <button className="btn btn-danger ms-2" onClick={() => handleDelete(data.ID)}>Xóa</button>
-                                            <button className="btn btn-info ms-2" onClick={() => handleViewUser(data)}>Xem</button>
+                                            {image.Image && <img src={`http://localhost:8081${image.Image}`} alt={image.UserName} style={{ width: '50px', height: '50px' }} />}
+                                        </td>
+                                        <td>{image.ID_User}</td>
+                                        <td>
+                                            <Link to={`/update_ImgUser/${image.ID}`} className="btn btn-primary">Sửa</Link>
+                                            <button className="btn btn-danger ms-2" onClick={() => handleDelete(image.ID)}>Xóa</button>
+                                            <button className="btn btn-info ms-2" onClick={() => handleViewUser(image)}>Xem</button>
                                         </td>
                                     </tr>
                                 ))}
@@ -86,7 +87,9 @@ function CRUD_ImgUser() {
                                         </tr>
                                         <tr>
                                             <th>Hình ảnh</th>
-                                            <td>{selectedUser.Image}</td>
+                                            <td>
+                                                {selectedUser.Image && <img src={`http://localhost:8081/Images/${selectedUser.Image}`} alt={selectedUser.UserName} style={{ width: '200px', height: '200px' }} />}
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th>ID_User</th>
@@ -101,7 +104,8 @@ function CRUD_ImgUser() {
                 </div>
             </div>
         </div>
-    )
+    );
+
 }
 
 export default CRUD_ImgUser;

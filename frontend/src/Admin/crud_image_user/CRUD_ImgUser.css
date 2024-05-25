@@ -1,40 +1,40 @@
-.crud-user-container {
-    margin-top: 20px; /* Khoảng cách từ container đến các phần tử trên */
-    padding: 20px; /* Khoảng cách nội bộ trong container */
-}
-
-.table {
-    width: 100%; /* Chiếm toàn bộ độ rộng của container */
-    text-align: center; /* Căn giữa nội dung trong các ô của bảng */
-}
-
-.btn {
-    margin-right: 5px; /* Khoảng cách giữa các nút */
-}
-
 .user-info-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Màu nền đen mờ */
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 9999;
 }
 
 .user-info-content {
-    background-color: white;
+    background-color: #fff;
     padding: 20px;
     border-radius: 5px;
 }
 
+.user-info-content h3 {
+    margin-bottom: 20px;
+}
+
 .user-info-content table {
     width: 100%;
-    text-align: left; /* Căn trái nội dung trong bảng thông tin người dùng */
+}
+
+.user-info-content table th {
+    width: 30%;
+    text-align: right;
+    padding: 8px;
+}
+
+.user-info-content table td {
+    padding: 8px;
 }
 
 .user-info-content button {
-    margin-top: 10px; /* Khoảng cách giữa các nút trong modal */
+    margin-top: 20px;
 }

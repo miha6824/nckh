@@ -11,14 +11,26 @@ function ImgUserCreate() {
     });
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (e.target.name === 'image') {
+            setFormData({ ...formData, [e.target.name]: e.target.files[0] });
+        } else {
+            setFormData({ ...formData, [e.target.name]: e.target.value });
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:8081/create_ImgUser', formData)
+        const data = new FormData();
+        data.append('username', formData.username);
+        data.append('image', formData.image);
+        data.append('id_user', formData.id_user);
+
+        axios.post('http://localhost:8081/create_ImgUser', data)
             .then(res => console.log(res.data))
-            .catch(err => console.log(err));
+            .catch(err => {
+                console.error("Error uploading image:", err);
+                console.error("Response data:", err.response.data);
+            });
     };
 
     return (
@@ -39,7 +51,7 @@ function ImgUserCreate() {
                                 </div>
                                 <div className="form-group mb-3">
                                     <label htmlFor="image" className="form-label">Hình ảnh</label>
-                                    <input type="text" id="image" name="image" value={formData.image} onChange={handleChange} className="form-control" required />
+                                    <input type="file" id="image" name="image" onChange={handleChange} className="form-control" accept=".png" required />
                                 </div>
                                 <div className="form-group mb-3">
                                     <label htmlFor="id_user" className="form-label">ID_User</label>
