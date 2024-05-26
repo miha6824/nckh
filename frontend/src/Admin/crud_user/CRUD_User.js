@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import AdSidebar from '../AdNav/AdSidebar';
+import AdSidebar from '../AdNav/AdSidebar'
 import AdNavbar from '../AdNav/AdNavbar';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import './CRUD_User.css';
