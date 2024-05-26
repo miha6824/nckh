@@ -8,6 +8,7 @@ const multer = require('multer'); // Thêm dòng này để yêu cầu module mu
 
 const app = express();
 app.use(express.static('public'));
+app.use(express.json());
 app.use(cors({
     origin: ["http://localhost:3000"],
     methods: ["POST", "GET", "PUT", "DELETE"],
@@ -130,62 +131,84 @@ app.post('/create_ImgUser', upload.single('image'), (req, res) => {
     });
 });
 
-
 // Thêm vào endpoint đăng nhập  
 app.post('/login', (req, res) => {
-    console.log("Received login request with email:", req.body.email);
-    const sql = "SELECT * FROM account WHERE `Email` = ? AND `Password` = ?";
-    db.query(sql, [req.body.email, req.body.password], (err, data) => {
+    console.log("Received email:", req.body.email);
+    const sql = "SELECT * FROM account WHERE Email = ?";
+    db.query(sql, [req.body.email], (err, data) => {
         if (err) {
-            console.error("Error querying database:", err);
-            return res.json({ Message: "Server side error" });
+            console.error("Database error:", err);
+            return res.status(500).json("Lỗi server");
         }
+        console.log("Data from database:", data);
+
         if (data.length > 0) {
-            const user = data[0];
-            const token = jwt.sign({ ID_User: user.ID_User, role: user.role }, "our-jsontoken-secret-key", { expiresIn: '1d' });
-            res.cookie('token', token, { httpOnly: true, secure: false, path: '/' });
-            console.log("Generated token for user:", token); // Kiểm tra xem token đã được tạo thành công và được gửi về client không
-            return res.json({ Status: "Success", role: user.role });
+            const account = data[0];
+            const userID = account.ID_User;
+            const userSql = "SELECT * FROM user WHERE ID = ?";
+            db.query(userSql, [userID], (err, userData) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    return res.status(500).json("Lỗi server");
+                }
+                if (userData.length > 0) {
+                    const token = jwt.sign({ userID: account.ID_User }, 'secret', { expiresIn: '1h' });
+                    res.cookie('token', token, { httpOnly: true });
+                    return res.status(200).json({ message: "Đăng nhập thành công", userData: userData[0] });
+                } else {
+                    return res.status(404).json("Không tìm thấy thông tin người dùng");
+                }
+            });
         } else {
-            console.log("No record found for email:", req.body.email);
-            return res.json({ Message: "NO Record existed" });
+            return res.status(401).json("Email hoặc mật khẩu không hợp lệ");
         }
     });
 });
 
-// Thêm endpoint để đăng xuất
-app.get('/logout', (req, res) => {
-    res.clearCookie('token');
-    console.log("Logout successfully");
-    res.json({ message: "Logout successfully" });
+
+
+
+
+// Endpoint để lấy dữ liệu người dùng dựa trên ID
+app.get('/user/:id', (req, res) => {
+    const id = req.params.id;
+    console.log("Received user ID:", id); // Thêm console.log để kiểm tra ID người dùng nhận được
+
+    const sql = "SELECT * FROM user WHERE ID = ?";
+    db.query(sql, [id], (err, data) => {
+        if (err) {
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi server");
+        }
+        console.log("Data from database:", data); // Thêm console.log để kiểm tra dữ liệu từ cơ sở dữ liệu
+
+        if (data.length > 0) {
+            return res.status(200).json(data[0]);
+        } else {
+            return res.status(404).json("Không tìm thấy người dùng");
+        }
+    });
 });
 
-// Endpoint để lấy thông tin người dùng
-// app.get('/user', (req, res) => {
-//     const token = req.cookies?.token;
-//     console.log("Token:", token);
-//     if (!token) {
-//         return res.status(401).json({ message: "Unauthorized" });
-//     }
-
-//     try {
-//         const decoded = jwt.verify(token, "our-jsontoken-secret-key");
-//         const userId = decoded.ID_User;
-//         db.query("SELECT FullName FROM user WHERE ID = ?", [userId], (err, data) => {
-//             if (err) {
-//                 return res.status(500).json({ message: "Server side error" });
-//             }
-//             if (data.length === 0) {
-//                 return res.status(404).json({ message: "User not found" });
-//             }
-//             const user = data[0];
-//             return res.status(200).json({ fullName: user.FullName });
-//         });
-//     } catch (error) {
-//         return res.status(401).json({ message: "Invalid token" });
-//     }
-// });
-
+app.put('/update_profile/:id', (req, res) => {
+    const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=? WHERE ID=?";
+    const values = [
+        req.body.email,
+        req.body.fullName,
+        req.body.gender,
+        req.body.dob,
+        req.body.phoneNumber,
+        req.body.address
+    ];
+    const id = req.params.id;
+    db.query(sql, [...values, id], (err, data) => {
+        if (err) {
+            console.error("Lỗi cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi");
+        }
+        return res.status(200).json("Cập nhật thông tin thành công");
+    });
+});
 app.listen(8081, () => {
-    console.log("listening on port 8081");
+    console.log("Đang chạy trên cổng 8081");
 });

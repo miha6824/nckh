@@ -6,18 +6,16 @@ const LoginPage = () => {
     const [values, setValues] = useState({
         email: '',
         password: '',
-    })
+    });
 
-    const navigate = useNavigate('/')
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Logging in with email:", values.email);
         axios.post('http://localhost:8081/login', values)
             .then(res => {
-                console.log("Login response:", res.data);
-                if (res.data.Status === "Success") {
-                    // Giả định vai trò của người dùng dựa trên email
+                if (res.data.message === "Đăng nhập thành công") {
+                    localStorage.setItem('ID_user', res.data.userData.ID); // Thêm dòng này để lưu ID_user vào localStorage
                     const role = values.email === 'admin1@gmail.com' ? 'admin' : 'user';
                     if (role === 'admin') {
                         navigate('/Dashbroad');
@@ -25,11 +23,12 @@ const LoginPage = () => {
                         navigate('/home');
                     }
                 } else {
-                    alert(res.data.Message)
+                    alert(res.data); // Sửa thành res.data
                 }
             })
-            .catch(err => console.log(err))
-    }
+            .catch(err => console.log(err));
+    };
+
 
     return (
         <div className="d-flex justify-content-center align-items-center bg-primary vh-100">
