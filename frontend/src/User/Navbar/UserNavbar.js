@@ -95,7 +95,7 @@ const AppNavbar = () => {
                                     <CIcon icon={cilSettings} className="me-2" />
                                     Đổi mật khẩu
                                 </CDropdownItem>
-                                <CDropdownItem href="/upload-photo">
+                                <CDropdownItem href="/UploadPhotoPage">
                                     <CIcon icon={cilUser} className="me-2" />
                                     Thêm ảnh xác thực
                                 </CDropdownItem>

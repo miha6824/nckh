@@ -6,6 +6,12 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 const multer = require('multer'); // Thêm dòng này để yêu cầu module multer
 
+const faceapi = require('face-api.js');
+const { Canvas, Image } = require('canvas');
+const canvas = require('canvas');
+const fs = require('fs');
+
+
 const app = express();
 app.use(express.static('public'));
 app.use(express.json());
@@ -15,7 +21,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(cookieParser());
-app.use('public/Images', express.static(path.join(__dirname, 'public/Images'))); // Serve static files from the "uploads" directory
+app.use('public/Images', express.static(path.join(__dirname, 'public/Images')));
 
 const db = mysql.createConnection({
     host: "localhost",
@@ -23,6 +29,21 @@ const db = mysql.createConnection({
     password: "",
     database: "qlcc"
 });
+
+
+faceapi.env.monkeyPatch({ Canvas, Image });
+
+// Hàm tải các mô hình của face-api.js
+async function LoadModels() {
+    const modelPath = path.join(__dirname, 'public', 'models');
+    await faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath);
+    await faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath);
+    await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath);
+}
+LoadModels();
+
+
+
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
@@ -108,28 +129,70 @@ app.delete('/Delete_ImgUser/:id', (req, res) => {
     });
 });
 
-app.post('/create_ImgUser', upload.single('image'), (req, res) => {
-    const sql = "INSERT INTO userimage (UserName, Image, ID_User) VALUES ?";
-    const values = [
-        [
-            req.body.username,
-            req.file.filename,
-            req.body.id_user
-        ]
-    ];
 
+
+// Hàm xử lý tải lên ảnh và lưu thông tin vào cơ sở dữ liệu
+app.post('/create_ImgUser', upload.single('image'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
     }
 
-    db.query(sql, [values], (err, data) => {
-        if (err) {
-            console.error("Database error:", err);
-            return res.status(500).json("Error");
+    const sql = "INSERT INTO userimage (UserName, Image, ID_User, FaceDescriptor) VALUES ?";
+    let progress = 0;
+
+    try {
+        console.log(`Progress: ${progress}% - Starting image processing...`);
+
+        // Bắt đầu quá trình trích xuất đặc trưng khuôn mặt từ ảnh
+        progress += 20;
+        const imagePath = path.join(__dirname, 'public/Images', req.file.filename);
+        console.log(`Progress: ${progress}% - Loading image...`);
+        const img = await canvas.loadImage(imagePath);
+
+        progress += 20;
+        console.log(`Progress: ${progress}% - Detecting face and extracting features...`);
+        const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+
+        if (!detections) {
+            console.log(`Progress: ${progress}% - No face detected`);
+            return res.status(400).json({ error: "No face detected" });
         }
-        return res.status(200).json("Img created successfully");
-    });
+
+        progress += 20;
+        console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
+        const descriptor = detections.descriptor;
+        const descriptorArray = Array.from(descriptor); // Chuyển đổi Float32Array thành mảng thường để lưu vào MySQL
+
+        progress += 20;
+        console.log(`Progress: ${progress}% - Converting descriptor to array...`);
+
+        const values = [
+            [
+                req.body.username,
+                req.file.filename,
+                req.body.id_user,
+                JSON.stringify(descriptorArray) // Lưu đặc trưng khuôn mặt vào cột FaceDescriptor
+            ]
+        ];
+
+        progress += 20;
+        console.log(`Progress: ${progress}% - Inserting data into database...`);
+        db.query(sql, [values], (err, data) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json("Error");
+            }
+            console.log(`Progress: 100% - Data inserted successfully`);
+            return res.status(200).json("Img created and face descriptor saved successfully");
+        });
+    } catch (error) {
+        console.error("Face API error:", error);
+        return res.status(500).json("Error processing image");
+    }
 });
+
+
+
 
 // Thêm vào endpoint đăng nhập  
 app.post('/login', (req, res) => {

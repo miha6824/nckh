@@ -49,6 +49,7 @@ function CRUD_User() {
                                     <th>Ngày sinh</th>
                                     <th>Số điện thoại</th>
                                     <th>Địa chỉ</th>
+                                    <th>ID_Department</th>
                                     <th>Hệ số lương</th>
                                     <th>Actions</th>
                                 </tr>
@@ -63,6 +64,7 @@ function CRUD_User() {
                                         <td>{data.BirthDay}</td>
                                         <td>{data.Telephone}</td>
                                         <td>{data.Address}</td>
+                                        <td>{data.ID_Department}</td>
                                         <td>{data.HSLuong}</td>
                                         <td>
                                             <Link to={`/update_user/${data.ID}`} className="btn btn-primary">Sửa</Link>

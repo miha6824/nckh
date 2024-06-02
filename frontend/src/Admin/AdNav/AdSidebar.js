@@ -15,7 +15,7 @@ import '@coreui/coreui/dist/css/coreui.min.css';
 
 function AdSidebar() {
     return (
-        <CSidebar className="vh-100" unfoldable colorScheme="dark">
+        <CSidebar className="vh-100 bg-dark" colorScheme="dark">
             <CSidebarHeader className="border-bottom">
                 <CSidebarBrand>CUI</CSidebarBrand>
             </CSidebarHeader>
