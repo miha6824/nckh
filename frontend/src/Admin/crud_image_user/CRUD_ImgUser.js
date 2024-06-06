@@ -7,7 +7,6 @@ import './CRUD_ImgUser.css';
 
 function CRUD_ImgUser() {
     const [userImages, setUserImages] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null);
 
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_ImgUser')
@@ -26,12 +25,6 @@ function CRUD_ImgUser() {
         }
     };
 
-    const handleViewUser = (user) => {
-        setSelectedUser(user);
-    };
-
-    console.log(selectedUser);
-
     return (
         <div className="d-flex vh-100">
             <AdSidebar />
@@ -40,7 +33,7 @@ function CRUD_ImgUser() {
                 <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
                     <div className="crud-user-container w-90">
                         <div className="d-flex justify-content-end mb-2">
-                            <Link to="/create_ImgUser" className="btn btn-success">Add +</Link>
+                            <Link to="/create_ImgUser" className="btn btn-success">Tạo ảnh cho nhân viên mới+</Link>
                         </div>
                         <table className="table">
                             <thead>
@@ -58,49 +51,18 @@ function CRUD_ImgUser() {
                                         <td>{image.ID}</td>
                                         <td>{image.UserName}</td>
                                         <td>
-                                            {image.Image && <img src={`http://localhost:8081${image.Image}`} alt={image.UserName} style={{ width: '50px', height: '50px' }} />}
+                                            {image.Image && <img src={`http://localhost:8081/Images/${image.Image}`} alt={image.UserName} style={{ width: '120px', height: '120px' }} />}
                                         </td>
                                         <td>{image.ID_User}</td>
                                         <td>
-                                            <Link to={`/update_ImgUser/${image.ID}`} className="btn btn-primary">Sửa</Link>
+                                            <Link to={`/ImgUserAdd/${image.ID}`} className="btn btn-primary">Thêm ảnh</Link>
                                             <button className="btn btn-danger ms-2" onClick={() => handleDelete(image.ID)}>Xóa</button>
-                                            <button className="btn btn-info ms-2" onClick={() => handleViewUser(image)}>Xem</button>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
-                    {selectedUser && (
-                        <div className="user-info-modal">
-                            <div className="user-info-content">
-                                <h3>Thông tin người dùng</h3>
-                                <table className="table table-striped">
-                                    <tbody>
-                                        <tr>
-                                            <th>ID</th>
-                                            <td>{selectedUser.ID}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Họ và Tên</th>
-                                            <td>{selectedUser.UserName}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Hình ảnh</th>
-                                            <td>
-                                                {selectedUser.Image && <img src={`http://localhost:8081/Images/${selectedUser.Image}`} alt={selectedUser.UserName} style={{ width: '200px', height: '200px' }} />}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>ID_User</th>
-                                            <td>{selectedUser.ID_User}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <button onClick={() => setSelectedUser(null)} className="btn btn-primary">Đóng</button>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

@@ -12,6 +12,9 @@ import UserUpdate from './Admin/crud_user/UserUpdate';
 import Dashbroad from './Admin/Dashbroad/Dashbroad';
 import CRUD_ImgUser from './Admin/crud_image_user/CRUD_ImgUser'
 import ImgUserCreate from './Admin/crud_image_user/ImgUserCreate'
+import AddImageToUser from './Admin/crud_image_user/AddImageToUser';
+import CRUD_Account from './Admin/crud_account/CRUD_Account';
+import CRUD_Department from './Admin/crud_department/CRUD_Department';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -32,6 +35,9 @@ function App() {
         <Route path="/update_user/:id" element={<UserUpdate />} />
         <Route path="/CRUD_ImgUser" element={<CRUD_ImgUser />} />
         <Route path="/create_ImgUser" element={<ImgUserCreate />} />
+        <Route path="/ImgUserAdd/:id" element={<AddImageToUser />} />
+        <Route path="/CRUD_Account" element={<CRUD_Account />} />
+        <Route path="/CRUD_Department" element={<CRUD_Department />} />
         <Route path="/Dashbroad" element={<Dashbroad />} />
       </Routes>
     </Router>

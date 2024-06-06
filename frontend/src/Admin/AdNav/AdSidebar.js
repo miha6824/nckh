@@ -30,9 +30,13 @@ function AdSidebar() {
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
                         Quản lý nhân sự
                     </CNavItem>
-                    <CNavItem href="/create_User">
+                    <CNavItem href="/CRUD_Account">
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
                         Quản lý tài khoản
+                    </CNavItem>
+                    <CNavItem href="/CRUD_Department">
+                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
+                        Quản lý phòng ban
                     </CNavItem>
                     <CNavItem href="/CRUD_ImgUser">
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>

@@ -38,3 +38,21 @@
 .user-info-content button {
     margin-top: 20px;
 }
+
+/* CRUD_ImgUser.css */
+.crud-user-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.table th, .table td {
+    text-align: center; /* Căn giữa các chữ trong các ô */
+    vertical-align: middle; /* Căn giữa các nội dung trong ô */
+}
+
+
+.table th:last-child, .table td:last-child {
+    width: 200px; /* Độ rộng cố định cho cột Actions */
+}
+
+
