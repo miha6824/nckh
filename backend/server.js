@@ -150,7 +150,10 @@ app.delete('/Delete_ImgUser/:id', (req, res) => {
 
 app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
     const id = req.params.id;
+    console.log("Received request to upload image for user ID:", id);
+
     if (!req.file) {
+        console.log("No file uploaded");
         return res.status(400).json({ error: "No file uploaded" });
     }
 
@@ -163,6 +166,7 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
         }
 
         if (userInfo.length === 0) {
+            console.log("User not found");
             return res.status(404).json({ error: "User not found" });
         }
 
@@ -222,6 +226,7 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
         }
     });
 });
+
 
 // Hàm xử lý tải lên ảnh và lưu thông tin vào cơ sở dữ liệu
 app.post('/create_ImgUser', upload.single('image'), async (req, res) => {
@@ -284,8 +289,6 @@ app.post('/create_ImgUser', upload.single('image'), async (req, res) => {
 });
 
 
-
-
 // Thêm vào endpoint đăng nhập  
 app.post('/login', (req, res) => {
     console.log("Received email:", req.body.email);
@@ -321,8 +324,118 @@ app.post('/login', (req, res) => {
 });
 
 
+app.get('/logout', (req, res) => {
+    // Xóa cookie token để đăng xuất người dùng
+    res.clearCookie('token');
+    res.status(200).json("Đăng xuất thành công");
+});
 
 
+// Endpoint for user registration
+app.post('/register', (req, res) => {
+    const { email, password, fullName, sex, birthday, telephone, address } = req.body;
+    const sqlCheck = "SELECT * FROM account WHERE Email = ?";
+    const sqlInsertUser = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address) VALUES (?, ?, ?, ?, ?, ?)";
+    const sqlInsertAccount = "INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)";
+
+    // Check if email already exists
+    db.query(sqlCheck, [email], (err, data) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json("Error");
+        }
+        if (data.length > 0) {
+            return res.status(409).json("Email already exists");
+        } else {
+            // Insert new user
+            db.query(sqlInsertUser, [email, fullName, sex, birthday, telephone, address], (err, result) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    return res.status(500).json("Error");
+                }
+                const userID = result.insertId;
+                const role = "user"; // Set role to "user"
+                // Insert new account
+                db.query(sqlInsertAccount, [email, password, userID, role], (err, result) => {
+                    if (err) {
+                        console.error("Database error:", err);
+                        return res.status(500).json("Error");
+                    }
+                    return res.status(200).json("User registered successfully");
+                });
+            });
+        }
+    });
+});
+
+
+
+
+app.post('/ImgUserAddUserSite/:id', upload.single('image'), async (req, res) => {
+    const id = req.params.id;
+    console.log("Received request to upload image for user ID:", id);
+
+    if (!req.file) {
+        console.log("No file uploaded");
+        return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Thực hiện truy vấn SQL để lấy thông tin về UserName và ID_User
+    const userInfoQuery = "SELECT UserName, ID_User FROM userimage WHERE ID = ?";
+    db.query(userInfoQuery, [id], async (err, userInfo) => {
+        const sql = "INSERT INTO userimage (UserName, Image, ID_User, FaceDescriptor) VALUES ?";
+        let progress = 0;
+        try {
+            console.log(`Progress: ${progress}% - Starting image processing...`);
+
+            // Bắt đầu quá trình trích xuất đặc trưng khuôn mặt từ ảnh
+            progress += 20;
+            const imagePath = path.join(__dirname, 'public/Images', req.file.filename);
+            console.log(`Progress: ${progress}% - Loading image...`);
+            const img = await canvas.loadImage(imagePath);
+
+            progress += 20;
+            console.log(`Progress: ${progress}% - Detecting face and extracting features...`);
+            const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+
+            if (!detections) {
+                console.log(`Progress: ${progress}% - No face detected`);
+                return res.status(400).json({ error: "No face detected" });
+            }
+
+            progress += 20;
+            console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
+            const descriptor = detections.descriptor;
+            const descriptorArray = Array.from(descriptor); // Chuyển đổi Float32Array thành mảng thường để lưu vào MySQL
+
+            progress += 20;
+            console.log(`Progress: ${progress}% - Converting descriptor to array...`);
+
+            const values = [
+                [
+                    req.body.username,
+                    req.file.filename,
+                    req.body.id_user,
+                    JSON.stringify(descriptorArray)
+                ]
+            ];
+
+            progress += 20;
+            console.log(`Progress: ${progress}% - Inserting data into database...`);
+            db.query(sql, [values], (err, data) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    return res.status(500).json("Error");
+                }
+                console.log(`Progress: 100% - Data inserted successfully`);
+                return res.status(200).json("Img created and face descriptor saved successfully");
+            });
+        } catch (error) {
+            console.error("Face API error:", error);
+            return res.status(500).json("Error processing image");
+        }
+    });
+});
 
 
 
@@ -348,19 +461,25 @@ app.get('/userInfo4AddImg/:id', (req, res) => {
 
 
 
+// Endpoint để lấy thông tin người dùng dựa trên ID
+app.get('/userInfo4AddImgUserSite/:id', (req, res) => {
+    const userId = req.params.id;
+    console.log("Received user ID:", userId);
+    const userInfoQuery = "SELECT FullName, ID FROM user WHERE ID= ?";
+    db.query(userInfoQuery, [userId], (err, userInfo) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json("Error");
+        }
+        console.log("Data from database:", userInfo);
+        if (userInfo.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
 
-
-
-
-
-
-
-
-
-
-
-
-
+        // Trả về thông tin người dùng
+        res.json(userInfo[0]);
+    });
+});
 
 
 // Endpoint để lấy dữ liệu người dùng dựa trên ID

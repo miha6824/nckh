@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as faceapi from 'face-api.js';
-import UserNavbar from '../Navbar/UserNavbar';
-import './Atendance.css';
+import styles from './Atendance.module.css';
+import { Link } from 'react-router-dom';
 
 function AttendancePage() {
     const videoHeight = 480;
@@ -57,13 +57,12 @@ function AttendancePage() {
 
     return (
         <div>
-            <UserNavbar />
-            <div className='App'>
-
+            <Link to='/login' className={`${styles.btn} btn btn-success rounded-0`}>Sign-In</Link>
+            <div className={styles.App}>
                 {initializing && <span>Initializing...</span>}
-                <div className='display-flex justify-content-center'>
+                <div className={`${styles.displayflex}`}>
                     <video ref={videoRef} autoPlay muted height={videoHeight} width={videoWidth} onPlay={handleVideoOnPlay} />
-                    <canvas ref={canvasRef} className='position-absolute' width={videoWidth} height={videoHeight} />
+                    <canvas ref={canvasRef} className={styles.positionabsolute} width={videoWidth} height={videoHeight} />
                 </div>
             </div>
         </div>

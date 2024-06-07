@@ -61,12 +61,6 @@ const AppNavbar = () => {
                 <CCollapse className="navbar-collapse">
                     <CNavbarNav className="me-auto ms-5">
                         <CNavItem className="mx-3">
-                            <CNavLink href="/attendance" className="nav-link-highlight">
-                                <CIcon icon={cilClock} className="me-2" />
-                                Chấm công
-                            </CNavLink>
-                        </CNavItem>
-                        <CNavItem className="mx-3">
                             <CNavLink href="/tasks" className="nav-link-highlight">
                                 <CIcon icon={cilTask} className="me-2" />
                                 Công việc

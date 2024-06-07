@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
     const [values, setValues] = useState({
@@ -46,7 +46,7 @@ const LoginPage = () => {
                             onChange={e => setValues({ ...values, password: e.target.value })} className='form-control rounded-0' />
                     </div>
                     <button type='submit' className='btn btn-success w-100 rounded-0'>Sign in</button>
-                    <p>You are agree to aour terms and policies</p>
+                    <Link to={'/register'} className='mt-3 btn btn-success w-100 rounded-0'>Sign Up</Link >
                 </form>
             </div>
         </div>

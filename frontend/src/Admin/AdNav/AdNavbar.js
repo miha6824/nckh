@@ -3,8 +3,18 @@ import { CDropdown, CDropdownToggle, CDropdownMenu, CDropdownItem, CNavbar, CCon
 import CIcon from '@coreui/icons-react';
 import { cilSettings, cilAccountLogout, cilUser, cilMenu, cilBell, cilEnvelopeOpen } from '@coreui/icons';
 import '@coreui/coreui/dist/css/coreui.min.css';
+import axios from 'axios';
 
 function AdNavbar() {
+    const handleLogout = () => {
+        axios.get('http://localhost:8081/logout', { withCredentials: true })
+            .then(res => {
+                window.location.href = '/login';
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    };
     return (
         <>
             <CNavbar colorScheme="dark" className="bg-dark custom-navbar">
@@ -24,7 +34,7 @@ function AdNavbar() {
                                     <CIcon icon={cilSettings} className="me-2" />
                                     Settings
                                 </CDropdownItem>
-                                <CDropdownItem href="/logout">
+                                <CDropdownItem onClick={handleLogout}>
                                     <CIcon icon={cilAccountLogout} className="me-2" />
                                     Logout
                                 </CDropdownItem>

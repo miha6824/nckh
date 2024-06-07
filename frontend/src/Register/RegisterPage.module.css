@@ -1,0 +1,16 @@
+/* RegisterPage.module.css */
+
+.formWrapper {
+    width: 50%; /* Độ rộng của form */
+}
+
+.formRow {
+    flex-direction: row; /* Sắp xếp các cột theo chiều ngang */
+}
+
+.formColumn {
+    flex: 1; /* Cột tự mở rộng để điều chỉnh kích thước */
+    margin-right: 20px; /* Khoảng cách giữa các cột */
+}
+
+/* Thêm các định dạng khác tùy theo nhu cầu */
