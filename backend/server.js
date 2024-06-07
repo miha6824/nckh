@@ -522,6 +522,57 @@ app.put('/update_profile/:id', (req, res) => {
         return res.status(200).json("Cập nhật thông tin thành công");
     });
 });
+
+
+
+
+
+
+
+
+// Thêm endpoint để so sánh khuôn mặt trên máy chủ
+app.post('/compareFaces', async (req, res) => {
+    const faceDescriptor = req.body.faceDescriptor;
+
+    // Lấy tất cả dữ liệu khuôn mặt và đặc trưng từ cơ sở dữ liệu
+    const sql = "SELECT ID_User, UserName, FaceDescriptor FROM userimage";
+    db.query(sql, async (err, data) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ success: false, error: "Database error" });
+        }
+
+        // So sánh đặc trưng khuôn mặt từ video với từng đặc trưng trong cơ sở dữ liệu
+        const foundUsers = [];
+        data.forEach(async (row) => {
+            const dbFaceDescriptor = JSON.parse(row.FaceDescriptor);
+            const distance = faceapi.euclideanDistance(faceDescriptor, dbFaceDescriptor);
+            if (distance < 0.6) { // Ngưỡng ngẫu nhiên, bạn có thể thay đổi tùy ý
+                foundUsers.push({ ID_User: row.ID_User, UserName: row.UserName });
+            }
+        });
+
+        // Trả về thông tin người dùng nếu tìm thấy khớp
+        if (foundUsers.length > 0) {
+            return res.json({ success: true, users: foundUsers });
+        } else {
+            return res.json({ success: false, message: "User not found" });
+        }
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 app.listen(8081, () => {
     console.log("Đang chạy trên cổng 8081");
 });
