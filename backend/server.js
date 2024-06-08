@@ -482,6 +482,31 @@ app.get('/userInfo4AddImgUserSite/:id', (req, res) => {
 });
 
 
+
+
+app.get('/department/:id', (req, res) => {
+    const id = req.params.id;
+    console.log("Received user ID:", id); // Thêm console.log để kiểm tra ID người dùng nhận được
+
+    const sql = "SELECT * FROM departments WHERE ID = ?";
+    db.query(sql, [id], (err, data) => {
+        if (err) {
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi server");
+        }
+        console.log("Data from database:", data); // Thêm console.log để kiểm tra dữ liệu từ cơ sở dữ liệu
+
+        if (data.length > 0) {
+            return res.status(200).json(data[0]);
+        } else {
+            return res.status(404).json("Không tìm thấy người dùng");
+        }
+    });
+});
+
+
+
+
 // Endpoint để lấy dữ liệu người dùng dựa trên ID
 app.get('/user/:id', (req, res) => {
     const id = req.params.id;

@@ -1,6 +1,10 @@
-.App{
+.App {
     text-align: center;
-    margin-top: 150px;
+    margin-top: 150px; 
+    margin-left: 200px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia layout thành hai cột bằng tỷ lệ 1:1 */
+    gap: 20px; /* Khoảng cách giữa các phần tử */
 }
 
 .btn {
@@ -9,12 +13,31 @@
     right: 20px;
 }
 
-.displayflex{
-    margin-top: 50px;
+.displayflex {
     display: flex;
-    justify-content: center;
+    align-items: center; /* Căn chỉnh các phần tử theo chiều dọc */
+    justify-content: center; /* Căn chỉnh các phần tử theo chiều ngang */
+    grid-column: 1 / span 1; /* Cột đầu tiên */
 }
 
-.positionabsolute{
+.positionabsolute {
     position: absolute;
+}
+
+.userinfocontainer {
+    grid-column: 2 / span 1; /* Cột thứ hai */
+    display: flex;
+    flex-direction: column; /* Xếp các phần tử theo chiều dọc */
+    align-items: flex-start; /* Căn chỉnh các phần tử theo chiều dọc */
+    margin-top: 100px;
+    margin-left: 100px;
+}
+
+.userinfocontainer h2 {
+    margin-bottom: 20px; /* Khoảng cách giữa tiêu đề và các thông tin người dùng */
+}
+
+.userinfocontainer p {
+    margin: 5px 0; /* Khoảng cách giữa các thông tin người dùng */
+    padding: 0; /* Xóa padding mặc định của các thẻ p */
 }

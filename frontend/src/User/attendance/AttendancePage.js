@@ -11,6 +11,18 @@ function AttendancePage() {
     const videoRef = useRef();
     const canvasRef = useRef();
 
+
+    const [userInfo, setUserInfo] = useState({
+        email: '',
+        fullName: '',
+        dob: '',
+        phoneNumber: '',
+        address: '',
+        gender: '',
+        id_department: ''
+    });
+
+
     useEffect(() => {
         const loadModels = async () => {
             const MODEL_URL = process.env.PUBLIC_URL + '/models';
@@ -47,6 +59,7 @@ function AttendancePage() {
         return userData.map(user => {
             return {
                 userName: user.UserName,
+                id_user: user.ID_User,
                 faceDescriptor: JSON.parse(user.FaceDescriptor)
             };
         });
@@ -65,32 +78,62 @@ function AttendancePage() {
                     faceapi.draw.drawDetections(canvasRef.current, resizedDetections);
                     faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetections);
                     // So sánh đặc trưng với cơ sở dữ liệu
-                    resizedDetections.forEach(detection => {
+                    resizedDetections.forEach(async (detection) => {
                         const faceDescriptor = detection.descriptor;
-                        const match = userDescriptors.find(user => {
-                            return faceapi.euclideanDistance(faceDescriptor, user.faceDescriptor) < 0.6; // Ngưỡng khoảng cách
+                        const match = userDescriptors.find((user) => {
+                            return (
+                                faceapi.euclideanDistance(faceDescriptor, user.faceDescriptor) <
+                                0.6
+                            ); // Ngưỡng khoảng cách
                         });
                         if (match) {
                             console.log('Khuôn mặt thuộc về:', match.userName);
-                            // Đưa ra nhãn cho khuôn mặt
-                            // Ví dụ: Vẽ tên người dùng lên khuôn mặt
+
+                            try {
+                                const res = await axios.get(`http://localhost:8081/user/${match.id_user}`);
+                                const preUserInfo = res.data;
+                                console.log(preUserInfo);
+                                setUserInfo({
+                                    email: preUserInfo.Email,
+                                    fullName: preUserInfo.FullName,
+                                    dob: new Date(preUserInfo.BirthDay).toISOString().split('T')[0],
+                                    phoneNumber: preUserInfo.Telephone,
+                                    address: preUserInfo.Address,
+                                    gender: preUserInfo.Sex,
+                                    id_department: preUserInfo.ID_Department
+                                });
+                            } catch (error) {
+                                console.error('Error fetching user info:', error);
+                            }
+
+                            const { x, y, width, height } = detection.detection.box;
+                            const ctx = canvasRef.current.getContext('2d');
+                            ctx.fillStyle = 'green';
+                            ctx.font = '24px Arial';
+                            ctx.fillText(
+                                match.userName + '-' + match.id_user,
+                                x + 5,
+                                y + height + 24
+                            );
+                        } else {
+                            console.log('Không nhận diện được người này');
+                            // Vẽ nhãn "Unknown" trên khuôn mặt
+                            setUserInfo({
+                                email: 'unknow',
+                                fullName: 'unknow',
+                                dob: 'unknow',
+                                phoneNumber: 'unknow',
+                                address: 'unknow',
+                                gender: 'unknow',
+                                id_department: 'unknow'
+                            });
                             const { x, y, width, height } = detection.detection.box;
                             const ctx = canvasRef.current.getContext('2d');
                             ctx.fillStyle = 'red';
                             ctx.font = '24px Arial';
-                            ctx.fillText(match.userName, x + 5, y + height + 24);
-                        }
-                        else {
-                            console.log('Không nhận diện được người này');
-                            // Vẽ nhãn "Unknown" trên khuôn mặt
-                            const { x, y, width, height } = detection.detection.box;
-                            const ctx = canvasRef.current.getContext('2d');
-                            ctx.fillStyle = 'blue';
-                            ctx.font = '24px Arial';
                             ctx.fillText('Unknown', x + 5, y + height + 24);
                         }
                     });
-
                 };
 
                 setInterval(detectFace, 1000);
@@ -105,12 +148,23 @@ function AttendancePage() {
             <Link to='/login' className={`${styles.btn} btn btn-success rounded-0`}>Sign-In</Link>
             <div className={styles.App}>
                 {initializing && <span>Initializing...</span>}
-                <div className={`${styles.displayflex}`}>
+                <div className={styles.displayflex}>
                     <video ref={videoRef} autoPlay muted height={videoHeight} width={videoWidth} onPlay={handleVideoOnPlay} />
                     <canvas ref={canvasRef} className={styles.positionabsolute} width={videoWidth} height={videoHeight} />
                 </div>
+                <div className={styles.userinfocontainer}>
+                    <h2>User Info</h2>
+                    <p>Email: {userInfo.email}</p>
+                    <p>Full Name: {userInfo.fullName}</p>
+                    <p>Date of Birth: {userInfo.dob}</p>
+                    <p>Phone Number: {userInfo.phoneNumber}</p>
+                    <p>Address: {userInfo.address}</p>
+                    <p>Gender: {userInfo.gender}</p>
+                    <p>ID_Department: {userInfo.id_department}</p>
+                </div>
             </div>
         </div>
+
     );
 }
 
