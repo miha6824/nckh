@@ -549,52 +549,39 @@ app.put('/update_profile/:id', (req, res) => {
 });
 
 
+// Thêm endpoint để lưu thông tin vào bảng attendance
+app.post('/attendance', (req, res) => {
+    const { userId } = req.body;
 
-
-
-
-
-
-// Thêm endpoint để so sánh khuôn mặt trên máy chủ
-app.post('/compareFaces', async (req, res) => {
-    const faceDescriptor = req.body.faceDescriptor;
-
-    // Lấy tất cả dữ liệu khuôn mặt và đặc trưng từ cơ sở dữ liệu
-    const sql = "SELECT ID_User, UserName, FaceDescriptor FROM userimage";
-    db.query(sql, async (err, data) => {
+    // Kiểm tra thời gian bản ghi gần nhất
+    const checkLastAttendanceSql = "SELECT timestamp FROM attendance WHERE ID_User = ? ORDER BY timestamp DESC LIMIT 1";
+    db.query(checkLastAttendanceSql, [userId], (err, result) => {
         if (err) {
             console.error("Database error:", err);
-            return res.status(500).json({ success: false, error: "Database error" });
+            return res.status(500).json("Error");
         }
 
-        // So sánh đặc trưng khuôn mặt từ video với từng đặc trưng trong cơ sở dữ liệu
-        const foundUsers = [];
-        data.forEach(async (row) => {
-            const dbFaceDescriptor = JSON.parse(row.FaceDescriptor);
-            const distance = faceapi.euclideanDistance(faceDescriptor, dbFaceDescriptor);
-            if (distance < 0.6) { // Ngưỡng ngẫu nhiên, bạn có thể thay đổi tùy ý
-                foundUsers.push({ ID_User: row.ID_User, UserName: row.UserName });
+        const currentTime = new Date();
+        if (result.length > 0) {
+            const lastAttendanceTime = new Date(result[0].timestamp);
+            const timeDifference = (currentTime - lastAttendanceTime) / (1000 * 60 * 60); // tính bằng giờ
+
+            if (timeDifference < 2) {
+                return res.status(200).json("Attendance already recorded within the last 2 hours");
             }
-        });
-
-        // Trả về thông tin người dùng nếu tìm thấy khớp
-        if (foundUsers.length > 0) {
-            return res.json({ success: true, users: foundUsers });
-        } else {
-            return res.json({ success: false, message: "User not found" });
         }
+
+        // Thêm bản ghi mới nếu đã qua 2 tiếng hoặc không có bản ghi nào trước đó
+        const insertAttendanceSql = "INSERT INTO attendance (ID_User) VALUES (?)";
+        db.query(insertAttendanceSql, [userId], (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json("Error");
+            }
+            return res.status(200).json("Attendance recorded successfully");
+        });
     });
 });
-
-
-
-
-
-
-
-
-
-
 
 
 

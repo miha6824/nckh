@@ -102,6 +102,7 @@ function AttendancePage() {
                                     gender: preUserInfo.Sex,
                                     id_department: preUserInfo.ID_Department
                                 });
+                                await axios.post('http://localhost:8081/attendance', { userId: match.id_user });
                             } catch (error) {
                                 console.error('Error fetching user info:', error);
                             }
