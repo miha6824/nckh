@@ -82,6 +82,24 @@ app.get("/CRUD_Account", (req, res) => {
     });
 });
 
+app.get("/CRUD_Attendance", (req, res) => {
+    const sql = "SELECT * FROM attendance";
+    db.query(sql, (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json(data);
+    });
+});
+
+app.delete('/Delete_atten/:id', (req, res) => {
+    const sql = "DELETE FROM attendance WHERE ID=?";
+    const id = req.params.id;
+    db.query(sql, [id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("User delete successfully");
+    });
+});
+
+
 
 app.post('/create_user', (req, res) => {
     const sql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
@@ -551,7 +569,7 @@ app.put('/update_profile/:id', (req, res) => {
 
 // Thêm endpoint để lưu thông tin vào bảng attendance
 app.post('/attendance', (req, res) => {
-    const { userId } = req.body;
+    const { userId, imageBase64 } = req.body;
 
     // Kiểm tra thời gian bản ghi gần nhất
     const checkLastAttendanceSql = "SELECT timestamp FROM attendance WHERE ID_User = ? ORDER BY timestamp DESC LIMIT 1";
@@ -572,13 +590,13 @@ app.post('/attendance', (req, res) => {
         }
 
         // Thêm bản ghi mới nếu đã qua 2 tiếng hoặc không có bản ghi nào trước đó
-        const insertAttendanceSql = "INSERT INTO attendance (ID_User) VALUES (?)";
-        db.query(insertAttendanceSql, [userId], (err, result) => {
+        const insertAttendanceSql = "INSERT INTO attendance (ID_User, Image) VALUES (?, ?)";
+        db.query(insertAttendanceSql, [userId, imageBase64], (err, result) => {
             if (err) {
-                console.error("Database error:", err);
-                return res.status(500).json("Error");
+                console.error("Lỗi khi thêm bản ghi điểm danh:", err);
+                return res.status(500).json("Lỗi khi lưu điểm danh");
             }
-            return res.status(200).json("Attendance recorded successfully");
+            return res.status(200).json("Điểm danh thành công");
         });
     });
 });

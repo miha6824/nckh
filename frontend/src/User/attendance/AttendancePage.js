@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as faceapi from 'face-api.js';
-import styles from './Atendance.module.css';
+import styles from './Attendance.module.css';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
@@ -10,7 +10,7 @@ function AttendancePage() {
     const [initializing, setInitializing] = useState(true);
     const videoRef = useRef();
     const canvasRef = useRef();
-
+    const ctxRef = useRef(null);
 
     const [userInfo, setUserInfo] = useState({
         email: '',
@@ -21,7 +21,6 @@ function AttendancePage() {
         gender: '',
         id_department: ''
     });
-
 
     useEffect(() => {
         const loadModels = async () => {
@@ -40,6 +39,12 @@ function AttendancePage() {
         };
         loadModels();
     }, []);
+
+    useEffect(() => {
+        if (canvasRef.current) {
+            ctxRef.current = canvasRef.current.getContext('2d');
+        }
+    }, [canvasRef]);
 
     const startVideo = async () => {
         try {
@@ -70,14 +75,15 @@ function AttendancePage() {
             .then(userDescriptors => {
                 const detectFace = async () => {
                     if (!videoRef.current) return;
+
                     const displaySize = { width: videoWidth, height: videoHeight };
                     faceapi.matchDimensions(canvasRef.current, displaySize);
                     const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
                     const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                    canvasRef.current.getContext('2d').clearRect(0, 0, videoWidth, videoHeight);
+                    ctxRef.current.clearRect(0, 0, videoWidth, videoHeight);
                     faceapi.draw.drawDetections(canvasRef.current, resizedDetections);
                     faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetections);
-                    // So sánh đặc trưng với cơ sở dữ liệu
+
                     resizedDetections.forEach(async (detection) => {
                         const faceDescriptor = detection.descriptor;
                         const match = userDescriptors.find((user) => {
@@ -86,10 +92,26 @@ function AttendancePage() {
                                 0.6
                             ); // Ngưỡng khoảng cách
                         });
+
                         if (match) {
                             console.log('Khuôn mặt thuộc về:', match.userName);
 
+                            // Chụp ảnh khi nhận diện thành công
+                            const photoCanvas = document.createElement('canvas');
+                            photoCanvas.width = videoWidth;
+                            photoCanvas.height = videoHeight;
+                            const photoCtx = photoCanvas.getContext('2d');
+                            photoCtx.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
+
+                            // Chuyển đổi ảnh sang định dạng base64 để gửi lên server
+                            const imageData = photoCanvas.toDataURL('image/jpeg');
+
+                            // Gửi ảnh và thông tin về server để lưu vào bảng attendance
                             try {
+                                const response = await axios.post('http://localhost:8081/attendance', {
+                                    userId: match.id_user,
+                                    imageBase64: imageData
+                                });
                                 const res = await axios.get(`http://localhost:8081/user/${match.id_user}`);
                                 const preUserInfo = res.data;
                                 console.log(preUserInfo);
@@ -102,16 +124,14 @@ function AttendancePage() {
                                     gender: preUserInfo.Sex,
                                     id_department: preUserInfo.ID_Department
                                 });
-                                await axios.post('http://localhost:8081/attendance', { userId: match.id_user });
+                                console.log('Attendance recorded successfully:', response.data);
                             } catch (error) {
-                                console.error('Error fetching user info:', error);
+                                console.error('Error saving attendance:', error);
                             }
-
                             const { x, y, width, height } = detection.detection.box;
-                            const ctx = canvasRef.current.getContext('2d');
-                            ctx.fillStyle = 'green';
-                            ctx.font = '24px Arial';
-                            ctx.fillText(
+                            ctxRef.current.fillStyle = 'green';
+                            ctxRef.current.font = '24px Arial';
+                            ctxRef.current.fillText(
                                 match.userName + '-' + match.id_user,
                                 x + 5,
                                 y + height + 24
@@ -129,18 +149,17 @@ function AttendancePage() {
                                 id_department: 'unknow'
                             });
                             const { x, y, width, height } = detection.detection.box;
-                            const ctx = canvasRef.current.getContext('2d');
-                            ctx.fillStyle = 'red';
-                            ctx.font = '24px Arial';
-                            ctx.fillText('Unknown', x + 5, y + height + 24);
+                            ctxRef.current.fillStyle = 'red';
+                            ctxRef.current.font = '24px Arial';
+                            ctxRef.current.fillText('Unknown', x + 5, y + height + 24);
                         }
                     });
                 };
 
-                setInterval(detectFace, 1000);
+                setInterval(detectFace, 1000); // Thực hiện phát hiện khuôn mặt mỗi giây
             })
             .catch(error => {
-                console.error('Error getting user descriptors:', error);
+                console.error('Lỗi khi lấy thông tin người dùng:', error);
             });
     };
 
@@ -165,7 +184,6 @@ function AttendancePage() {
                 </div>
             </div>
         </div>
-
     );
 }
 

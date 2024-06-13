@@ -15,6 +15,7 @@ import ImgUserCreate from './Admin/crud_image_user/ImgUserCreate'
 import AddImageToUser from './Admin/crud_image_user/AddImageToUser';
 import CRUD_Account from './Admin/crud_account/CRUD_Account';
 import CRUD_Department from './Admin/crud_department/CRUD_Department';
+import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -38,6 +39,7 @@ function App() {
         <Route path="/ImgUserAdd/:id" element={<AddImageToUser />} />
         <Route path="/CRUD_Account" element={<CRUD_Account />} />
         <Route path="/CRUD_Department" element={<CRUD_Department />} />
+        <Route path="/CRUD_Attendance" element={<CRUD_Attendance />} />
         <Route path="/Dashbroad" element={<Dashbroad />} />
       </Routes>
     </Router>
