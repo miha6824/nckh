@@ -158,13 +158,42 @@ app.get("/CRUD_ImgUser", (req, res) => {
 });
 
 app.delete('/Delete_ImgUser/:id', (req, res) => {
-    const sql = "DELETE FROM userimage WHERE ID=?";
+    const sql = "SELECT Image FROM userimage WHERE ID=?";
     const id = req.params.id;
-    db.query(sql, [id], (err, data) => {
-        if (err) return res.status(500).json("Error");
-        return res.status(200).json("Img delete successfully");
+    db.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error("Error fetching image:", err);
+            return res.status(500).send({ error: "Error fetching image" });
+        }
+
+        if (result.length === 0) {
+            console.error("Image not found");
+            return res.status(404).send({ error: "Image not found" });
+        }
+
+        const imageName = result[0].Image;
+
+        // Delete the image record from the database
+        const deleteSql = "DELETE FROM userimage WHERE ID=?";
+        db.query(deleteSql, [id], (err, data) => {
+            if (err) {
+                console.error("Error deleting image record:", err);
+                return res.status(500).send({ error: "Error deleting image record" });
+            }
+
+            // Delete the image file from the file system
+            const filePath = path.join(__dirname, 'public/Images', imageName);
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error("Error deleting image file:", err);
+                    return res.status(500).send({ error: "Error deleting image file" });
+                }
+                res.status(200).json("Image deleted successfully");
+            });
+        });
     });
 });
+
 
 app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
     const id = req.params.id;
@@ -388,6 +417,71 @@ app.post('/register', (req, res) => {
 
 
 
+// API endpoint để lấy tất cả ảnh của người dùng dựa trên ID_User
+app.get('/userImages/:userID', (req, res) => {
+    const userID = req.params.userID;
+    const sql = `SELECT * FROM userimage WHERE ID_User = ?`;
+    db.query(sql, userID, (err, result) => {
+        if (err) {
+            console.error("Error retrieving user images:", err);
+            res.status(500).json({ error: "Lỗi khi lấy danh sách ảnh của người dùng" });
+        } else {
+            res.json(result);
+        }
+    });
+});
+
+
+
+
+
+
+app.delete('/deleteUserImage/:userID/:imageID', (req, res) => {
+    const userID = req.params.userID;
+    const imageID = req.params.imageID;
+
+    // First, get the image file name to delete the file
+    const getImageSql = `SELECT Image FROM userimage WHERE ID_User = ? AND ID = ?`;
+    db.query(getImageSql, [userID, imageID], (err, result) => {
+        if (err) {
+            console.error("Error fetching image:", err);
+            return res.status(500).send({ error: "Error fetching image" });
+        }
+
+        if (result.length === 0) {
+            console.error("Image not found");
+            return res.status(404).send({ error: "Image not found" });
+        }
+
+        const imageName = result[0].Image;
+
+        // Delete the image record from the database
+        const deleteSql = `DELETE FROM userimage WHERE ID_User = ? AND ID = ?`;
+        db.query(deleteSql, [userID, imageID], (err, result) => {
+            if (err) {
+                console.error("Error deleting image record:", err);
+                return res.status(500).send({ error: "Error deleting image record" });
+            }
+
+            // Delete the image file from the file system
+            const filePath = path.join(__dirname, 'public/Images', imageName);
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error("Error deleting image file:", err);
+                    return res.status(500).send({ error: "Error deleting image file" });
+                }
+                res.send('Image deleted successfully');
+            });
+        });
+    });
+});
+
+
+
+
+
+
+
 
 app.post('/ImgUserAddUserSite/:id', upload.single('image'), async (req, res) => {
     const id = req.params.id;
@@ -498,7 +592,6 @@ app.get('/userInfo4AddImgUserSite/:id', (req, res) => {
         res.json(userInfo[0]);
     });
 });
-
 
 
 

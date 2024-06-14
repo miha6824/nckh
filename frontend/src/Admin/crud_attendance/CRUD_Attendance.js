@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import moment from 'moment';
 import { Link } from 'react-router-dom';
 import AdSidebar from '../AdNav/AdSidebar';
 import AdNavbar from '../AdNav/AdNavbar';
@@ -51,13 +52,11 @@ function CRUD_Attendance() {
                                     <tr key={i}>
                                         <td>{data.ID}</td>
                                         <td>{data.ID_User}</td>
-                                        <td>{data.timestamp}</td>
+                                        <td>{moment(data.timestamp).format('YYYY-MM-DD HH:mm:ss')}</td>
                                         <td>
                                             <img src={data.Image} alt={`attendance_${data.ID}`} style={{ width: '200px' }} />
-
                                         </td>
                                         <td>
-                                            <Link to={`/update_user/${data.ID}`} className="btn btn-primary">Sửa</Link>
                                             <button className="btn btn-danger ms-2" onClick={() => handleDelete(data.ID)}>Xóa</button>
                                         </td>
                                     </tr>
