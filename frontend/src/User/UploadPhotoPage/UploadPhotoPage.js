@@ -16,12 +16,11 @@ const UploadPhotoPage = () => {
         id_user: ''
     });
     const [error, setError] = useState(null);
-    const [showCamera, setShowCamera] = useState(false);
+    const [cameraActive, setCameraActive] = useState(false); // State để theo dõi trạng thái của camera
     const [capturedImage, setCapturedImage] = useState(null);
     const [userImages, setUserImages] = useState([]);
-    const [showModal, setShowModal] = useState(false); // State để hiển thị modal ảnh vừa chụp
+    const [faceDetectionResult, setFaceDetectionResult] = useState(null); // State để lưu kết quả nhận diện khuôn mặt
     const webcamRef = useRef(null);
-    const canvasRef = useRef(null);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -50,22 +49,17 @@ const UploadPhotoPage = () => {
     }, []);
 
     useEffect(() => {
-        // Load các model của face-api.js khi component mount
         const loadModels = async () => {
-            const MODEL_URL = process.env.PUBLIC_URL + '/models';
-            try {
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-                ]);
-            } catch (error) {
-                console.error('Error loading models:', error);
-            }
+            // Load các model cần thiết từ face-api.js
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+            ]);
+            console.log("Models loaded");
         };
 
-        loadModels();
+        loadModels(); // Gọi hàm để tải model khi component mount
     }, []);
 
     const fetchUserImages = async (userID) => {
@@ -86,71 +80,6 @@ const UploadPhotoPage = () => {
         }
     };
 
-    const startFaceDetection = () => {
-        const webcamInstance = webcamRef.current;
-
-        if (!webcamInstance || !webcamInstance.video) {
-            console.error('Webcam reference is not yet available.');
-            return;
-        }
-
-        const videoEl = webcamInstance.video;
-
-        videoEl.addEventListener('play', async () => {
-            const canvas = faceapi.createCanvasFromMedia(videoEl);
-            canvasRef.current.innerHTML = ''; // Xóa các canvas cũ trước khi thêm mới
-            canvasRef.current.appendChild(canvas);
-            const displaySize = { width: videoEl.videoWidth, height: videoEl.videoHeight };
-            faceapi.matchDimensions(canvas, displaySize);
-
-            // Bắt đầu nhận diện khuôn mặt và vẽ lên canvas
-            setInterval(async () => {
-                const detections = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-                const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                faceapi.draw.drawDetections(canvas, resizedDetections);
-                faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-            }, 100);
-        });
-    };
-
-    const handleCaptureClick = () => {
-        setShowCamera(true);
-        setTimeout(startFaceDetection, 100); // Đợi 1 giây sau khi hiển thị camera để bắt đầu nhận diện khuôn mặt
-    };
-
-    const handleCapturePhoto = () => {
-        const imageSrc = webcamRef.current.getScreenshot();
-        setCapturedImage(imageSrc);
-        setShowCamera(false); // Tắt camera khi đã chụp ảnh
-        setShowModal(true); // Hiển thị modal ảnh vừa chụp
-    };
-
-    useEffect(() => {
-        // Khi capturedImage thay đổi, nhận diện khuôn mặt trên ảnh và vẽ lên canvas
-        if (capturedImage) {
-            detectAndDrawFaces();
-        }
-    }, [capturedImage]);
-
-    const detectAndDrawFaces = async () => {
-        const img = new Image();
-        img.src = capturedImage;
-        await img.onload;
-
-        const canvas = faceapi.createCanvasFromMedia(img);
-        canvasRef.current.innerHTML = ''; // Xóa các canvas cũ trước khi thêm mới
-        canvasRef.current.appendChild(canvas);
-        const displaySize = { width: img.width, height: img.height };
-        faceapi.matchDimensions(canvas, displaySize);
-
-        const detections = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        faceapi.draw.drawDetections(canvas, resizedDetections);
-        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
         const userID = localStorage.getItem('ID_user');
@@ -162,8 +91,41 @@ const UploadPhotoPage = () => {
 
         axios.post(`http://localhost:8081/ImgUserAddUserSite/${userID}`, data)
             .then(res => {
-                setCapturedImage(null); // Đặt capturedImage về null để đóng modal
-                setShowModal(false); // Đóng modal
+                fetchUserImages(userID);
+            })
+            .catch(err => {
+                setError(err.response ? err.response.data : "Lỗi khi upload hình ảnh");
+            });
+    };
+
+    const handleCaptureClick = () => {
+        setCameraActive(true); // Bật camera khi nhấn vào nút "Chụp ảnh"
+    };
+
+    const handleCapturePhoto = () => {
+        const imageSrc = webcamRef.current.getScreenshot();
+        setCapturedImage(imageSrc);
+        setCameraActive(false); // Tắt camera sau khi chụp ảnh
+
+        fetch(imageSrc)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], 'captured.png', { type: 'image/png' });
+                setFormData({ ...formData, image: file });
+            });
+    };
+
+    const handleSaveCapturedImage = () => {
+        const userID = localStorage.getItem('ID_user');
+
+        const data = new FormData();
+        data.append('username', formData.username);
+        data.append('image', formData.image);
+        data.append('id_user', formData.id_user);
+
+        axios.post(`http://localhost:8081/ImgUserAddUserSite/${userID}`, data)
+            .then(res => {
+                setCapturedImage(null);
                 fetchUserImages(userID);
             })
             .catch(err => {
@@ -181,6 +143,29 @@ const UploadPhotoPage = () => {
             setError(err.response ? err.response.data : "Lỗi khi xóa hình ảnh");
         }
     };
+
+    useEffect(() => {
+        // Hàm để nhận diện khuôn mặt trong video từ webcam
+        const detectFaceInVideo = async () => {
+            if (webcamRef.current && cameraActive) { // Sử dụng cameraActive thay vì showCamera
+                const video = webcamRef.current.video;
+                const result = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+
+                if (result) {
+                    const detectionPercentage = Math.round(result.detection._score * 100); // Tính phần trăm nhận diện
+                    setFaceDetectionResult(detectionPercentage);
+                } else {
+                    setFaceDetectionResult(null);
+                }
+            }
+        };
+
+        const interval = setInterval(() => {
+            detectFaceInVideo();
+        }, 1000); // Thực hiện nhận diện mỗi giây
+
+        return () => clearInterval(interval); // Clean up khi component unmount
+    }, [cameraActive]);
 
     const sliderSettings = {
         dots: true,
@@ -246,27 +231,37 @@ const UploadPhotoPage = () => {
                     </div>
                 </div>
 
-                <div className={styles.cameraContainer}>
-                    {showCamera && (
-                        <div className={styles.cameraOverlay}>
+                {cameraActive && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modalContent}>
+                            <span onClick={() => setCameraActive(false)} className={styles.closeIcon}>X</span>
                             <Webcam
                                 audio={false}
                                 ref={webcamRef}
                                 screenshotFormat="image/png"
                                 className={styles.webcam}
                             />
-                            <div ref={canvasRef} className={styles.canvasOverlay}></div>
+                            {/* Phần hiển thị phần trăm nhận diện */}
+                            {faceDetectionResult !== null && (
+                                <div className={styles.faceDetection}>
+                                    Phần trăm nhận diện khuôn mặt: {faceDetectionResult}%
+                                </div>
+                            )}
                             <button onClick={handleCapturePhoto} className={styles.captureButton}>Chụp</button>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
-                {showModal && (
+
+
+
+
+                {capturedImage && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>
                             <img src={capturedImage} alt="Captured" className={styles.capturedImage} />
-                            <button onClick={handleSubmit} className={styles.saveButton}>Lưu</button>
-                            <button onClick={() => setShowModal(false)} className={styles.closeButton}>Đóng</button>
+                            <button onClick={handleSaveCapturedImage} className={styles.saveButton}>Lưu</button>
+                            <button onClick={() => setCapturedImage(null)} className={styles.closeButton}>Đóng</button>
                         </div>
                     </div>
                 )}

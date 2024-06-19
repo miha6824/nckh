@@ -99,7 +99,11 @@
     transition: background-color 0.2s, transform 0.2s;
 }
 
-
+.captureButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+}
 
 .captureButton:hover {
     background-color: #0056b3;
@@ -128,6 +132,11 @@
     transform: scale(1.05);
 }
 
+.closeButton {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
 
 .closeButton:hover {
     background-color: #c82333;
@@ -140,7 +149,7 @@
     font-weight: bold;
 }
 
-.modalOverlay {
+/* .modalOverlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -151,9 +160,9 @@
     justify-content: center;
     align-items: center;
     z-index: 1001;
-}
+} */
 
-.modalContent {
+/* .modalContent {
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -161,7 +170,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-}
+} */
 
 .webcam, .capturedImage {
     max-width: 100%;
@@ -254,65 +263,56 @@
     z-index: 1;
     background-color: transparent; /* Padding trong suốt */
 }
-.cameraContainer {
-    position: relative;
-    margin-bottom: 20px;
-  }
-  
-  .cameraOverlay {
-    position: relative;
-    width: 640px; /* Kích thước của video webcam */
-    height: 480px;
-    margin: 0 auto;
-    overflow: hidden;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-  }
-  
-  .webcam {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .canvasOverlay {
-    position: absolute;
+
+
+.modalOverlay {
+    position: fixed;
     top: 0;
     left: 0;
-  }
-  
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
 
+.modalContent {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative; /* Để các phần tử con sử dụng position: absolute; được */
+}
 
-  .captureButton {
+.webcam {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.faceDetection {
     position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    z-index: 1; /* Đảm bảo hiển thị trước webcam */
+}
+
+.closeIcon {
+    position: absolute;
+    top: 10px;
+    right: 2%;
+    font-size: 35px;
     cursor: pointer;
-  }
-  .capturedImage {
-    max-width: 100%;
-    max-height: 80vh;
-    border-radius: 4px;
-    margin-bottom: 20px;
-  }
-  
-  .saveButton,
-  .closeButton {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 10px;
-  }
-  
-  .closeButton {
-    background-color: #dc3545;
-  }
+    color: #ff0000;
+    z-index: 1000;
+}
