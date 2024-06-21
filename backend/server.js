@@ -663,7 +663,6 @@ app.put('/update_profile/:id', (req, res) => {
 // Thêm endpoint để lưu thông tin vào bảng attendance
 app.post('/attendance', (req, res) => {
     const { userId, imageBase64 } = req.body;
-
     // Kiểm tra thời gian bản ghi gần nhất
     const checkLastAttendanceSql = "SELECT timestamp FROM attendance WHERE ID_User = ? ORDER BY timestamp DESC LIMIT 1";
     db.query(checkLastAttendanceSql, [userId], (err, result) => {
