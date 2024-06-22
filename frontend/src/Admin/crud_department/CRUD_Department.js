@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import AdSidebar from '../AdNav/AdSidebar';
 import AdNavbar from '../AdNav/AdNavbar';
 import ReactPaginate from 'react-paginate';
-import { FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import styles from './CRUD_Department.module.css'; // Ensure the correct CSS file path
 
@@ -86,8 +86,8 @@ function CRUD_Department() {
                                         <td>{data.KHPhongBan}</td>
                                         <td>{data.TenPhongBan}</td>
                                         <td>
-                                            <Link to={`/update_department/${data.ID}`} className="btn btn-primary">Sửa</Link>
-                                            <button className="btn btn-danger ms-2" onClick={() => handleDelete(data.ID)}>Xóa</button>
+                                            <Link to={`/update_department/${data.ID}`} className="btn btn-primary"><FaEdit /></Link>
+                                            <button className="btn btn-danger ms-2" onClick={() => handleDelete(data.ID)}><FaTrash /></button>
                                         </td>
                                     </tr>
                                 ))}

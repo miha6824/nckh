@@ -660,9 +660,12 @@ app.put('/update_profile/:id', (req, res) => {
 });
 
 
-// Thêm endpoint để lưu thông tin vào bảng attendance
 app.post('/attendance', (req, res) => {
-    const { userId, imageBase64 } = req.body;
+    const { userId, fullName, imageBase64 } = req.body;
+    const lateCheckInThreshold = 30; // Ví dụ: Nếu check in muộn hơn 30 phút thì tính là check in muộn
+    const standardCheckOutTime = 17 * 60; // Ví dụ: Giờ check out tiêu chuẩn là 17:00 (tính bằng phút từ 00:00)
+    const overTimeThreshold = 30; // Ví dụ: Nếu check out sau giờ tiêu chuẩn 30 phút thì tính là tăng ca
+
     // Kiểm tra thời gian bản ghi gần nhất
     const checkLastAttendanceSql = "SELECT timestamp FROM attendance WHERE ID_User = ? ORDER BY timestamp DESC LIMIT 1";
     db.query(checkLastAttendanceSql, [userId], (err, result) => {
@@ -672,26 +675,73 @@ app.post('/attendance', (req, res) => {
         }
 
         const currentTime = new Date();
+        const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+        const currentDate = currentTime.toISOString().split('T')[0];
+
         if (result.length > 0) {
             const lastAttendanceTime = new Date(result[0].timestamp);
-            const timeDifference = (currentTime - lastAttendanceTime) / (1000 * 60 * 60); // tính bằng giờ
+            const lastAttendanceDate = lastAttendanceTime.toISOString().split('T')[0];
+            const timeDifference = (currentTime - lastAttendanceTime) / (1000 * 60); // tính bằng phút
 
-            if (timeDifference < 2) {
-                return res.status(200).json("Attendance already recorded within the last 2 hours");
+            if (timeDifference < 1) {
+                return res.status(200).json("Điểm danh đã được ghi nhận trong vòng 1 phút qua");
             }
+
+            if (currentDate === lastAttendanceDate) {
+                // Nếu đã có bản ghi trong ngày, đây là check out
+                let Status = "check out";
+                if (currentMinutes < standardCheckOutTime) {
+                    Status += ` sớm ${standardCheckOutTime - currentMinutes} phút`;
+                } else if (currentMinutes >= standardCheckOutTime + overTimeThreshold) {
+                    Status += ` tăng ca ${currentMinutes - standardCheckOutTime} phút`;
+                }
+
+                const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
+                db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+                    if (err) {
+                        console.error("Lỗi khi thêm bản ghi điểm danh:", err);
+                        return res.status(500).json("Lỗi khi lưu điểm danh");
+                    }
+                    return res.status(200).json("Điểm danh thành công");
+                });
+
+            } else {
+                // Nếu khác ngày, đây là check in mới
+                let Status = "check in";
+                if (currentMinutes > lateCheckInThreshold) {
+                    Status += ` muộn ${currentMinutes - lateCheckInThreshold} phút`;
+                }
+
+                const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
+                db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+                    if (err) {
+                        console.error("Lỗi khi thêm bản ghi điểm danh:", err);
+                        return res.status(500).json("Lỗi khi lưu điểm danh");
+                    }
+                    return res.status(200).json("Điểm danh thành công");
+                });
+            }
+        } else {
+            // Nếu không có bản ghi trước đó, check in mới
+            let Status = "check in";
+            if (currentMinutes > lateCheckInThreshold) {
+                Status += ` muộn ${currentMinutes - lateCheckInThreshold} phút`;
+            }
+
+            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
+            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+                if (err) {
+                    console.error("Lỗi khi thêm bản ghi điểm danh:", err);
+                    return res.status(500).json("Lỗi khi lưu điểm danh");
+                }
+                return res.status(200).json("Điểm danh thành công");
+            });
         }
-
-        // Thêm bản ghi mới nếu đã qua 2 tiếng hoặc không có bản ghi nào trước đó
-        const insertAttendanceSql = "INSERT INTO attendance (ID_User, Image) VALUES (?, ?)";
-        db.query(insertAttendanceSql, [userId, imageBase64], (err, result) => {
-            if (err) {
-                console.error("Lỗi khi thêm bản ghi điểm danh:", err);
-                return res.status(500).json("Lỗi khi lưu điểm danh");
-            }
-            return res.status(200).json("Điểm danh thành công");
-        });
     });
 });
+
+
+
 
 
 

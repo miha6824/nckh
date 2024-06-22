@@ -42,7 +42,7 @@ function CRUD_Attendance() {
 
     const offset = currentPage * attendancesPerPage;
     const filteredAttendances = attendanceData.filter(data =>
-        data.ID_User.toLowerCase().includes(searchTerm.toLowerCase())
+        data.FullName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     const currentPageData = filteredAttendances.slice(offset, offset + attendancesPerPage);
     const pageCount = Math.ceil(filteredAttendances.length / attendancesPerPage);
@@ -65,7 +65,7 @@ function CRUD_Attendance() {
                                     onChange={handleSearchChange}
                                 />
                                 <Link to="/create_Attendance" className={styles.addButton}>
-                                    Thêm +
+                                    <FaPlus />
                                 </Link>
                             </div>
                         </div>
@@ -73,22 +73,24 @@ function CRUD_Attendance() {
                             <table className={`table ${styles.table}`}>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>Họ và tên</th>
                                         <th>ID Người dùng</th>
                                         <th>Thời gian</th>
                                         <th>Ảnh</th>
+                                        <th>Trạng thái</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {currentPageData.map(data => (
                                         <tr key={data.ID}>
-                                            <td>{data.ID}</td>
+                                            <td>{data.FullName}</td>
                                             <td>{data.ID_User}</td>
                                             <td>{moment(data.timestamp).format('YYYY-MM-DD HH:mm:ss')}</td>
                                             <td>
                                                 <img src={data.Image} alt={`attendance_${data.ID}`} className={styles.image} />
                                             </td>
+                                            <td>{data.Status}</td>
                                             <td className={styles.actions}>
                                                 <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(data.ID)}>
                                                     <FaTrash className={styles.icon} />
