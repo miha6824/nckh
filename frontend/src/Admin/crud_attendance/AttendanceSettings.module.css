@@ -1,0 +1,37 @@
+/* AttendanceSettings.module.css */
+
+.title {
+    margin-bottom: 20px;
+}
+
+.reactCalendar {
+    max-width: 800px; 
+    width: 100%;
+    font-family: Arial, sans-serif; 
+}
+
+.calendarContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-grow: 1; /* Để lấp đầy không gian */
+}
+
+
+.formContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.formContainer label {
+    margin-bottom: 10px;
+}
+
+.formContainer input {
+    margin-bottom: 10px;
+}
+
+.submitButton {
+    margin-bottom: 20px;
+}
