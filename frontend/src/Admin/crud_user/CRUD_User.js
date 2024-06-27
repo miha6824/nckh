@@ -9,7 +9,8 @@ import '@coreui/coreui/dist/css/coreui.min.css';
 import styles from './CRUD_User.module.css';
 
 function CRUD_User() {
-    const [user, setUser] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const usersPerPage = 10;
@@ -17,19 +18,23 @@ function CRUD_User() {
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_User')
             .then(res => {
-                const formattedUser = res.data.map(item => ({
+                const formattedUsers = res.data.map(item => ({
                     ...item,
                     BirthDay: new Date(item.BirthDay).toLocaleDateString('en-GB')
                 }));
-                setUser(formattedUser);
+                setUsers(formattedUsers);
             })
+            .catch(err => console.log(err));
+
+        axios.get('http://localhost:8081/CRUD_Department')
+            .then(res => setDepartments(res.data))
             .catch(err => console.log(err));
     }, []);
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete('http://localhost:8081/Delete_user/' + id);
-            setUser(user.filter(u => u.ID !== id));
+            await axios.delete(`http://localhost:8081/Delete_user/${id}`);
+            setUsers(users.filter(user => user.ID !== id));
         } catch (err) {
             console.log(err);
         }
@@ -45,12 +50,17 @@ function CRUD_User() {
     };
 
     const offset = currentPage * usersPerPage;
-    const filteredUsers = user.filter(u =>
-        u.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.Email.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredUsers = users.filter(user =>
+        user.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.Email.toLowerCase().includes(searchTerm.toLowerCase())
     );
     const currentPageData = filteredUsers.slice(offset, offset + usersPerPage);
     const pageCount = Math.ceil(filteredUsers.length / usersPerPage);
+
+    const getDepartmentName = (departmentId) => {
+        const department = departments.find(dept => dept.ID === departmentId);
+        return department ? department.TenPhongBan : '';
+    };
 
     return (
         <div className="d-flex vh-100">
@@ -84,27 +94,27 @@ function CRUD_User() {
                                         <th>Ngày sinh</th>
                                         <th>Số điện thoại</th>
                                         <th>Địa chỉ</th>
-                                        <th>ID_Department</th>
+                                        <th>Tên Phòng Ban</th>
                                         <th>Hệ số lương</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {currentPageData.map((data, i) => (
-                                        <tr key={i}>
-                                            <td>{data.Email}</td>
-                                            <td>{data.FullName}</td>
-                                            <td>{data.Sex}</td>
-                                            <td>{data.BirthDay}</td>
-                                            <td>{data.Telephone}</td>
-                                            <td>{data.Address}</td>
-                                            <td>{data.ID_Department}</td>
-                                            <td>{data.HSLuong}</td>
+                                    {currentPageData.map(user => (
+                                        <tr key={user.ID}>
+                                            <td>{user.Email}</td>
+                                            <td>{user.FullName}</td>
+                                            <td>{user.Sex}</td>
+                                            <td>{user.BirthDay}</td>
+                                            <td>{user.Telephone}</td>
+                                            <td>{user.Address}</td>
+                                            <td>{getDepartmentName(user.ID_Department)}</td>
+                                            <td>{user.HSLuong}</td>
                                             <td>
-                                                <Link to={`/update_user/${data.ID}`} className="btn btn-primary">
+                                                <Link to={`/update_user/${user.ID}`} className="btn btn-primary">
                                                     <FaEdit />
                                                 </Link>
-                                                <button className="btn btn-danger ms-2" onClick={() => handleDelete(data.ID)}>
+                                                <button className="btn btn-danger ms-2" onClick={() => handleDelete(user.ID)}>
                                                     <FaTrash />
                                                 </button>
                                             </td>

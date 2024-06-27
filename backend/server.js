@@ -73,6 +73,25 @@ app.get("/CRUD_Department", (req, res) => {
     });
 });
 
+app.get('/DepartmentName/:id', (req, res) => {
+    const sql = "SELECT TenPhongBan FROM department WHERE ID=?";
+    const id = req.params.id;
+    db.query(sql, [id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        if (data.length === 0) return res.status(404).json("Department not found");
+        return res.status(200).json(data[0].TenPhongBan);
+    });
+});
+
+
+app.get("/HSLuong", (req, res) => {
+    const sql = "SELECT * FROM salary";
+    db.query(sql, (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json(data);
+    });
+});
+
 
 app.get("/CRUD_Account", (req, res) => {
     const sql = "SELECT * FROM account";
@@ -81,6 +100,79 @@ app.get("/CRUD_Account", (req, res) => {
         return res.status(200).json(data);
     });
 });
+
+
+app.post('/create_account', (req, res) => {
+    const sql = "INSERT INTO account (Email, Password, ID_User, Role) VALUES ?";
+    const values = [
+        [
+            req.body.email,
+            req.body.password,
+            req.body.id_user,
+            req.body.role,
+        ]
+    ];
+
+    // Thực hiện truy vấn vào cơ sở dữ liệu
+    db.query(sql, [values], (err, result) => {
+        if (err) {
+            console.error('Lỗi khi thực hiện truy vấn:', err.stack);
+            return res.status(500).json('Đã xảy ra lỗi khi tạo tài khoản');
+        }
+        console.log('tài khoản đã được tạo thành công');
+        return res.status(200).json('tài khoản đã được tạo thành công');
+    });
+});
+
+
+app.delete('/Delete_account/:id', (req, res) => {
+    const sql = "DELETE FROM account WHERE ID=?";
+    const id = req.params.id;
+    db.query(sql, [id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("User delete successfully");
+    });
+});
+
+
+
+app.get('/account/:id', (req, res) => {
+    const id = req.params.id;
+    console.log("Received account ID:", id); // Thêm console.log để kiểm tra ID người dùng nhận được
+
+    const sql = "SELECT * FROM account WHERE ID = ?";
+    db.query(sql, [id], (err, data) => {
+        if (err) {
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi server");
+        }
+        console.log("Data from database:", data); // Thêm console.log để kiểm tra dữ liệu từ cơ sở dữ liệu
+
+        if (data.length > 0) {
+            return res.status(200).json(data[0]);
+        } else {
+            return res.status(404).json("Không tìm thấy người dùng");
+        }
+    });
+});
+
+
+app.put('/update_account/:id', (req, res) => {
+    const sql = "UPDATE account SET `Email`=?, `Password`=?, `ID_User`=?, `Role`=? WHERE ID=?";
+    const values = [
+        req.body.email,
+        req.body.password,
+        req.body.id_user,
+        req.body.role,
+    ]
+    const id = req.params.id;
+    db.query(sql, [...values, id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("User update successfully");
+    });
+});
+
+
 
 app.get("/CRUD_Attendance", (req, res) => {
     const sql = "SELECT * FROM attendance";
@@ -115,9 +207,15 @@ app.post('/create_user', (req, res) => {
             req.body.hsl
         ]
     ];
-    db.query(sql, [values], (err, data) => {
-        if (err) return res.status(500).json("Error");
-        return res.status(200).json("User created successfully");
+
+    // Thực hiện truy vấn vào cơ sở dữ liệu
+    db.query(sql, [values], (err, result) => {
+        if (err) {
+            console.error('Lỗi khi thực hiện truy vấn:', err.stack);
+            return res.status(500).json('Đã xảy ra lỗi khi tạo người dùng');
+        }
+        console.log('Người dùng đã được tạo thành công');
+        return res.status(200).json('Người dùng đã được tạo thành công');
     });
 });
 
@@ -141,13 +239,38 @@ app.put('/update_user/:id', (req, res) => {
 });
 
 app.delete('/Delete_user/:id', (req, res) => {
-    const sql = "DELETE FROM user WHERE ID=?";
     const id = req.params.id;
-    db.query(sql, [id], (err, data) => {
-        if (err) return res.status(500).json("Error");
-        return res.status(200).json("User delete successfully");
+    const deleteAccountSql = "DELETE FROM account WHERE ID_User=?";
+    const deleteUserSql = "DELETE FROM user WHERE ID=?";
+    const deleteImgUserSql = "DELETE FROM userimage WHERE ID_User=?";
+    const deleteAttendance = "DELETE FROM attendance WHERE ID_User=?";
+    db.query(deleteAccountSql, [id], (err, data) => {
+        if (err) {
+            console.error(err); // Log lỗi
+            return res.status(500).json("Error deleting related account records");
+        }
+        db.query(deleteImgUserSql, [id], (err, data) => {
+            if (err) {
+                console.error(err); // Log lỗi
+                return res.status(500).json("Error deleting user");
+            }
+            db.query(deleteAttendance, [id], (err, data) => {
+                if (err) {
+                    console.error(err); // Log lỗi
+                    return res.status(500).json("Error deleting user");
+                }
+                db.query(deleteUserSql, [id], (err, data) => {
+                    if (err) {
+                        console.error(err); // Log lỗi
+                        return res.status(500).json("Error deleting user");
+                    }
+                    return res.status(200).json("User and related account records deleted successfully");
+                });
+            });
+        });
     });
 });
+
 
 app.get("/CRUD_ImgUser", (req, res) => {
     const sql = "SELECT * FROM userimage";

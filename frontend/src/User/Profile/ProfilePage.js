@@ -147,7 +147,6 @@ const Profile = () => {
                             <option value="">Chọn giới tính</option>
                             <option value="Nam">Nam</option>
                             <option value="Nữ">Nữ</option>
-                            <option value="Khác">Khác</option>
                         </select>
                     </div>
                     <button type="submit" className={styles.submitButton}>Lưu thông tin</button>

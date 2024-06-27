@@ -64,3 +64,19 @@ li::marker {
   font-size: 20px;
   margin-left: 10px;
 }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: center; /* Đảm bảo các cột được căn giữa */
+  padding: 8px; /* Điều chỉnh padding cho đẹp */
+  border: 1px solid #ddd; /* Đường viền bảng */
+}
+
+.table th {
+  background-color: #b20e0e; /* Màu nền cho header */
+}

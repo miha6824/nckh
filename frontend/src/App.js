@@ -14,6 +14,8 @@ import CRUD_ImgUser from './Admin/crud_image_user/CRUD_ImgUser'
 import ImgUserCreate from './Admin/crud_image_user/ImgUserCreate'
 import AddImageToUser from './Admin/crud_image_user/AddImageToUser';
 import CRUD_Account from './Admin/crud_account/CRUD_Account';
+import CreateAccount from './Admin/crud_account/CreateAccount';
+import UpdateAccount from './Admin/crud_account/UpdateAccount';
 import CRUD_Department from './Admin/crud_department/CRUD_Department';
 import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
 import AttendanceSettings from './Admin/crud_attendance/AttendanceSettings';
@@ -39,6 +41,8 @@ function App() {
         <Route path="/create_ImgUser" element={<ImgUserCreate />} />
         <Route path="/ImgUserAdd/:id" element={<AddImageToUser />} />
         <Route path="/CRUD_Account" element={<CRUD_Account />} />
+        <Route path="/create_Account" element={<CreateAccount />} />
+        <Route path="/update_Account/:id" element={<UpdateAccount />} />
         <Route path="/CRUD_Department" element={<CRUD_Department />} />
         <Route path="/CRUD_Attendance" element={<CRUD_Attendance />} />
         <Route path="/AttendanceSettings" element={<AttendanceSettings />} />

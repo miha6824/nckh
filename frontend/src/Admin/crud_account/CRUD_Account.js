@@ -29,7 +29,7 @@ function CRUD_Account() {
     const handleDelete = async (id) => {
         try {
             await axios.delete('http://localhost:8081/Delete_account/' + id);
-            setAccounts(accounts.filter(acc => acc.ID !== id));
+            setAccounts(accounts.filter(data => data.ID !== id));
         } catch (err) {
             console.log(err);
         }
