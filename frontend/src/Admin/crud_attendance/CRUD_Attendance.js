@@ -88,7 +88,11 @@ function CRUD_Attendance() {
                                             <td>{data.ID_User}</td>
                                             <td>{moment(data.timestamp).format('YYYY-MM-DD HH:mm:ss')}</td>
                                             <td>
-                                                <img src={data.Image} alt={`attendance_${data.ID}`} className={styles.image} />
+                                                {data.Image.startsWith('data:image/jpeg;base64,/9j/') ? (
+                                                    <img src={data.Image} alt={`attendance_${data.ID}`} className={styles.image} />
+                                                ) : (
+                                                    data.Image
+                                                )}
                                             </td>
                                             <td>{data.Status}</td>
                                             <td className={styles.actions}>

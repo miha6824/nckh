@@ -9,7 +9,7 @@ import UploadPhotoPage from './User/UploadPhotoPage/UploadPhotoPage';
 import CRUD_User from './Admin/crud_user/CRUD_User';
 import UserCreate from './Admin/crud_user/UserCreate';
 import UserUpdate from './Admin/crud_user/UserUpdate';
-import Dashbroad from './Admin/Dashbroad/Dashbroad';
+import FormReportComponent from './Admin/FormReport/FormReportComponent';
 import CRUD_ImgUser from './Admin/crud_image_user/CRUD_ImgUser'
 import ImgUserCreate from './Admin/crud_image_user/ImgUserCreate'
 import AddImageToUser from './Admin/crud_image_user/AddImageToUser';
@@ -42,7 +42,7 @@ function App() {
         <Route path="/CRUD_Department" element={<CRUD_Department />} />
         <Route path="/CRUD_Attendance" element={<CRUD_Attendance />} />
         <Route path="/AttendanceSettings" element={<AttendanceSettings />} />
-        <Route path="/Dashbroad" element={<Dashbroad />} />
+        <Route path="/FormReportComponent" element={<FormReportComponent />} />
       </Routes>
     </Router>
 

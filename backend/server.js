@@ -5,12 +5,12 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const multer = require('multer'); // Thêm dòng này để yêu cầu module multer
-
 const faceapi = require('face-api.js');
 const { Canvas, Image } = require('canvas');
 const canvas = require('canvas');
 const fs = require('fs');
-
+const schedule = require('node-schedule');
+const moment = require('moment');
 
 const app = express();
 app.use(express.static('public'));
@@ -691,92 +691,223 @@ app.post('/setStandardTimes', (req, res) => {
     });
 });
 
+
+
 // Endpoint để ghi nhận điểm danh
 app.post('/attendance', (req, res) => {
     const { userId, fullName, imageBase64 } = req.body;
-    const lateCheckInThreshold = 2; // Số phút
-    const overTimeThreshold = 30; // Số phút
+    const lateCheckInThreshold = 5; // Điều chỉnh ngưỡng này tùy theo quy định của tổ chức
+    const overTimeThreshold = 30; // Số phút cho phép tăng ca
 
     const checkLastAttendanceSql = "SELECT timestamp FROM attendance WHERE ID_User = ? ORDER BY timestamp DESC LIMIT 1";
     db.query(checkLastAttendanceSql, [userId], (err, result) => {
         if (err) {
-            console.error("Database error:", err);
-            return res.status(500).json("Error");
+            console.error("Lỗi cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi");
         }
 
-        const currentTime = new Date();
-        const currentDate = currentTime.toISOString().split('T')[0];
-        const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+        const currentTime = moment();
+        const currentDate = currentTime.format('YYYY-MM-DD');
+        const currentMinutes = currentTime.hours() * 60 + currentTime.minutes();
 
         const getStandardTimesSql = "SELECT TIME_TO_SEC(checkin_time) / 60 AS checkin_time, TIME_TO_SEC(checkout_time) / 60 AS checkout_time FROM standard_times WHERE date = ?";
         db.query(getStandardTimesSql, [currentDate], (err, standardTimesResult) => {
             if (err) {
-                console.error("Database error:", err);
-                return res.status(500).json("Error");
+                console.error("Lỗi cơ sở dữ liệu:", err);
+                return res.status(500).json("Lỗi");
             }
 
-            const standardCheckInTime = standardTimesResult.length > 0 ? standardTimesResult[0].checkin_time : 8 * 60;
-            const standardCheckOutTime = standardTimesResult.length > 0 ? standardTimesResult[0].checkout_time : 17 * 60;
+            if (standardTimesResult.length === 0) {
+                // Nếu không tìm thấy giờ tiêu chuẩn cho ngày hiện tại, thiết lập giá trị mặc định
+                const defaultCheckInTime = 8 * 60; // 08:00 sáng
+                const defaultCheckOutTime = 17 * 60; // 05:00 chiều
+                console.warn("Không tìm thấy giờ tiêu chuẩn cho ngày hiện tại, sử dụng giá trị mặc định");
 
-            if (result.length > 0) {
-                const lastAttendanceTime = new Date(result[0].timestamp);
-                const lastAttendanceDate = lastAttendanceTime.toISOString().split('T')[0];
-                const timeDifference = (currentTime - lastAttendanceTime) / (1000 * 60); // Số phút
-
-                if (timeDifference < 1) {
-                    return res.status(200).json("Điểm danh đã được ghi nhận trong vòng 1 phút qua");
-                }
-
-                if (currentDate === lastAttendanceDate) {
-                    let Status = "check out";
-                    if (currentMinutes < standardCheckOutTime) {
-                        Status += ` sớm ${standardCheckOutTime - currentMinutes} phút`;
-                    } else if (currentMinutes >= standardCheckOutTime + overTimeThreshold) {
-                        Status += ` tăng ca ${currentMinutes - standardCheckOutTime} phút`;
-                    }
-
-                    const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
-                    db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
-                        if (err) {
-                            console.error("Lỗi khi thêm bản ghi điểm danh:", err);
-                            return res.status(500).json("Lỗi khi lưu điểm danh");
-                        }
-                        return res.status(200).json("Điểm danh thành công");
-                    });
-
-                } else {
-                    let Status = "check in";
-                    if (currentMinutes > standardCheckInTime + lateCheckInThreshold) {
-                        Status += ` muộn ${currentMinutes - (standardCheckInTime + lateCheckInThreshold)} phút`;
-                    }
-
-                    const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
-                    db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
-                        if (err) {
-                            console.error("Lỗi khi thêm bản ghi điểm danh:", err);
-                            return res.status(500).json("Lỗi khi lưu điểm danh");
-                        }
-                        return res.status(200).json("Điểm danh thành công");
-                    });
-                }
+                // Dùng giá trị mặc định
+                handleAttendance(userId, fullName, imageBase64, result, currentTime, currentMinutes, defaultCheckInTime, defaultCheckOutTime, lateCheckInThreshold, overTimeThreshold, res);
             } else {
-                let Status = "check in";
-                if (currentMinutes > standardCheckInTime + lateCheckInThreshold) {
-                    Status += ` muộn ${currentMinutes - (standardCheckInTime + lateCheckInThreshold)} phút`;
-                }
+                // Dùng giá trị từ cơ sở dữ liệu
+                const standardCheckInTime = standardTimesResult[0].checkin_time;
+                const standardCheckOutTime = standardTimesResult[0].checkout_time;
 
-                const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
-                db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
-                    if (err) {
-                        console.error("Lỗi khi thêm bản ghi điểm danh:", err);
-                        return res.status(500).json("Lỗi khi lưu điểm danh");
-                    }
-                    return res.status(200).json("Điểm danh thành công");
-                });
+                handleAttendance(userId, fullName, imageBase64, result, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res);
             }
         });
     });
 });
+
+function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res) {
+    if (lastAttendanceResult.length > 0) {
+        const lastAttendanceTime = moment(lastAttendanceResult[0].timestamp);
+        const lastAttendanceDate = lastAttendanceTime.format('YYYY-MM-DD');
+        const timeDifference = currentTime.diff(lastAttendanceTime, 'minutes'); // Đổi sang phút
+
+        if (timeDifference < 1) {
+            return res.status(200).json("Đã ghi nhận điểm danh trong vòng 1 phút qua");
+        }
+
+        if (currentTime.format('YYYY-MM-DD') === lastAttendanceDate) {
+            let Status = "check out";
+            if (currentMinutes < standardCheckOutTime) {
+                Status += ` sớm ${standardCheckOutTime - currentMinutes} phút`;
+            } else if (currentMinutes >= standardCheckOutTime + overTimeThreshold) {
+                Status += ` tăng ca ${currentMinutes - standardCheckOutTime} phút`;
+            }
+
+            // Thực hiện insert vào bảng attendance với tình trạng đã xác định
+            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
+            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+                if (err) {
+                    console.error("Lỗi khi thêm bản ghi điểm danh:", err);
+                    return res.status(500).json("Lỗi khi lưu điểm danh");
+                }
+                return res.status(200).json("Điểm danh thành công");
+            });
+
+        } else {
+            let Status = "check in";
+            if (currentMinutes < standardCheckInTime - lateCheckInThreshold) {
+                Status += ` sớm ${standardCheckInTime - currentMinutes} phút`;
+            } else if (currentMinutes > standardCheckInTime + lateCheckInThreshold) {
+                Status += ` muộn ${currentMinutes - standardCheckInTime} phút`;
+            }
+
+            // Thực hiện insert vào bảng attendance với tình trạng đã xác định
+            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
+            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+                if (err) {
+                    console.error("Lỗi khi thêm bản ghi điểm danh:", err);
+                    return res.status(500).json("Lỗi khi lưu điểm danh");
+                }
+                return res.status(200).json("Điểm danh thành công");
+            });
+        }
+    } else {
+        let Status = "check in";
+        if (currentMinutes < standardCheckInTime - lateCheckInThreshold) {
+            Status += ` sớm ${standardCheckInTime - currentMinutes} phút`;
+        } else if (currentMinutes > standardCheckInTime + lateCheckInThreshold) {
+            Status += ` muộn ${currentMinutes - standardCheckInTime} phút`;
+        }
+
+        // Thực hiện insert vào bảng attendance với tình trạng đã xác định
+        const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
+        db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+            if (err) {
+                console.error("Lỗi khi thêm bản ghi điểm danh:", err);
+                return res.status(500).json("Lỗi khi lưu điểm danh");
+            }
+            return res.status(200).json("Điểm danh thành công");
+        });
+    }
+}
+
+
+
+
+
+
+
+// Chạy vào lúc 23:59 mỗi ngày
+const job = schedule.scheduleJob('59 23 * * *', () => {
+    const currentDate = new Date().toISOString().split('T')[0];
+
+    const getUsersSql = "SELECT ID,FullName FROM user";
+    db.query(getUsersSql, (err, users) => {
+        if (err) {
+            console.error("Database error:", err);
+            return;
+        }
+
+        users.forEach(user => {
+            const checkAttendanceSql = "SELECT * FROM attendance WHERE ID_User = ? AND DATE(timestamp) = ?";
+            db.query(checkAttendanceSql, [user.ID, currentDate], (err, result) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    return;
+                }
+
+                if (result.length === 0) {
+                    const insertAbsenceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
+                    const fullName = user.FullName || "Unknown";
+                    const imageBase64 = "nghỉ làm";
+                    const status = "nghỉ làm";
+
+                    db.query(insertAbsenceSql, [user.ID, fullName, imageBase64, status], (err, result) => {
+                        if (err) {
+                            console.error("Lỗi khi thêm bản ghi nghỉ làm:", err);
+                            return;
+                        }
+                        console.log(`Ghi nhận nghỉ làm cho user ${user.ID_User}`);
+                    });
+                }
+            });
+        });
+    });
+});
+
+
+
+
+
+app.get('/employees/:departmentId', (req, res) => {
+    const departmentId = req.params.departmentId;
+    db.query('SELECT * FROM user WHERE ID_Department = ?', [departmentId], (err, results) => {
+        if (err) {
+            console.error('Error fetching employees:', err);
+            res.status(500).send('Error fetching employees');
+        } else {
+            res.status(200).json(results);
+        }
+    });
+});
+
+
+app.post('/generate-report', (req, res) => {
+    const { department, employee, startDate, endDate } = req.body;
+
+    const query = `
+        SELECT a.ID_User, u.FullName, DATE(a.timestamp) AS Date,
+               MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
+               MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
+               TIMESTAMPDIFF(MINUTE, st.checkin_time, MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END)) AS LateMinutes,
+               TIMESTAMPDIFF(MINUTE, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END), st.checkout_time) AS EarlyLeaveMinutes,
+               TIMESTAMPDIFF(MINUTE, st.checkout_time, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END)) AS OvertimeMinutes
+        FROM attendance a
+        JOIN user u ON a.ID_User = u.ID
+        JOIN standard_times st ON DATE(a.timestamp) = st.date
+        WHERE u.ID_Department = ? AND u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
+        GROUP BY a.ID_User, u.FullName, Date(a.timestamp)
+    `;
+
+    db.query(query, [department, employee, startDate, endDate], (err, results) => {
+        if (err) {
+            console.error('Error generating report:', err);
+            return res.status(500).json('Error generating report');
+        }
+
+        // Xử lý thời gian trước khi gửi về client
+        const formattedResults = results.map(result => ({
+            ...result,
+            Date: moment(result.Date).format('YYYY-MM-DD'),
+            CheckIn: result.CheckIn ? moment(result.CheckIn, 'HH:mm:ss').format('HH:mm:ss') : null,
+            CheckOut: result.CheckOut ? moment(result.CheckOut, 'HH:mm:ss').format('HH:mm:ss') : null,
+            LateMinutes: result.LateMinutes > 0 ? result.LateMinutes : 0,
+            EarlyLeaveMinutes: result.EarlyLeaveMinutes > 0 ? result.EarlyLeaveMinutes : 0,
+            OvertimeMinutes: result.OvertimeMinutes > 0 ? result.OvertimeMinutes : 0
+        }));
+
+        res.status(200).json(formattedResults);
+    });
+});
+
+
+
+
+
+
+
+
 
 
 

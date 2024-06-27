@@ -21,9 +21,9 @@ function AdSidebar() {
             </CSidebarHeader>
             <CSidebarNav>
                 <CNavTitle>Nav Title</CNavTitle>
-                <CNavItem href="/home">
+                <CNavItem href="/FormReportComponent">
                     <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
-                    Dashbroad
+                    In báo cáo
                 </CNavItem>
                 <CNavGroup toggler={<><CIcon customClassName="nav-icon" icon={cilPuzzle} /> Quản lý</>}>
                     <CNavItem href="/CRUD_User">
@@ -44,7 +44,7 @@ function AdSidebar() {
                     </CNavItem>
                     <CNavItem href="/CRUD_Attendance">
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Quản lý chấm c
+                        Quản lý chấm công
                     </CNavItem>
                     <CNavItem href="/AttendanceSettings">
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
