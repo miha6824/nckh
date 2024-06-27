@@ -110,7 +110,8 @@ function AttendancePage() {
                             try {
                                 const response = await axios.post('http://localhost:8081/attendance', {
                                     userId: match.id_user,
-                                    imageBase64: imageData
+                                    imageBase64: imageData,
+                                    fullName: match.userName
                                 });
                                 const res = await axios.get(`http://localhost:8081/user/${match.id_user}`);
                                 const preUserInfo = res.data;

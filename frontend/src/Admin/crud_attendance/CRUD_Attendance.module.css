@@ -1,0 +1,81 @@
+.crudAttendanceContainer {
+    width: 90%;
+}
+
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    list-style-type: none;
+    padding: 0;
+}
+
+.page-item {
+    margin: 0 2px;
+}
+
+.page-link {
+    border: 1px solid #dee2e6;
+    padding: 5px 10px;
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border: 1px solid #007bff;
+}
+
+.tableContainer {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 10px;
+    text-align: center;
+}
+
+.addButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #24c74a;
+    border-radius: 10%;
+    color: #fff;
+    font-size: 20px;
+    margin-left: 10px;
+}
+
+.icon {
+    vertical-align: middle;
+}
+
+.searchInput {
+    width: 200px;
+    margin-right: 10px;
+    border-radius: 25px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+}
+
+.image {
+    width: 150px; /* Độ rộng cố định */
+    height: 150px; /* Độ cao cố định */
+    object-fit: cover; /* Đảm bảo hình ảnh không bị vỡ */
+    border-radius: 8px; /* Bo tròn viền */
+}
+
+.actions {
+    justify-content: center;
+}

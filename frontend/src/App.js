@@ -9,13 +9,14 @@ import UploadPhotoPage from './User/UploadPhotoPage/UploadPhotoPage';
 import CRUD_User from './Admin/crud_user/CRUD_User';
 import UserCreate from './Admin/crud_user/UserCreate';
 import UserUpdate from './Admin/crud_user/UserUpdate';
-import Dashbroad from './Admin/Dashbroad/Dashbroad';
+import FormReportComponent from './Admin/FormReport/FormReportComponent';
 import CRUD_ImgUser from './Admin/crud_image_user/CRUD_ImgUser'
 import ImgUserCreate from './Admin/crud_image_user/ImgUserCreate'
 import AddImageToUser from './Admin/crud_image_user/AddImageToUser';
 import CRUD_Account from './Admin/crud_account/CRUD_Account';
 import CRUD_Department from './Admin/crud_department/CRUD_Department';
 import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
+import AttendanceSettings from './Admin/crud_attendance/AttendanceSettings';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -40,7 +41,8 @@ function App() {
         <Route path="/CRUD_Account" element={<CRUD_Account />} />
         <Route path="/CRUD_Department" element={<CRUD_Department />} />
         <Route path="/CRUD_Attendance" element={<CRUD_Attendance />} />
-        <Route path="/Dashbroad" element={<Dashbroad />} />
+        <Route path="/AttendanceSettings" element={<AttendanceSettings />} />
+        <Route path="/FormReportComponent" element={<FormReportComponent />} />
       </Routes>
     </Router>
 

@@ -18,7 +18,7 @@ const LoginPage = () => {
                     localStorage.setItem('ID_user', res.data.userData.ID); // Thêm dòng này để lưu ID_user vào localStorage
                     const role = values.email === 'admin1@gmail.com' ? 'admin' : 'user';
                     if (role === 'admin') {
-                        navigate('/Dashbroad');
+                        navigate('/FormReportComponent');
                     } else if (role === 'user') {
                         navigate('/home');
                     }

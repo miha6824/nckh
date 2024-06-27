@@ -1,0 +1,66 @@
+.crudUserContainer {
+  width: 90%;
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  list-style-type: none;
+  padding: 0;
+}
+
+.pageItem {
+  margin: 0 2px;
+}
+
+.pageLink {
+  border: 1px solid #dee2e6;
+  padding: 5px 10px;
+  color: #007bff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pageItemActive .pageLink {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}
+
+li::marker {
+  content: none;
+}
+
+.tableContainer {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.tableHeader {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
+}
+
+.searchInput {
+  width: 200px;
+  margin-right: 10px;
+  border-radius: 25px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #24c74a;
+  border-radius: 10%;
+  color: #fff;
+  font-size: 20px;
+  margin-left: 10px;
+}

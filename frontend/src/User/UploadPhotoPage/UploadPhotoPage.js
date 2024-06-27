@@ -7,6 +7,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import styles from './UploadPhotoPage.module.css';
 import DefaultAvatar from '../../assets/avatarinUploadpage.png';
+import * as faceapi from 'face-api.js'; // Import face-api.js
 
 const UploadPhotoPage = () => {
     const [formData, setFormData] = useState({
@@ -15,9 +16,10 @@ const UploadPhotoPage = () => {
         id_user: ''
     });
     const [error, setError] = useState(null);
-    const [showCamera, setShowCamera] = useState(false);
+    const [cameraActive, setCameraActive] = useState(false); // State để theo dõi trạng thái của camera
     const [capturedImage, setCapturedImage] = useState(null);
     const [userImages, setUserImages] = useState([]);
+    const [faceDetectionResult, setFaceDetectionResult] = useState(null); // State để lưu kết quả nhận diện khuôn mặt
     const webcamRef = useRef(null);
 
     useEffect(() => {
@@ -44,6 +46,20 @@ const UploadPhotoPage = () => {
         };
 
         fetchUserData();
+    }, []);
+
+    useEffect(() => {
+        const loadModels = async () => {
+            // Load các model cần thiết từ face-api.js
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+            ]);
+            console.log("Models loaded");
+        };
+
+        loadModels(); // Gọi hàm để tải model khi component mount
     }, []);
 
     const fetchUserImages = async (userID) => {
@@ -83,13 +99,13 @@ const UploadPhotoPage = () => {
     };
 
     const handleCaptureClick = () => {
-        setShowCamera(true);
+        setCameraActive(true); // Bật camera khi nhấn vào nút "Chụp ảnh"
     };
 
     const handleCapturePhoto = () => {
         const imageSrc = webcamRef.current.getScreenshot();
         setCapturedImage(imageSrc);
-        setShowCamera(false);
+        setCameraActive(false); // Tắt camera sau khi chụp ảnh
 
         fetch(imageSrc)
             .then(res => res.blob())
@@ -127,6 +143,29 @@ const UploadPhotoPage = () => {
             setError(err.response ? err.response.data : "Lỗi khi xóa hình ảnh");
         }
     };
+
+    useEffect(() => {
+        // Hàm để nhận diện khuôn mặt trong video từ webcam
+        const detectFaceInVideo = async () => {
+            if (webcamRef.current && cameraActive) { // Sử dụng cameraActive thay vì showCamera
+                const video = webcamRef.current.video;
+                const result = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+
+                if (result) {
+                    const detectionPercentage = Math.round(result.detection._score * 100); // Tính phần trăm nhận diện
+                    setFaceDetectionResult(detectionPercentage);
+                } else {
+                    setFaceDetectionResult(null);
+                }
+            }
+        };
+
+        const interval = setInterval(() => {
+            detectFaceInVideo();
+        }, 1000); // Thực hiện nhận diện mỗi giây
+
+        return () => clearInterval(interval); // Clean up khi component unmount
+    }, [cameraActive]);
 
     const sliderSettings = {
         dots: true,
@@ -192,19 +231,30 @@ const UploadPhotoPage = () => {
                     </div>
                 </div>
 
-                {showCamera && (
+                {cameraActive && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>
+                            <span onClick={() => setCameraActive(false)} className={styles.closeIcon}>X</span>
                             <Webcam
                                 audio={false}
                                 ref={webcamRef}
                                 screenshotFormat="image/png"
                                 className={styles.webcam}
                             />
+                            {/* Phần hiển thị phần trăm nhận diện */}
+                            {faceDetectionResult !== null && (
+                                <div className={styles.faceDetection}>
+                                    Phần trăm nhận diện khuôn mặt: {faceDetectionResult}%
+                                </div>
+                            )}
                             <button onClick={handleCapturePhoto} className={styles.captureButton}>Chụp</button>
                         </div>
                     </div>
                 )}
+
+
+
+
 
                 {capturedImage && (
                     <div className={styles.modalOverlay}>
@@ -215,6 +265,7 @@ const UploadPhotoPage = () => {
                         </div>
                     </div>
                 )}
+
                 <div className={styles.userImages}>
                     <h3>Danh sách ảnh của bạn</h3>
                     {userImages.length === 0 ? (
