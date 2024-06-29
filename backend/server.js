@@ -4,9 +4,9 @@ const mysql = require("mysql");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const multer = require('multer'); // Thêm dòng này để yêu cầu module multer
+const multer = require('multer');
 const faceapi = require('face-api.js');
-const { Canvas, Image } = require('canvas');
+const { Canvas, Image, ImageData } = require('canvas');
 const canvas = require('canvas');
 const fs = require('fs');
 const schedule = require('node-schedule');
@@ -31,7 +31,7 @@ const db = mysql.createConnection({
 });
 
 
-faceapi.env.monkeyPatch({ Canvas, Image });
+faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 // Hàm tải các mô hình của face-api.js
 async function LoadModels() {
@@ -43,9 +43,6 @@ async function LoadModels() {
 LoadModels();
 
 
-
-
-// Multer configuration for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'public/Images');
@@ -83,6 +80,25 @@ app.get('/DepartmentName/:id', (req, res) => {
     });
 });
 
+app.post('/create_Department', (req, res) => {
+    const sql = "INSERT INTO Department (KHPhongBan, TenPhongBan) VALUES ?";
+    const values = [
+        [
+            req.body.khphongban,
+            req.body.tenphongban,
+        ]
+    ];
+
+    // Thực hiện truy vấn vào cơ sở dữ liệu
+    db.query(sql, [values], (err, result) => {
+        if (err) {
+            console.error('Lỗi khi thực hiện truy vấn:', err.stack);
+            return res.status(500).json('Đã xảy ra lỗi khi tạo tài khoản');
+        }
+        console.log('tài khoản đã được tạo thành công');
+        return res.status(200).json('tài khoản đã được tạo thành công');
+    });
+});
 
 app.get("/HSLuong", (req, res) => {
     const sql = "SELECT * FROM salary";
@@ -157,6 +173,29 @@ app.get('/account/:id', (req, res) => {
 });
 
 
+
+app.put('/change_password/:id', (req, res) => {
+    const userId = req.params.id;
+    const { password } = req.body;
+
+    // Update the password in the database (hash the password before saving it)
+    const sql = 'UPDATE account SET Password = ? WHERE ID_User = ?';
+    db.query(sql, [password, userId], (err, result) => {
+        if (err) {
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi server");
+        }
+        return res.status(200).json("Đổi mật khẩu thành công");
+    });
+});
+
+
+
+
+
+
+
+
 app.put('/update_account/:id', (req, res) => {
     const sql = "UPDATE account SET `Email`=?, `Password`=?, `ID_User`=?, `Role`=? WHERE ID=?";
     const values = [
@@ -221,16 +260,17 @@ app.post('/create_user', (req, res) => {
 
 app.put('/update_user/:id', (req, res) => {
     const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
+    const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD'); // Định dạng ngày tháng bằng moment
     const values = [
         req.body.email,
         req.body.fullName,
         req.body.sex,
-        req.body.dob,
+        dobFormatted, // Sử dụng ngày tháng đã định dạng
         req.body.phoneNumber,
         req.body.address,
         req.body.id_departments,
         req.body.hsl
-    ]
+    ];
     const id = req.params.id;
     db.query(sql, [...values, id], (err, data) => {
         if (err) return res.status(500).json("Error");
@@ -272,6 +312,7 @@ app.delete('/Delete_user/:id', (req, res) => {
 });
 
 
+// Get all user images
 app.get("/CRUD_ImgUser", (req, res) => {
     const sql = "SELECT * FROM userimage";
     db.query(sql, (err, data) => {
@@ -280,6 +321,7 @@ app.get("/CRUD_ImgUser", (req, res) => {
     });
 });
 
+// Delete a user image
 app.delete('/Delete_ImgUser/:id', (req, res) => {
     const sql = "SELECT Image FROM userimage WHERE ID=?";
     const id = req.params.id;
@@ -316,6 +358,8 @@ app.delete('/Delete_ImgUser/:id', (req, res) => {
         });
     });
 });
+
+
 
 
 app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
@@ -744,7 +788,7 @@ app.get('/department/:id', (req, res) => {
 // Endpoint để lấy dữ liệu người dùng dựa trên ID
 app.get('/user/:id', (req, res) => {
     const id = req.params.id;
-    console.log("Received user ID:", id); // Thêm console.log để kiểm tra ID người dùng nhận được
+    console.log("Received user ID:", id);
 
     const sql = "SELECT * FROM user WHERE ID = ?";
     db.query(sql, [id], (err, data) => {
@@ -752,15 +796,21 @@ app.get('/user/:id', (req, res) => {
             console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
             return res.status(500).json("Lỗi server");
         }
-        console.log("Data from database:", data); // Thêm console.log để kiểm tra dữ liệu từ cơ sở dữ liệu
+
+        console.log("Data from database:", data);
 
         if (data.length > 0) {
-            return res.status(200).json(data[0]);
+            // Định dạng lại ngày tháng trước khi gửi dữ liệu về cho client
+            const user = data[0];
+            user.BirthDay = moment(user.BirthDay).format('YYYY-MM-DD'); // Định dạng lại ngày tháng
+
+            return res.status(200).json(user);
         } else {
             return res.status(404).json("Không tìm thấy người dùng");
         }
     });
 });
+
 
 app.put('/update_profile/:id', (req, res) => {
     const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=? WHERE ID=?";
@@ -1023,6 +1073,218 @@ app.post('/generate-report', (req, res) => {
         res.status(200).json(formattedResults);
     });
 });
+
+
+
+
+// Endpoint để lấy dữ liệu chấm công của người dùng trong vòng 1 tháng
+app.get('/attendance/:id', (req, res) => {
+    const id = req.params.id;
+    const startDate = moment().startOf('month').format('YYYY-MM-DD');
+    const endDate = moment().endOf('month').format('YYYY-MM-DD');
+    const sql = `
+        SELECT a.ID_User, u.FullName, DATE(a.timestamp) AS Date,
+               MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
+               MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
+               TIMESTAMPDIFF(MINUTE, st.checkin_time, MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END)) AS LateMinutes,
+               GREATEST(0, TIMESTAMPDIFF(MINUTE, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END), st.checkout_time)) AS EarlyLeaveMinutes,
+               GREATEST(0, TIMESTAMPDIFF(MINUTE, st.checkout_time, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END))) AS OvertimeMinutes
+        FROM attendance a
+        JOIN user u ON a.ID_User = u.ID
+        JOIN standard_times st ON DATE(a.timestamp) = st.date
+        WHERE u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
+        GROUP BY a.ID_User, u.FullName, DATE(a.timestamp)
+    `;
+
+    db.query(sql, [id, startDate, endDate], (err, data) => {
+        if (err) {
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi server");
+        }
+
+        // Sử dụng moment để định dạng lại ngày tháng trước khi gửi dữ liệu về cho client
+        const formattedData = data.map(record => {
+            return {
+                ...record,
+                Date: moment(record.Date).format('YYYY-MM-DD'),
+                CheckIn: record.CheckIn ? moment(record.CheckIn, 'HH:mm:ss').format('HH:mm:ss') : null,
+                CheckOut: record.CheckOut ? moment(record.CheckOut, 'HH:mm:ss').format('HH:mm:ss') : null,
+            };
+        });
+
+        return res.status(200).json(formattedData);
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+//mô hình mô phỏng nhận diện qua tập test sau khi train cài tensorflow
+const { promisify } = require('util');
+const readdir = promisify(fs.readdir);
+const readFile = promisify(fs.readFile);
+
+const ORIGINAL_IMAGES_DIR = path.join(__dirname, 'Original Images');
+
+async function prepareData() {
+    const folders = await readdir(ORIGINAL_IMAGES_DIR);
+    for (const folder of folders) {
+        const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
+        const files = await readdir(folderPath);
+        const totalFiles = files.length;
+        const trainSize = Math.floor(totalFiles * 0.7);
+        const testSize = totalFiles - trainSize;
+
+        // Tạo tài khoản email và mật khẩu dựa trên tên folder
+        const email = `${folder}@gmail.com`;
+        const password = '12345';
+        const fullName = folder;
+        const role = 'user';
+
+        // Lưu tài khoản vào database
+        const sqlCreateUser = `INSERT INTO user (FullName) VALUES (?)`;
+        db.query(sqlCreateUser, [fullName], (err, result) => {
+            if (err) throw err;
+            const userID = result.insertId;
+            const sqlCreateAccount = `INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)`;
+            db.query(sqlCreateAccount, [email, password, userID, role], (err, result) => {
+                if (err) throw err;
+                console.log(`Created account for ${fullName}`);
+            });
+        });
+
+        // Chia ảnh thành tập train và test
+        const trainFiles = files.slice(0, trainSize);
+        const testFiles = files.slice(trainSize);
+
+        // Lưu tập train và test vào folder riêng
+        const trainDir = path.join(folderPath, 'train');
+        const testDir = path.join(folderPath, 'test');
+        if (!fs.existsSync(trainDir)) fs.mkdirSync(trainDir);
+        if (!fs.existsSync(testDir)) fs.mkdirSync(testDir);
+
+        for (const file of trainFiles) {
+            fs.renameSync(path.join(folderPath, file), path.join(trainDir, file));
+        }
+        for (const file of testFiles) {
+            fs.renameSync(path.join(folderPath, file), path.join(testDir, file));
+        }
+    }
+    console.log("prepareData completed");
+}
+
+async function trainModel(folderPath) {
+    const trainDir = path.join(folderPath, 'train');
+    const files = await readdir(trainDir);
+    console.log(`Training model for ${path.basename(folderPath)} with ${files.length} files`);
+
+    const labeledDescriptors = [];
+    let processedCount = 0;
+
+    for (const file of files) {
+        try {
+            const imgPath = path.join(trainDir, file);
+            const img = await canvas.loadImage(imgPath);
+            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            if (!detection) continue;
+
+            const label = path.basename(folderPath);
+            labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(label, [detection.descriptor]));
+
+            processedCount++;
+            const progress = (processedCount / files.length) * 100;
+            console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+        } catch (error) {
+            console.error(`Error processing file ${file} in ${folderPath}:`, error);
+        }
+    }
+
+    return labeledDescriptors;
+}
+
+async function evaluateModel(folderPath, labeledDescriptors) {
+    const testDir = path.join(folderPath, 'test');
+    const files = await readdir(testDir);
+    console.log(`Evaluating model for ${path.basename(folderPath)} with ${files.length} files`);
+
+    let correct = 0;
+    let processedCount = 0;
+
+    for (const file of files) {
+        try {
+            const imgPath = path.join(testDir, file);
+            const img = await canvas.loadImage(imgPath);
+            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            if (!detection) continue;
+
+            const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors);
+            const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+
+            if (bestMatch.label === path.basename(folderPath)) {
+                correct++;
+            }
+
+            processedCount++;
+            const progress = (processedCount / files.length) * 100;
+            console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+        } catch (error) {
+            console.error(`Error processing file ${file} in ${folderPath}:`, error);
+        }
+    }
+
+    console.log(`Accuracy for ${path.basename(folderPath)}: ${(correct / files.length) * 100}%`);
+}
+async function main() {
+    try {
+        await LoadModels();
+
+        const folders = await readdir(ORIGINAL_IMAGES_DIR);
+        for (const folder of folders) {
+            const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
+            const labeledDescriptors = await trainModel(folderPath);
+            await evaluateModel(folderPath, labeledDescriptors);
+        }
+    } catch (error) {
+        console.error("Error in main function:", error);
+    }
+}
+
+app.post('/train_and_evaluate', async (req, res) => {
+    try {
+        await prepareData();
+        await main();
+        res.status(200).json({ message: "Training and evaluation completed" });
+    } catch (err) {
+        console.error("Error during training and evaluation:", err);
+        res.status(500).json({ error: "Error during training and evaluation" });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

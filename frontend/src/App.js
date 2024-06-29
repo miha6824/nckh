@@ -17,8 +17,11 @@ import CRUD_Account from './Admin/crud_account/CRUD_Account';
 import CreateAccount from './Admin/crud_account/CreateAccount';
 import UpdateAccount from './Admin/crud_account/UpdateAccount';
 import CRUD_Department from './Admin/crud_department/CRUD_Department';
+import CreateDepartment from './Admin/crud_department/CreateDepartment';
 import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
 import AttendanceSettings from './Admin/crud_attendance/AttendanceSettings';
+
+import TrainAndEvaluateButton from './TrainAndEvaluateButton/TrainAndEvaluateButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -44,9 +47,11 @@ function App() {
         <Route path="/create_Account" element={<CreateAccount />} />
         <Route path="/update_Account/:id" element={<UpdateAccount />} />
         <Route path="/CRUD_Department" element={<CRUD_Department />} />
+        <Route path="/create_department" element={<CreateDepartment />} />
         <Route path="/CRUD_Attendance" element={<CRUD_Attendance />} />
         <Route path="/AttendanceSettings" element={<AttendanceSettings />} />
         <Route path="/FormReportComponent" element={<FormReportComponent />} />
+        <Route path="/TrainAndEvaluateButton" element={<TrainAndEvaluateButton />} />
       </Routes>
     </Router>
 

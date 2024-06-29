@@ -109,12 +109,19 @@ function CRUD_Attendance() {
                             previousLabel={<FaArrowLeft />}
                             nextLabel={<FaArrowRight />}
                             pageCount={pageCount}
+                            marginPagesDisplayed={2}
+                            pageRangeDisplayed={5}
                             onPageChange={handlePageClick}
                             containerClassName={styles.pagination}
-                            previousLinkClassName={styles['page-link']}
-                            nextLinkClassName={styles['page-link']}
-                            disabledClassName={styles['page-disabled']}
-                            activeClassName={styles['page-active']}
+                            subContainerClassName={'pages pagination'}
+                            activeClassName={'active'}
+                            previousClassName={styles.pageItem}
+                            nextClassName={styles.pageItem}
+                            previousLinkClassName={styles.pageLink}
+                            nextLinkClassName={styles.pageLink}
+                            pageClassName={styles.pageItem}
+                            pageLinkClassName={styles.pageLink}
+                            activeLinkClassName={styles.pageItemActive}
                         />
                     </div>
                 </div>

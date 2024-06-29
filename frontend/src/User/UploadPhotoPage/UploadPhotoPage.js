@@ -221,7 +221,7 @@ const UploadPhotoPage = () => {
                             <form onSubmit={handleSubmit}>
                                 <div className={styles.formGroup}>
                                     <label htmlFor="image" className={styles.formLabel}>Hình ảnh</label>
-                                    <input type="file" id="image" name="image" onChange={handleChange} className={styles.formControl} accept=".png" required />
+                                    <input type="file" id="image" name="image" onChange={handleChange} className={styles.formControl} accept="*" required />
                                     <button type="button" onClick={handleCaptureClick} className={styles.captureButton}>Chụp ảnh</button>
                                 </div>
                                 <button type="submit" className={styles.submitButton}>Tải lên</button>

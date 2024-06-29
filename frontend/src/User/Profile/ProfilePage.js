@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import UserNavbar from '../Navbar/UserNavbar';
+import DefaultAvatar from '../../assets/avatarinUploadpage.png';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import styles from './ProfilePage.module.css';
 
 const Profile = () => {
@@ -13,11 +17,15 @@ const Profile = () => {
         gender: ''
     });
 
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserData = async () => {
-            const userID = localStorage.getItem('ID_user');// Lấy ID người dùng từ localStorage
+            const userID = localStorage.getItem('ID_user');
             if (!userID) {
                 setError("Không tìm thấy User ID trong localStorage");
                 return;
@@ -26,7 +34,6 @@ const Profile = () => {
             try {
                 const res = await axios.get(`http://localhost:8081/user/${userID}`);
                 const PreUserInfo = res.data;
-                console.log(PreUserInfo);
                 setUserInfo({
                     email: PreUserInfo.Email,
                     fullName: PreUserInfo.FullName,
@@ -43,7 +50,7 @@ const Profile = () => {
         };
 
         fetchUserData();
-    }, []); // Sử dụng mảng rỗng để chỉ chạy useEffect một lần sau khi component được render
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -53,10 +60,18 @@ const Profile = () => {
         }));
     };
 
+    const handlePasswordChange = (e) => {
+        const { name, value } = e.target;
+        if (name === 'password') {
+            setPassword(value);
+        } else {
+            setConfirmPassword(value);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Kiểm tra xem có trường nào bị trống không
         for (const key in userInfo) {
             if (!userInfo[key]) {
                 alert('Vui lòng điền đầy đủ thông tin');
@@ -73,13 +88,41 @@ const Profile = () => {
         }
     };
 
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+
+        if (password !== confirmPassword) {
+            alert('Mật khẩu không khớp, vui lòng nhập lại');
+            return;
+        }
+
+        try {
+            await axios.put(`http://localhost:8081/change_password/${localStorage.getItem('ID_user')}`, { password });
+            alert('Đổi mật khẩu thành công');
+            setShowChangePassword(false);
+        } catch (err) {
+            console.log(err);
+            alert('Có lỗi khi đổi mật khẩu');
+        }
+    };
+
+    const handleGoBack = () => {
+        navigate('/home');
+    };
+
     return (
         <div>
-            <UserNavbar /> {/* Hiển thị navbar ở đây nếu cần */}
+            <UserNavbar />
             <div className={styles.profileContainer}>
+                <div className={styles.backButton} onClick={handleGoBack}>
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                </div>
                 <h2 className={styles.profileTitle}>Thông tin cá nhân</h2>
                 {error && <p className={styles.errorMessage}>{error}</p>}
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className={styles.profileForm}>
+                    <div className={styles.avatarContainer}>
+                        <div className={styles.placeholderAvatar}><img src={DefaultAvatar} alt="Default Avatar" className={styles.avatar} /></div>
+                    </div>
                     <div className={styles.formGroup}>
                         <label className={styles.formLabel}>Email:</label>
                         <input
@@ -89,6 +132,7 @@ const Profile = () => {
                             onChange={handleChange}
                             className={styles.formInput}
                             required
+                            disabled
                         />
                     </div>
                     <div className={styles.formGroup}>
@@ -149,8 +193,54 @@ const Profile = () => {
                             <option value="Nữ">Nữ</option>
                         </select>
                     </div>
-                    <button type="submit" className={styles.submitButton}>Lưu thông tin</button>
+                    <div className={styles.buttonContainer}>
+                        <button type="submit" className={styles.submitButton}>Lưu thông tin</button>
+                        <button type="button" className={styles.changePasswordButton} onClick={() => setShowChangePassword(true)}>Đổi mật khẩu</button>
+                    </div>
                 </form>
+                {showChangePassword && (
+                    <div className={styles.overlay}>
+                        <form onSubmit={handlePasswordSubmit} className={styles.changePasswordForm}>
+                            <h3>Đổi mật khẩu</h3>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Email:</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={userInfo.email}
+                                    className={styles.formInput}
+                                    disabled
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Mật khẩu mới:</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                    className={styles.formInput}
+                                    required
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label className={styles.formLabel}>Nhập lại mật khẩu:</label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    value={confirmPassword}
+                                    onChange={handlePasswordChange}
+                                    className={styles.formInput}
+                                    required
+                                />
+                            </div>
+                            <div className={styles.buttonContainer}>
+                                <button type="submit" className={styles.submitButton}>Đổi mật khẩu</button>
+                                <button type="button" className={styles.cancelButton} onClick={() => setShowChangePassword(false)}>Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+                )}
             </div>
         </div>
     );

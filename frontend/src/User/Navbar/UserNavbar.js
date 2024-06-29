@@ -28,20 +28,6 @@ import './UserNavbar.css'; // Import file CSS tùy chỉnh
 import axios from 'axios';
 
 const AppNavbar = () => {
-    const [userName, setUserName] = useState('');
-
-    // useEffect(() => {
-    //     axios.get('http://localhost:8081/user', { withCredentials: true })
-    //         .then(res => {
-    //             console.log("Received user data:", res.data);
-    //             if (res.data.fullName) {
-    //                 setUserName(res.data.fullName);
-    //             }
-    //         })
-    //         .catch(err => {
-    //             console.log(err);
-    //         });
-    // }, []);
 
     const handleLogout = () => {
         axios.get('http://localhost:8081/logout', { withCredentials: true })

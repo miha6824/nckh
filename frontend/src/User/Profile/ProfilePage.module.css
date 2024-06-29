@@ -1,17 +1,50 @@
-/* ProfilePage.module.css */
-
 .profileContainer {
     max-width: 600px;
-    margin: 50px auto;
+    margin: 0 auto;
     padding: 20px;
     background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
 }
 
 .profileTitle {
-    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
     color: #333;
+    text-align: center;
+}
+
+.errorMessage {
+    color: red;
+    margin-bottom: 10px;
+}
+
+.avatarContainer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.placeholderAvatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #ced4da;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ddd;
 }
 
 .formGroup {
@@ -20,47 +53,108 @@
 
 .formLabel {
     display: block;
-    margin-bottom: 5px;
     font-weight: bold;
-    color: #555;
+    margin-bottom: 5px;
 }
 
-.formInput {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-sizing: border-box;
-    font-size: 16px;
-}
-
+.formInput,
 .formSelect {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    font-size: 16px;
+    border: 1px solid #ccc;
     border-radius: 5px;
     box-sizing: border-box;
-    font-size: 16px;
 }
 
-.submitButton {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
+.formSelect {
+    cursor: pointer;
+}
+
+.submitButton,
+.changePasswordButton,
+.cancelButton {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
 }
 
-.submitButton:hover {
-    background-color: #0056b3;
+.submitButton {
+    background-color: #007bff;
+    color: white;
 }
 
-.errorMessage {
-    color: red;
-    margin-bottom: 15px;
+.changePasswordButton {
+    background-color: #28a745;
+    color: white;
+    margin-left: 10px;
+}
+
+.cancelButton {
+    background-color: #dc3545;
+    color: white;
+}
+
+.buttonContainer {
     text-align: center;
+    margin-top: 20px;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+}
+
+.changePasswordForm {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.backButton {
+    cursor: pointer;
+    transition: font-size 0.3s, color 0.3s;
+}
+
+.backButton:hover {
+    font-size: 24px;
+    color: #007bff;
+}
+
+@media (max-width: 768px) {
+    .profileContainer {
+        padding: 10px;
+    }
+
+    .avatar {
+        width: 120px;
+        height: 120px;
+    }
+
+    .formInput,
+    .formSelect {
+        font-size: 14px;
+    }
+
+    .submitButton,
+    .changePasswordButton,
+    .cancelButton {
+        font-size: 14px;
+    }
 }

@@ -4,13 +4,14 @@ import { Link } from 'react-router-dom';
 import AdSidebar from '../AdNav/AdSidebar';
 import AdNavbar from '../AdNav/AdNavbar';
 import styles from './CRUD_ImgUser.module.css';
-import { FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaTrash, FaPlus, FaArrowLeft, FaArrowRight, FaEye } from 'react-icons/fa';
 import ReactPaginate from 'react-paginate';
 
 function CRUD_ImgUser() {
     const [userImages, setUserImages] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    const [expandedUserId, setExpandedUserId] = useState(null);
     const usersPerPage = 5; // Hiển thị 5 ảnh trên mỗi trang
 
     useEffect(() => {
@@ -39,12 +40,29 @@ function CRUD_ImgUser() {
         setCurrentPage(0); // Reset to first page on new search
     };
 
+    const toggleExpand = (userId) => {
+        setExpandedUserId(expandedUserId === userId ? null : userId);
+    };
+
     const offset = currentPage * usersPerPage;
     const filteredImages = userImages.filter(image =>
         image.UserName.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    const currentPageData = filteredImages.slice(offset, offset + usersPerPage);
-    const pageCount = Math.ceil(filteredImages.length / usersPerPage);
+
+    const groupedImages = filteredImages.reduce((acc, image) => {
+        if (!acc[image.ID_User]) {
+            acc[image.ID_User] = [];
+        }
+        acc[image.ID_User].push(image);
+        return acc;
+    }, {});
+
+    const currentPageData = Object.keys(groupedImages).slice(offset, offset + usersPerPage).map(userId => ({
+        userId,
+        images: groupedImages[userId],
+    }));
+
+    const pageCount = Math.ceil(Object.keys(groupedImages).length / usersPerPage);
 
     return (
         <div className="d-flex vh-100">
@@ -72,29 +90,50 @@ function CRUD_ImgUser() {
                             <table className={`table ${styles.table}`}>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>ID_User</th>
                                         <th>Họ và Tên</th>
                                         <th>Hình ảnh</th>
-                                        <th>ID_User</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {currentPageData.map(image => (
-                                        <tr key={image.ID}>
-                                            <td>{image.ID}</td>
-                                            <td>{image.UserName}</td>
+                                    {currentPageData.map(({ userId, images }) => (
+                                        <tr key={userId}>
+                                            <td>{userId}</td>
+                                            <td>{images[0].UserName}</td>
                                             <td>
-                                                {image.Image && <img src={`http://localhost:8081/Images/${image.Image}`} alt={image.UserName} className={styles.image} />}
+                                                <div className={styles.imageContainer}>
+                                                    {images.slice(0, 1).map(image => (
+                                                        <img
+                                                            key={image.ID}
+                                                            src={`http://localhost:8081/Images/${image.Image}`}
+                                                            alt={image.UserName}
+                                                            className={styles.image}
+                                                        />
+                                                    ))}
+                                                    {images.length > 1 && (
+                                                        <button onClick={() => toggleExpand(userId)} className={styles.viewMoreButton}>
+                                                            <FaEye className={styles.icon} /> {expandedUserId === userId ? 'Thu gọn' : 'Xem thêm'}
+                                                        </button>
+                                                    )}
+                                                    {expandedUserId === userId && images.slice(1).map(image => (
+                                                        <div key={image.ID} className={styles.expandedImage}>
+                                                            <img
+                                                                src={`http://localhost:8081/Images/${image.Image}`}
+                                                                alt={image.UserName}
+                                                                className={styles.image}
+                                                            />
+                                                            <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(image.ID)}>
+                                                                <FaTrash className={styles.icon} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </td>
-                                            <td>{image.ID_User}</td>
                                             <td className={styles.actions}>
-                                                <Link to={`/ImgUserAdd/${image.ID}`} className={`btn btn-primary mr-2 ${styles['btn-primary']}`}>
+                                                <Link to={`/ImgUserAdd/${images[0].ID}`} className={`btn btn-primary mr-2 ${styles['btn-primary']}`}>
                                                     <FaPlus className={styles.icon} />
                                                 </Link>
-                                                <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(image.ID)}>
-                                                    <FaTrash className={styles.icon} />
-                                                </button>
                                             </td>
                                         </tr>
                                     ))}
