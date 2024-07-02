@@ -111,11 +111,6 @@ function CRUD_ImgUser() {
                                                             className={styles.image}
                                                         />
                                                     ))}
-                                                    {images.length > 1 && (
-                                                        <button onClick={() => toggleExpand(userId)} className={styles.viewMoreButton}>
-                                                            <FaEye className={styles.icon} /> {expandedUserId === userId ? 'Thu gọn' : 'Xem thêm'}
-                                                        </button>
-                                                    )}
                                                     {expandedUserId === userId && images.slice(1).map(image => (
                                                         <div key={image.ID} className={styles.expandedImage}>
                                                             <img
@@ -134,30 +129,37 @@ function CRUD_ImgUser() {
                                                 <Link to={`/ImgUserAdd/${images[0].ID}`} className={`btn btn-primary mr-2 ${styles['btn-primary']}`}>
                                                     <FaPlus className={styles.icon} />
                                                 </Link>
+                                                {images.length > 1 && (
+                                                    <button onClick={() => toggleExpand(userId)} className={`btn btn-info ${styles['btn-info']}`}>
+                                                        <FaEye className={styles.icon} /> {expandedUserId === userId ? 'Thu gọn' : 'Xem thêm'}
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                        <ReactPaginate
-                            previousLabel={<FaArrowLeft />}
-                            nextLabel={<FaArrowRight />}
-                            pageCount={pageCount}
-                            marginPagesDisplayed={2}
-                            pageRangeDisplayed={5}
-                            onPageChange={handlePageClick}
-                            containerClassName={styles.pagination}
-                            subContainerClassName={'pages pagination'}
-                            activeClassName={'active'}
-                            previousClassName={styles.pageItem}
-                            nextClassName={styles.pageItem}
-                            previousLinkClassName={styles.pageLink}
-                            nextLinkClassName={styles.pageLink}
-                            pageClassName={styles.pageItem}
-                            pageLinkClassName={styles.pageLink}
-                            activeLinkClassName={styles.pageItemActive}
-                        />
+                        <div className={styles.paginationContainer}>
+                            <ReactPaginate
+                                previousLabel={<FaArrowLeft />}
+                                nextLabel={<FaArrowRight />}
+                                pageCount={pageCount}
+                                marginPagesDisplayed={2}
+                                pageRangeDisplayed={5}
+                                onPageChange={handlePageClick}
+                                containerClassName={styles.pagination}
+                                subContainerClassName={'pages pagination'}
+                                activeClassName={'active'}
+                                previousClassName={styles.pageItem}
+                                nextClassName={styles.pageItem}
+                                previousLinkClassName={styles.pageLink}
+                                nextLinkClassName={styles.pageLink}
+                                pageClassName={styles.pageItem}
+                                pageLinkClassName={styles.pageLink}
+                                activeLinkClassName={styles.pageItemActive}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

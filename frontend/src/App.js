@@ -22,6 +22,7 @@ import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
 import AttendanceSettings from './Admin/crud_attendance/AttendanceSettings';
 
 import TrainAndEvaluateButton from './TrainAndEvaluateButton/TrainAndEvaluateButton';
+import TrainAndSimulate from './TrainAndSimulate/TrainAndSimulate';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -52,6 +53,7 @@ function App() {
         <Route path="/AttendanceSettings" element={<AttendanceSettings />} />
         <Route path="/FormReportComponent" element={<FormReportComponent />} />
         <Route path="/TrainAndEvaluateButton" element={<TrainAndEvaluateButton />} />
+        <Route path="/TrainAndSimulate" element={<TrainAndSimulate />} />
       </Routes>
     </Router>
 

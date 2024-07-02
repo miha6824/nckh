@@ -5,7 +5,6 @@ import AdSidebar from '../AdNav/AdSidebar';
 import AdNavbar from '../AdNav/AdNavbar';
 import ReactPaginate from 'react-paginate';
 import { FaEdit, FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import '@coreui/coreui/dist/css/coreui.min.css';
 import styles from './CRUD_User.module.css';
 
 function CRUD_User() {
@@ -69,7 +68,7 @@ function CRUD_User() {
                 <AdNavbar />
                 <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
                     <div className={styles.crudUserContainer}>
-                        <div className="d-flex justify-content-between mb-2 align-items-center">
+                        <div className="d-flex justify-content-between mb-3 align-items-center">
                             <h2>Quản lý nhân viên</h2>
                             <div className="d-flex align-items-center">
                                 <input
@@ -85,7 +84,7 @@ function CRUD_User() {
                             </div>
                         </div>
                         <div className={styles.tableContainer}>
-                            <table className="table">
+                            <table className="table table-bordered">
                                 <thead className={styles.tableHeader}>
                                     <tr>
                                         <th>Email</th>
@@ -110,12 +109,12 @@ function CRUD_User() {
                                             <td>{user.Address}</td>
                                             <td>{getDepartmentName(user.ID_Department)}</td>
                                             <td>{user.HSLuong}</td>
-                                            <td>
-                                                <Link to={`/update_user/${user.ID}`} className="btn btn-primary">
-                                                    <FaEdit />
+                                            <td className={styles.actions}>
+                                                <Link to={`/update_user/${user.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
+                                                    <FaEdit /> Sửa
                                                 </Link>
-                                                <button className="btn btn-danger ms-2" onClick={() => handleDelete(user.ID)}>
-                                                    <FaTrash />
+                                                <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(user.ID)}>
+                                                    <FaTrash /> Xoá
                                                 </button>
                                             </td>
                                         </tr>
@@ -131,7 +130,6 @@ function CRUD_User() {
                             pageRangeDisplayed={5}
                             onPageChange={handlePageClick}
                             containerClassName={styles.pagination}
-                            subContainerClassName={'pages pagination'}
                             activeClassName={'active'}
                             previousClassName={styles.pageItem}
                             nextClassName={styles.pageItem}
@@ -139,7 +137,6 @@ function CRUD_User() {
                             nextLinkClassName={styles.pageLink}
                             pageClassName={styles.pageItem}
                             pageLinkClassName={styles.pageLink}
-                            activeLinkClassName={styles.pageItemActive}
                         />
                     </div>
                 </div>

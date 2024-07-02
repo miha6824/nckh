@@ -21,7 +21,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(cookieParser());
-app.use('public/Images', express.static(path.join(__dirname, 'public/Images')));
+
 
 const db = mysql.createConnection({
     host: "localhost",
@@ -39,6 +39,7 @@ async function LoadModels() {
     await faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath);
     await faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath);
     await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath);
+    await faceapi.nets.tinyFaceDetector.loadFromDisk(modelPath);
 }
 LoadModels();
 
@@ -52,6 +53,8 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
+app.use('public/Images', express.static(path.join(__dirname, 'public/Images')));
+
 
 app.get("/CRUD_User", (req, res) => {
     const sql = "SELECT * FROM user";
@@ -410,7 +413,7 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
             progress += 20;
             console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
             const descriptor = detections.descriptor;
-            const descriptorArray = Array.from(descriptor); // Chuyển đổi Float32Array thành mảng thường để lưu vào MySQL
+            const descriptorArray = Array.from(descriptor);
 
             progress += 20;
             console.log(`Progress: ${progress}% - Converting descriptor to array...`);
@@ -1074,6 +1077,85 @@ app.post('/generate-report', (req, res) => {
     });
 });
 
+const excel = require('exceljs');
+app.post('/export-to-excel', async (req, res) => {
+    const { employee, startDate, endDate } = req.body;
+
+    try {
+        const workbook = new excel.Workbook();
+        const worksheet = workbook.addWorksheet('Attendance Report');
+
+        // Define columns
+        worksheet.columns = [
+            { header: 'Họ và tên', key: 'FullName', width: 20 },
+            { header: 'Ngày', key: 'Date', width: 15 },
+            { header: 'Check-in', key: 'CheckIn', width: 15 },
+            { header: 'Check-out', key: 'CheckOut', width: 15 },
+            { header: 'Trễ (phút)', key: 'LateMinutes', width: 15 },
+            { header: 'Về sớm (Phút)', key: 'EarlyLeaveMinutes', width: 20 },
+            { header: 'Tăng ca (Phút)', key: 'OvertimeMinutes', width: 20 }
+        ];
+
+        // Fetch data from database
+        const query = `
+            SELECT u.FullName, DATE(a.timestamp) AS Date,
+                   MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
+                   MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
+                   TIMESTAMPDIFF(MINUTE, st.checkin_time, MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END)) AS LateMinutes,
+                   TIMESTAMPDIFF(MINUTE, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END), st.checkout_time) AS EarlyLeaveMinutes,
+                   TIMESTAMPDIFF(MINUTE, st.checkout_time, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END)) AS OvertimeMinutes
+            FROM attendance a
+            JOIN user u ON a.ID_User = u.ID
+            JOIN standard_times st ON DATE(a.timestamp) = st.date
+            WHERE u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
+            GROUP BY u.FullName, DATE(a.timestamp)
+        `;
+
+        const results = await new Promise((resolve, reject) => {
+            db.query(query, [employee, startDate, endDate], (err, results) => {
+                if (err) {
+                    console.error('Error fetching report data:', err);
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
+        });
+
+        // Format data for Excel
+        const formattedResults = results.map(result => ({
+            FullName: result.FullName,
+            Date: moment(result.Date).format('YYYY-MM-DD'),
+            CheckIn: result.CheckIn ? moment(result.CheckIn, 'HH:mm:ss').format('HH:mm:ss') : null,
+            CheckOut: result.CheckOut ? moment(result.CheckOut, 'HH:mm:ss').format('HH:mm:ss') : null,
+            LateMinutes: result.LateMinutes > 0 ? result.LateMinutes : 0,
+            EarlyLeaveMinutes: result.EarlyLeaveMinutes > 0 ? result.EarlyLeaveMinutes : 0,
+            OvertimeMinutes: result.OvertimeMinutes > 0 ? result.OvertimeMinutes : 0
+        }));
+
+        // Add rows to worksheet
+        worksheet.addRows(formattedResults);
+
+        // Set response headers
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=${employee}-${startDate}-to-${endDate}.xlsx`);
+
+        // Send workbook as response
+        workbook.xlsx.write(res)
+            .then(() => {
+                res.end();
+            })
+            .catch(err => {
+                console.error('Error writing Excel:', err);
+                res.status(500).send('Error exporting to Excel');
+            });
+
+    } catch (error) {
+        console.error('Error exporting to Excel:', error);
+        res.status(500).send('Error exporting to Excel');
+    }
+});
+
 
 
 
@@ -1127,11 +1209,154 @@ app.get('/attendance/:id', (req, res) => {
 
 
 
-//mô hình mô phỏng nhận diện qua tập test sau khi train cài tensorflow
+// //mô hình mô phỏng nhận diện qua tập test 
+// const { promisify } = require('util');
+// const readdir = promisify(fs.readdir);
+// const readFile = promisify(fs.readFile);
+
+// const ORIGINAL_IMAGES_DIR = path.join(__dirname, 'Original Images');
+
+// async function prepareData() {
+//     const folders = await readdir(ORIGINAL_IMAGES_DIR);
+//     for (const folder of folders) {
+//         const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
+//         const files = await readdir(folderPath);
+//         const totalFiles = files.length;
+//         const trainSize = Math.floor(totalFiles * 0.7);
+//         const testSize = totalFiles - trainSize;
+
+//         // Tạo tài khoản email và mật khẩu dựa trên tên folder
+//         const email = `${folder}@gmail.com`;
+//         const password = '12345';
+//         const fullName = folder;
+//         const role = 'user';
+
+//         // Lưu tài khoản vào database
+//         const sqlCreateUser = `INSERT INTO user (FullName) VALUES (?)`;
+//         db.query(sqlCreateUser, [fullName], (err, result) => {
+//             if (err) throw err;
+//             const userID = result.insertId;
+//             const sqlCreateAccount = `INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)`;
+//             db.query(sqlCreateAccount, [email, password, userID, role], (err, result) => {
+//                 if (err) throw err;
+//                 console.log(`Created account for ${fullName}`);
+//             });
+//         });
+
+//         // Chia ảnh thành tập train và test
+//         const trainFiles = files.slice(0, trainSize);
+//         const testFiles = files.slice(trainSize);
+
+//         // Lưu tập train và test vào folder riêng
+//         const trainDir = path.join(folderPath, 'train');
+//         const testDir = path.join(folderPath, 'test');
+//         if (!fs.existsSync(trainDir)) fs.mkdirSync(trainDir);
+//         if (!fs.existsSync(testDir)) fs.mkdirSync(testDir);
+
+//         for (const file of trainFiles) {
+//             fs.renameSync(path.join(folderPath, file), path.join(trainDir, file));
+//         }
+//         for (const file of testFiles) {
+//             fs.renameSync(path.join(folderPath, file), path.join(testDir, file));
+//         }
+//     }
+//     console.log("prepareData completed");
+// }
+
+// async function trainModel(folderPath) {
+//     const trainDir = path.join(folderPath, 'train');
+//     const files = await readdir(trainDir);
+//     console.log(`Training model for ${path.basename(folderPath)} with ${files.length} files`);
+
+//     const labeledDescriptors = [];
+//     let processedCount = 0;
+
+//     for (const file of files) {
+//         try {
+//             const imgPath = path.join(trainDir, file);
+//             const img = await canvas.loadImage(imgPath);
+//             const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+//             if (!detection) continue;
+
+//             const label = path.basename(folderPath);
+//             labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(label, [detection.descriptor]));
+
+//             processedCount++;
+//             const progress = (processedCount / files.length) * 100;
+//             console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+//         } catch (error) {
+//             console.error(`Error processing file ${file} in ${folderPath}:`, error);
+//         }
+//     }
+
+//     return labeledDescriptors;
+// }
+
+
+
+// async function evaluateModel(folderPath, labeledDescriptors) {
+//     const testDir = path.join(folderPath, 'test');
+//     const files = await readdir(testDir);
+//     console.log(`Evaluating model for ${path.basename(folderPath)} with ${files.length} files`);
+
+//     let correct = 0;
+//     let processedCount = 0;
+
+//     for (const file of files) {
+//         try {
+//             const imgPath = path.join(testDir, file);
+//             const img = await canvas.loadImage(imgPath);
+//             const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+//             if (!detection) continue;
+
+//             const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors);
+//             const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+
+//             if (bestMatch.label === path.basename(folderPath)) {
+//                 correct++;
+//             }
+
+//             processedCount++;
+//             const progress = (processedCount / files.length) * 100;
+//             console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+//         } catch (error) {
+//             console.error(`Error processing file ${file} in ${folderPath}:`, error);
+//         }
+//     }
+
+//     console.log(`Accuracy for ${path.basename(folderPath)}: ${(correct / files.length) * 100}%`);
+// }
+// async function main() {
+//     try {
+//         await LoadModels();
+
+//         const folders = await readdir(ORIGINAL_IMAGES_DIR);
+//         for (const folder of folders) {
+//             const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
+//             const labeledDescriptors = await trainModel(folderPath);
+//             await evaluateModel(folderPath, labeledDescriptors);
+//         }
+//     } catch (error) {
+//         console.error("Error in main function:", error);
+//     }
+// }
+
+// app.post('/train_and_evaluate', async (req, res) => {
+//     try {
+//         await prepareData();
+//         await main();
+//         res.status(200).json({ message: "Training and evaluation completed" });
+//     } catch (err) {
+//         console.error("Error during training and evaluation:", err);
+//         res.status(500).json({ error: "Error during training and evaluation" });
+//     }
+// });
+
+
+
 const { promisify } = require('util');
 const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
-
 const ORIGINAL_IMAGES_DIR = path.join(__dirname, 'Original Images');
 
 async function prepareData() {
@@ -1143,15 +1368,14 @@ async function prepareData() {
         const trainSize = Math.floor(totalFiles * 0.7);
         const testSize = totalFiles - trainSize;
 
-        // Tạo tài khoản email và mật khẩu dựa trên tên folder
         const email = `${folder}@gmail.com`;
         const password = '12345';
         const fullName = folder;
         const role = 'user';
+        const address = 'Hà Nội'
 
-        // Lưu tài khoản vào database
-        const sqlCreateUser = `INSERT INTO user (FullName) VALUES (?)`;
-        db.query(sqlCreateUser, [fullName], (err, result) => {
+        const sqlCreateUser = `INSERT INTO user (Email,FullName,Address) VALUES (?,?,?)`;
+        db.query(sqlCreateUser, [email, fullName, address], (err, result) => {
             if (err) throw err;
             const userID = result.insertId;
             const sqlCreateAccount = `INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)`;
@@ -1161,11 +1385,9 @@ async function prepareData() {
             });
         });
 
-        // Chia ảnh thành tập train và test
         const trainFiles = files.slice(0, trainSize);
         const testFiles = files.slice(trainSize);
 
-        // Lưu tập train và test vào folder riêng
         const trainDir = path.join(folderPath, 'train');
         const testDir = path.join(folderPath, 'test');
         if (!fs.existsSync(trainDir)) fs.mkdirSync(trainDir);
@@ -1181,7 +1403,8 @@ async function prepareData() {
     console.log("prepareData completed");
 }
 
-async function trainModel(folderPath) {
+// Hàm trainModel để huấn luyện mô hình và lưu trữ mô tả khuôn mặt và ảnh
+async function trainModel(folderPath, userID) {
     const trainDir = path.join(folderPath, 'train');
     const files = await readdir(trainDir);
     console.log(`Training model for ${path.basename(folderPath)} with ${files.length} files`);
@@ -1197,11 +1420,31 @@ async function trainModel(folderPath) {
             if (!detection) continue;
 
             const label = path.basename(folderPath);
-            labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(label, [detection.descriptor]));
+            labeledDescriptors.push({
+                label,
+                descriptor: detection.descriptor
+            });
+
+            // Save image to public/Images folder with timestamp filename
+            const targetFileName = `${Date.now()}${path.extname(file)}`;
+            const targetPath = path.join('public', 'Images', targetFileName);
+            fs.copyFileSync(imgPath, targetPath);
 
             processedCount++;
             const progress = (processedCount / files.length) * 100;
             console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+
+            // Convert Float32Array descriptor to JSON string for storage
+            const faceDescriptorFloat32 = Array.from(detection.descriptor); // Convert Float32Array to regular array
+            const faceDescriptorJSON = JSON.stringify(faceDescriptorFloat32);
+
+            // Save face descriptor to database
+            const sqlInsert = `INSERT INTO userimage (UserName, Image, ID_User, FaceDescriptor) VALUES (?, ?, ?, ?)`;
+            db.query(sqlInsert, [label, targetFileName, userID, faceDescriptorJSON], (err, result) => {
+                if (err) throw err;
+                console.log(`Saved face descriptor for ${label}`);
+            });
+
         } catch (error) {
             console.error(`Error processing file ${file} in ${folderPath}:`, error);
         }
@@ -1210,38 +1453,111 @@ async function trainModel(folderPath) {
     return labeledDescriptors;
 }
 
-async function evaluateModel(folderPath, labeledDescriptors) {
+
+async function simulateAttendance(folderPath, userID) {
     const testDir = path.join(folderPath, 'test');
-    const files = await readdir(testDir);
-    console.log(`Evaluating model for ${path.basename(folderPath)} with ${files.length} files`);
+    const testFiles = await readdir(testDir);
 
-    let correct = 0;
-    let processedCount = 0;
+    const startDate = new Date('2024-07-01');
+    const endDate = new Date('2024-07-31');
+    const standardCheckInTime = 8; // 8 AM
+    const standardCheckOutTime = 17; // 5 PM
+    const maxLateCheckInMinutes = 30; // Maximum late check-in minutes
+    const maxEarlyCheckOutMinutes = 30; // Maximum early check-out minutes
 
-    for (const file of files) {
-        try {
-            const imgPath = path.join(testDir, file);
-            const img = await canvas.loadImage(imgPath);
-            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-            if (!detection) continue;
-
-            const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors);
-            const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-
-            if (bestMatch.label === path.basename(folderPath)) {
-                correct++;
-            }
-
-            processedCount++;
-            const progress = (processedCount / files.length) * 100;
-            console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
-        } catch (error) {
-            console.error(`Error processing file ${file} in ${folderPath}:`, error);
+    // Function to generate a set of unique random dates
+    function getRandomDates(startDate, endDate, count) {
+        const dates = new Set();
+        while (dates.size < count) {
+            const randomDate = new Date(startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime()));
+            randomDate.setHours(0, 0, 0, 0); // Set to start of the day
+            dates.add(randomDate.toDateString()); // Add as a string to ensure uniqueness
         }
+        return Array.from(dates).map(date => new Date(date));
     }
 
-    console.log(`Accuracy for ${path.basename(folderPath)}: ${(correct / files.length) * 100}%`);
+    // Get 21 unique random dates in July
+    const randomDates = getRandomDates(startDate, endDate, 21);
+
+    // Process each random date
+    for (const currentDate of randomDates) {
+        try {
+            // Randomly select check-in and check-out times within the allowed range
+            const checkInTime = new Date(currentDate);
+            checkInTime.setHours(standardCheckInTime, 0, 0, 0);
+            checkInTime.setMinutes(checkInTime.getMinutes() + Math.floor(Math.random() * maxLateCheckInMinutes));
+
+            const checkOutTime = new Date(currentDate);
+            checkOutTime.setHours(standardCheckOutTime, 0, 0, 0);
+            checkOutTime.setMinutes(checkOutTime.getMinutes() - Math.floor(Math.random() * maxEarlyCheckOutMinutes));
+
+            console.log(`Processing date: ${currentDate.toLocaleDateString()}`);
+            console.log(`Check-in time: ${checkInTime}`);
+            console.log(`Check-out time: ${checkOutTime}`);
+
+            // Loop through test files and process each face
+            for (const file of testFiles) {
+                const imgPath = path.join(testDir, file);
+                const img = await canvas.loadImage(imgPath);
+                const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+
+                if (!detection) {
+                    console.log(`No face detected in ${file}`);
+                    continue;
+                }
+
+                const faceDescriptorFloat32 = Array.from(detection.descriptor); // Convert Float32Array to regular array
+                const faceDescriptorJSON = JSON.stringify(faceDescriptorFloat32);
+
+                // Query userimage table to find a match for the current face descriptor
+                const sqlQuery = `SELECT * FROM userimage WHERE ID_User = ?`;
+                db.query(sqlQuery, [userID], (err, results) => {
+                    if (err) throw err;
+
+                    let found = false;
+                    for (const result of results) {
+                        const savedDescriptor = JSON.parse(result.FaceDescriptor);
+
+                        // Compare saved descriptor with current face descriptor
+                        const distance = faceapi.euclideanDistance(savedDescriptor, faceDescriptorFloat32);
+                        if (distance < 0.6) { // Adjust distance threshold as needed
+                            // Insert attendance record into attendance table
+                            const sqlInsertAttendance = `
+                                INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image) 
+                                VALUES (?, ?, ?, ?, ?)
+                            `;
+                            db.query(sqlInsertAttendance, [userID, result.UserName, checkInTime, 'Check In', file], (err) => {
+                                if (err) throw err;
+                                console.log(`Check-in recorded for user ${userID} on ${checkInTime}`);
+                            });
+
+                            db.query(sqlInsertAttendance, [userID, result.UserName, checkOutTime, 'Check Out', file], (err) => {
+                                if (err) throw err;
+                                console.log(`Check-out recorded for user ${userID} on ${checkOutTime}`);
+                            });
+
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        console.log(`No matching face descriptor found for ${file}`);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(`Error processing files for ${currentDate.toLocaleDateString()}:`, error);
+        }
+    }
 }
+
+
+
+
+
+
+
 async function main() {
     try {
         await LoadModels();
@@ -1249,13 +1565,25 @@ async function main() {
         const folders = await readdir(ORIGINAL_IMAGES_DIR);
         for (const folder of folders) {
             const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
-            const labeledDescriptors = await trainModel(folderPath);
-            await evaluateModel(folderPath, labeledDescriptors);
+
+            // Get the user ID for the current folder (user)
+            const sqlGetUserID = `SELECT ID FROM user WHERE FullName = ?`;
+            db.query(sqlGetUserID, [folder], async (err, result) => {
+                if (err) {
+                    console.error(`Error getting user ID for ${folder}:`, err);
+                    return;
+                }
+
+                const userID = result[0].ID;
+                await trainModel(folderPath, userID); // Wait for training model to complete
+                await simulateAttendance(folderPath, userID); // Simulate attendance after training
+            });
         }
     } catch (error) {
         console.error("Error in main function:", error);
     }
 }
+
 
 app.post('/train_and_evaluate', async (req, res) => {
     try {
@@ -1267,9 +1595,6 @@ app.post('/train_and_evaluate', async (req, res) => {
         res.status(500).json({ error: "Error during training and evaluation" });
     }
 });
-
-
-
 
 
 

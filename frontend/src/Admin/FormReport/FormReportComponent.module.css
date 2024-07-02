@@ -37,6 +37,7 @@
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+    margin-top: -10px;
 }
 
 .datePickerContainer {
@@ -66,7 +67,7 @@
     border-radius: 4px;
     cursor: pointer;
     margin-left: 10px; /* Adjust margin-left as needed */
-    margin-top: 30px;
+    margin-top: 15px;
     height: 40px;
 }
 
@@ -74,16 +75,29 @@
     margin-top: 20px;
 }
 
-table {
+.reportContainer h2 {
+    margin-bottom: 10px;
+}
+
+.exportButton {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    height: 36px;
+}
+
+.reportTable {
     width: 100%;
     border-collapse: collapse;
 }
 
-table, th, td {
-    border: 1px solid black;
-}
-
-th, td {
+.reportTable th,
+.reportTable td {
+    border: 1px solid #dee2e6;
     padding: 8px;
-    text-align: left;
+    text-align: center;
 }

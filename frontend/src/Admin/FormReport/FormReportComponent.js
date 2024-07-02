@@ -42,9 +42,20 @@ const FormReportComponent = () => {
     };
 
     const handleExportToExcel = () => {
-        axios.post('http://localhost:8081/export-to-excel', reportData)
+        const requestData = {
+            employee: selectedEmployee,
+            startDate,
+            endDate
+        };
+
+        axios.post('http://localhost:8081/export-to-excel', requestData, { responseType: 'blob' })
             .then(response => {
-                console.log('Excel export successful:', response.data);
+                const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `${selectedEmployee} ${startDate} đến ${endDate}.xlsx`; // Example: John Doe 2024-06-24 to 2024-06-30.xlsx
+                link.click();
             })
             .catch(error => console.error('Error exporting to Excel:', error));
     };
@@ -60,9 +71,9 @@ const FormReportComponent = () => {
             <AdSidebar />
             <div className="d-flex flex-column flex-grow-1">
                 <AdNavbar />
-                <div className={`container-fluid vh-100 overflow-auto d-flex flex-column ${styles.formReportContainer}`}>
-                    <div className={`d-flex ${styles.formRow}`}>
-                        <div className={styles.formGroup}>
+                <div className={`container-fluid vh-100 overflow-auto ${styles.formReportContainer}`}>
+                    <div className={`d-flex flex-wrap align-items-center ${styles.formRow}`}>
+                        <div className={`${styles.formGroup}`}>
                             <label>Chọn phòng ban:</label>
                             <select value={selectedDepartment} onChange={(e) => handleDepartmentChange(e.target.value)}>
                                 <option value="">-- Chọn phòng ban --</option>
@@ -71,7 +82,7 @@ const FormReportComponent = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className={styles.formGroup}>
+                        <div className={`${styles.formGroup}`}>
                             <label>Chọn nhân viên:</label>
                             <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)}>
                                 <option value="">-- Chọn nhân viên --</option>
@@ -80,7 +91,7 @@ const FormReportComponent = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className={styles.datePickerGroup}>
+                        <div className={`${styles.datePickerGroup}`}>
                             <label>Phạm vi báo cáo:</label>
                             <div className={styles.datePickerContainer}>
                                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -88,14 +99,15 @@ const FormReportComponent = () => {
                                 <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                             </div>
                         </div>
-                        <button className={styles.generateButton} onClick={handleGenerateReport}>Xem báo cáo</button>
+                        <button className={`${styles.generateButton}`} onClick={handleGenerateReport}>Xem báo cáo</button>
                     </div>
                     {reportData && (
-                        <div className={styles.reportContainer}>
-                            <table>
+                        <div className={`${styles.reportContainer}`}>
+                            <h2>Bảng chấm công</h2>
+                            <button className={`${styles.exportButton}`} onClick={handleExportToExcel}>Xuất Excel</button>
+                            <table className={`${styles.reportTable}`}>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Full Name</th>
                                         <th>Date</th>
                                         <th>Check-in</th>
@@ -108,7 +120,6 @@ const FormReportComponent = () => {
                                 <tbody>
                                     {reportData.map((record, index) => (
                                         <tr key={index}>
-                                            <td>{record.ID_User}</td>
                                             <td>{record.FullName}</td>
                                             <td>{record.Date}</td>
                                             <td>{formatTime(record.CheckIn)}</td>
@@ -120,7 +131,6 @@ const FormReportComponent = () => {
                                     ))}
                                 </tbody>
                             </table>
-                            <button onClick={handleExportToExcel}>Xuất Excel</button>
                         </div>
                     )}
                 </div>

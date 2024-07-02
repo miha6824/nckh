@@ -114,45 +114,64 @@
 .viewMoreButton:hover {
     background-color: #138496;
 }
-
 .expandedImage {
     display: flex;
     align-items: center;
     margin-top: 10px;
-}
-
-.expandedImage .image {
+    }
+    
+    .expandedImage .image {
     width: 100px;
     height: 100px;
     margin: 0;
     margin-right: 10px;
-}
-
-.pagination {
+    }
+    
+    .paginationContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    }
+    
+    .pagination {
     display: flex;
     justify-content: center;
     margin-top: 20px;
-}
-
-.pageItem {
+    }
+    
+    .pageItem {
     list-style: none;
     margin: 0 5px;
-}
-
-.pageLink {
+    }
+    
+    .pageLink {
     color: #007bff;
     text-decoration: none;
     padding: 0.5rem 0.75rem;
     border: 1px solid #dee2e6;
     border-radius: 0.25rem;
-}
-
-.pageLink:hover {
+    }
+    
+    .pageLink
+    {
     background-color: #e9ecef;
-}
-
-.pageItemActive .pageLink {
+    }
+    
+    .pageItemActive .pageLink {
     background-color: #007bff;
     color: #fff;
     border-color: #007bff;
-}
+    }
+    
+    .btn-info {
+    background-color: #17a2b8;
+    border: none;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    }
+    
+    .btn-info
+    {
+    background-color: #138496;
+    }
