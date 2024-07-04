@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import AdSidebar from '../AdNav/AdSidebar';
 import AdNavbar from '../AdNav/AdNavbar';
 import styles from './CRUD_ImgUser.module.css';
-import { FaTrash, FaPlus, FaArrowLeft, FaArrowRight, FaEye } from 'react-icons/fa';
+import { FaPlus, FaArrowLeft, FaArrowRight, FaEye, FaTimes } from 'react-icons/fa'; // Import FaTimes for X icon
 import ReactPaginate from 'react-paginate';
 
 function CRUD_ImgUser() {
@@ -25,7 +25,7 @@ function CRUD_ImgUser() {
     const handleDelete = async (id) => {
         try {
             await axios.delete(`http://localhost:8081/Delete_ImgUser/${id}`);
-            setUserImages(userImages.filter(image => image.ID !== id));
+            setUserImages(userImages.filter(image => image.ImageID !== id));
         } catch (err) {
             console.log(err);
         }
@@ -45,24 +45,25 @@ function CRUD_ImgUser() {
     };
 
     const offset = currentPage * usersPerPage;
-    const filteredImages = userImages.filter(image =>
-        image.UserName.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredUsers = userImages.filter(user =>
+        user.FullName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const groupedImages = filteredImages.reduce((acc, image) => {
-        if (!acc[image.ID_User]) {
-            acc[image.ID_User] = [];
+    const groupedUsers = filteredUsers.reduce((acc, user) => {
+        if (!acc[user.UserID]) {
+            acc[user.UserID] = [];
         }
-        acc[image.ID_User].push(image);
+        acc[user.UserID].push(user);
         return acc;
     }, {});
 
-    const currentPageData = Object.keys(groupedImages).slice(offset, offset + usersPerPage).map(userId => ({
+    const currentPageData = Object.keys(groupedUsers).slice(offset, offset + usersPerPage).map(userId => ({
         userId,
-        images: groupedImages[userId],
+        userName: groupedUsers[userId][0].FullName,
+        images: groupedUsers[userId].filter(user => user.ImageID !== null),
     }));
 
-    const pageCount = Math.ceil(Object.keys(groupedImages).length / usersPerPage);
+    const pageCount = Math.ceil(Object.keys(groupedUsers).length / usersPerPage);
 
     return (
         <div className="d-flex vh-100">
@@ -81,9 +82,6 @@ function CRUD_ImgUser() {
                                     value={searchTerm}
                                     onChange={handleSearchChange}
                                 />
-                                <Link to="/create_ImgUser" className={styles.addButton}>
-                                    <FaPlus className={styles.icon} />
-                                </Link>
                             </div>
                         </div>
                         <div className={styles.tableContainer}>
@@ -97,46 +95,53 @@ function CRUD_ImgUser() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {currentPageData.map(({ userId, images }) => (
+                                    {currentPageData.map(({ userId, userName, images }) => (
                                         <tr key={userId}>
                                             <td>{userId}</td>
-                                            <td>{images[0].UserName}</td>
+                                            <td>{userName}</td>
                                             <td>
                                                 <div className={styles.imageContainer}>
-                                                    {images.slice(0, 1).map(image => (
-                                                        <img
-                                                            key={image.ID}
-                                                            src={`http://localhost:8081/Images/${image.Image}`}
-                                                            alt={image.UserName}
-                                                            className={styles.image}
-                                                        />
-                                                    ))}
-                                                    {expandedUserId === userId && images.slice(1).map(image => (
-                                                        <div key={image.ID} className={styles.expandedImage}>
-                                                            <img
-                                                                src={`http://localhost:8081/Images/${image.Image}`}
-                                                                alt={image.UserName}
-                                                                className={styles.image}
-                                                            />
-                                                            <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(image.ID)}>
-                                                                <FaTrash className={styles.icon} />
-                                                            </button>
-                                                        </div>
-                                                    ))}
+                                                    {expandedUserId === userId && (
+                                                        images.length > 0 ? (
+                                                            images.map(image => (
+                                                                <div key={image.ImageID} className={styles.imageWrapper}>
+                                                                    <img
+                                                                        src={`http://localhost:8081/Images/${image.Image}`}
+                                                                        alt={userName}
+                                                                        className={styles.image}
+                                                                    />
+                                                                    <button onClick={() => handleDelete(image.ImageID)} className={styles.deleteButton}>
+                                                                        <FaTimes />
+                                                                    </button>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className={styles.noImageText}>Chưa có ảnh</div>
+                                                        )
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className={styles.actions}>
-                                                <Link to={`/ImgUserAdd/${images[0].ID}`} className={`btn btn-primary mr-2 ${styles['btn-primary']}`}>
+                                                <Link to={`/ImgUserAdd/${userId}`} className={`btn btn-primary mr-2 ${styles['btn-primary']}`}>
                                                     <FaPlus className={styles.icon} />
                                                 </Link>
-                                                {images.length > 1 && (
+                                                {images.length > 0 && images.length > 1 && (
                                                     <button onClick={() => toggleExpand(userId)} className={`btn btn-info ${styles['btn-info']}`}>
-                                                        <FaEye className={styles.icon} /> {expandedUserId === userId ? 'Thu gọn' : 'Xem thêm'}
+                                                        <FaEye className={styles.icon} /> {expandedUserId === userId ? 'Thu gọn' : 'Xem ảnh'}
                                                     </button>
+                                                )}
+                                                {images.length === 0 && (
+                                                    <div className={styles.noImageText}>Chưa có ảnh</div>
                                                 )}
                                             </td>
                                         </tr>
                                     ))}
+                                    {/* Hiển thị dòng mặc định khi không có dữ liệu */}
+                                    {!currentPageData.length && (
+                                        <tr>
+                                            <td colSpan="4" className="text-center">Không có dữ liệu phù hợp</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>

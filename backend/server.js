@@ -315,9 +315,13 @@ app.delete('/Delete_user/:id', (req, res) => {
 });
 
 
-// Get all user images
+// lấy tất cả user kể cả không có ảnh
 app.get("/CRUD_ImgUser", (req, res) => {
-    const sql = "SELECT * FROM userimage";
+    const sql = `
+        SELECT u.ID as UserID, u.FullName, ui.ID as ImageID, ui.Image
+        FROM user u
+        LEFT JOIN userimage ui ON u.ID = ui.ID_User
+    `;
     db.query(sql, (err, data) => {
         if (err) return res.status(500).json("Error");
         return res.status(200).json(data);
@@ -374,8 +378,8 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
         return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // Thực hiện truy vấn SQL để lấy thông tin về UserName và ID_User
-    const userInfoQuery = "SELECT UserName, ID_User FROM userimage WHERE ID = ?";
+    // Thực hiện truy vấn SQL để lấy thông tin về UserName và ID_User từ bảng `user`
+    const userInfoQuery = "SELECT FullName as UserName, ID as ID_User FROM user WHERE ID = ?";
     db.query(userInfoQuery, [id], async (err, userInfo) => {
         if (err) {
             console.error("Database error:", err);
@@ -443,6 +447,7 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
         }
     });
 });
+
 
 
 // Hàm xử lý tải lên ảnh và lưu thông tin vào cơ sở dữ liệu
@@ -725,7 +730,7 @@ app.post('/ImgUserAddUserSite/:id', upload.single('image'), async (req, res) => 
 app.get('/userInfo4AddImg/:id', (req, res) => {
     const userId = req.params.id;
 
-    const userInfoQuery = "SELECT UserName, ID_User FROM userimage WHERE id = ?";
+    const userInfoQuery = "SELECT FullName as UserName, ID as ID_User FROM user WHERE ID = ?";
     db.query(userInfoQuery, [userId], (err, userInfo) => {
         if (err) {
             console.error("Database error:", err);
@@ -893,26 +898,28 @@ app.post('/attendance', (req, res) => {
                 return res.status(500).json("Lỗi");
             }
 
+            let standardCheckInTime, standardCheckOutTime;
             if (standardTimesResult.length === 0) {
                 // Nếu không tìm thấy giờ tiêu chuẩn cho ngày hiện tại, thiết lập giá trị mặc định
-                const defaultCheckInTime = 8 * 60; // 08:00 sáng
-                const defaultCheckOutTime = 17 * 60; // 05:00 chiều
+                standardCheckInTime = 8 * 60; // 08:00 sáng
+                standardCheckOutTime = 17 * 60; // 05:00 chiều
                 console.warn("Không tìm thấy giờ tiêu chuẩn cho ngày hiện tại, sử dụng giá trị mặc định");
-
-                // Dùng giá trị mặc định
-                handleAttendance(userId, fullName, imageBase64, result, currentTime, currentMinutes, defaultCheckInTime, defaultCheckOutTime, lateCheckInThreshold, overTimeThreshold, res);
             } else {
                 // Dùng giá trị từ cơ sở dữ liệu
-                const standardCheckInTime = standardTimesResult[0].checkin_time;
-                const standardCheckOutTime = standardTimesResult[0].checkout_time;
-
-                handleAttendance(userId, fullName, imageBase64, result, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res);
+                standardCheckInTime = standardTimesResult[0].checkin_time;
+                standardCheckOutTime = standardTimesResult[0].checkout_time;
             }
+
+            handleAttendance(userId, fullName, imageBase64, result, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res);
         });
     });
 });
 
 function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res) {
+    let lateMinutes = 0;
+    let earlyLeaveMinutes = 0;
+    let overtimeMinutes = 0;
+
     if (lastAttendanceResult.length > 0) {
         const lastAttendanceTime = moment(lastAttendanceResult[0].timestamp);
         const lastAttendanceDate = lastAttendanceTime.format('YYYY-MM-DD');
@@ -926,13 +933,15 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
             let Status = "check out";
             if (currentMinutes < standardCheckOutTime) {
                 Status += ` sớm ${standardCheckOutTime - currentMinutes} phút`;
+                earlyLeaveMinutes = standardCheckOutTime - currentMinutes;
             } else if (currentMinutes >= standardCheckOutTime + overTimeThreshold) {
                 Status += ` tăng ca ${currentMinutes - standardCheckOutTime} phút`;
+                overtimeMinutes = currentMinutes - standardCheckOutTime;
             }
 
             // Thực hiện insert vào bảng attendance với tình trạng đã xác định
-            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
-            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status, EarlyLeaveMinutes, OvertimeMinutes) VALUES (?, ?, ?, ?, ?, ?)";
+            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status, earlyLeaveMinutes, overtimeMinutes], (err, result) => {
                 if (err) {
                     console.error("Lỗi khi thêm bản ghi điểm danh:", err);
                     return res.status(500).json("Lỗi khi lưu điểm danh");
@@ -946,11 +955,12 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
                 Status += ` sớm ${standardCheckInTime - currentMinutes} phút`;
             } else if (currentMinutes > standardCheckInTime + lateCheckInThreshold) {
                 Status += ` muộn ${currentMinutes - standardCheckInTime} phút`;
+                lateMinutes = currentMinutes - standardCheckInTime;
             }
 
             // Thực hiện insert vào bảng attendance với tình trạng đã xác định
-            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
-            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status, LateMinutes) VALUES (?, ?, ?, ?, ?)";
+            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status, lateMinutes], (err, result) => {
                 if (err) {
                     console.error("Lỗi khi thêm bản ghi điểm danh:", err);
                     return res.status(500).json("Lỗi khi lưu điểm danh");
@@ -964,11 +974,12 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
             Status += ` sớm ${standardCheckInTime - currentMinutes} phút`;
         } else if (currentMinutes > standardCheckInTime + lateCheckInThreshold) {
             Status += ` muộn ${currentMinutes - standardCheckInTime} phút`;
+            lateMinutes = currentMinutes - standardCheckInTime;
         }
 
         // Thực hiện insert vào bảng attendance với tình trạng đã xác định
-        const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
-        db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status], (err, result) => {
+        const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status, LateMinutes) VALUES (?, ?, ?, ?, ?)";
+        db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status, lateMinutes], (err, result) => {
             if (err) {
                 console.error("Lỗi khi thêm bản ghi điểm danh:", err);
                 return res.status(500).json("Lỗi khi lưu điểm danh");
@@ -977,6 +988,7 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
         });
     }
 }
+
 
 
 
@@ -1046,12 +1058,11 @@ app.post('/generate-report', (req, res) => {
         SELECT a.ID_User, u.FullName, DATE(a.timestamp) AS Date,
                MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
                MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
-               TIMESTAMPDIFF(MINUTE, st.checkin_time, MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END)) AS LateMinutes,
-               TIMESTAMPDIFF(MINUTE, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END), st.checkout_time) AS EarlyLeaveMinutes,
-               TIMESTAMPDIFF(MINUTE, st.checkout_time, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END)) AS OvertimeMinutes
+               SUM(a.LateMinutes) AS LateMinutes,
+               SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
+               SUM(a.OvertimeMinutes) AS OvertimeMinutes
         FROM attendance a
         JOIN user u ON a.ID_User = u.ID
-        JOIN standard_times st ON DATE(a.timestamp) = st.date
         WHERE u.ID_Department = ? AND u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
         GROUP BY a.ID_User, u.FullName, Date(a.timestamp)
     `;
@@ -1101,12 +1112,11 @@ app.post('/export-to-excel', async (req, res) => {
             SELECT u.FullName, DATE(a.timestamp) AS Date,
                    MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
                    MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
-                   TIMESTAMPDIFF(MINUTE, st.checkin_time, MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END)) AS LateMinutes,
-                   TIMESTAMPDIFF(MINUTE, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END), st.checkout_time) AS EarlyLeaveMinutes,
-                   TIMESTAMPDIFF(MINUTE, st.checkout_time, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END)) AS OvertimeMinutes
+                   SUM(a.LateMinutes) AS LateMinutes,
+                   SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
+                   SUM(a.OvertimeMinutes) AS OvertimeMinutes
             FROM attendance a
             JOIN user u ON a.ID_User = u.ID
-            JOIN standard_times st ON DATE(a.timestamp) = st.date
             WHERE u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
             GROUP BY u.FullName, DATE(a.timestamp)
         `;
@@ -1141,15 +1151,8 @@ app.post('/export-to-excel', async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=${employee}-${startDate}-to-${endDate}.xlsx`);
 
         // Send workbook as response
-        workbook.xlsx.write(res)
-            .then(() => {
-                res.end();
-            })
-            .catch(err => {
-                console.error('Error writing Excel:', err);
-                res.status(500).send('Error exporting to Excel');
-            });
-
+        await workbook.xlsx.write(res);
+        res.end();
     } catch (error) {
         console.error('Error exporting to Excel:', error);
         res.status(500).send('Error exporting to Excel');
@@ -1159,22 +1162,24 @@ app.post('/export-to-excel', async (req, res) => {
 
 
 
+
+// Endpoint để lấy dữ liệu chấm công của người dùng trong vòng 1 tháng
 // Endpoint để lấy dữ liệu chấm công của người dùng trong vòng 1 tháng
 app.get('/attendance/:id', (req, res) => {
     const id = req.params.id;
     const startDate = moment().startOf('month').format('YYYY-MM-DD');
     const endDate = moment().endOf('month').format('YYYY-MM-DD');
+
     const sql = `
         SELECT a.ID_User, u.FullName, DATE(a.timestamp) AS Date,
                MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
                MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
-               TIMESTAMPDIFF(MINUTE, st.checkin_time, MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END)) AS LateMinutes,
-               GREATEST(0, TIMESTAMPDIFF(MINUTE, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END), st.checkout_time)) AS EarlyLeaveMinutes,
-               GREATEST(0, TIMESTAMPDIFF(MINUTE, st.checkout_time, MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END))) AS OvertimeMinutes
+               SUM(a.LateMinutes) AS LateMinutes,
+               SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
+               SUM(a.OvertimeMinutes) AS OvertimeMinutes
         FROM attendance a
         JOIN user u ON a.ID_User = u.ID
-        JOIN standard_times st ON DATE(a.timestamp) = st.date
-        WHERE u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
+        WHERE a.ID_User = ? AND DATE(a.timestamp) BETWEEN ? AND ?
         GROUP BY a.ID_User, u.FullName, DATE(a.timestamp)
     `;
 
@@ -1184,7 +1189,10 @@ app.get('/attendance/:id', (req, res) => {
             return res.status(500).json("Lỗi server");
         }
 
-        // Sử dụng moment để định dạng lại ngày tháng trước khi gửi dữ liệu về cho client
+        if (data.length === 0) {
+            return res.status(404).json("Không tìm thấy dữ liệu chấm công cho người dùng trong tháng này.");
+        }
+
         const formattedData = data.map(record => {
             return {
                 ...record,
@@ -1197,6 +1205,7 @@ app.get('/attendance/:id', (req, res) => {
         return res.status(200).json(formattedData);
     });
 });
+
 
 
 
@@ -1462,27 +1471,31 @@ async function simulateAttendance(folderPath, userID) {
     const endDate = new Date('2024-07-31');
     const standardCheckInTime = 8; // 8 AM
     const standardCheckOutTime = 17; // 5 PM
-    const maxLateCheckInMinutes = 30; // Maximum late check-in minutes
-    const maxEarlyCheckOutMinutes = 30; // Maximum early check-out minutes
+    const maxLateCheckInMinutes = 30; // Số phút tối đa check-in muộn
+    const maxEarlyCheckOutMinutes = 120; // Số phút tối đa check-out sớm
 
-    // Function to generate a set of unique random dates
+    // Định nghĩa sqlQuery ở đây để sử dụng trong các hàm con
+    const sqlQuery = `SELECT * FROM userimage WHERE ID_User = ?`;
+
+    // Hàm để tạo một tập hợp các ngày ngẫu nhiên tăng dần
     function getRandomDates(startDate, endDate, count) {
-        const dates = new Set();
-        while (dates.size < count) {
-            const randomDate = new Date(startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime()));
-            randomDate.setHours(0, 0, 0, 0); // Set to start of the day
-            dates.add(randomDate.toDateString()); // Add as a string to ensure uniqueness
+        const dates = [];
+        const date = new Date(startDate);
+        while (dates.length < count) {
+            date.setDate(date.getDate() + Math.floor(Math.random() * 3) + 1); // Tăng ngày lên ngẫu nhiên từ 1 đến 3 ngày
+            if (date > endDate) break;
+            dates.push(new Date(date));
         }
-        return Array.from(dates).map(date => new Date(date));
+        return dates;
     }
 
-    // Get 21 unique random dates in July
-    const randomDates = getRandomDates(startDate, endDate, 21);
+    // Lấy 5 ngày ngẫu nhiên duy nhất trong tháng 7
+    const randomDates = getRandomDates(startDate, endDate, 5);
 
-    // Process each random date
+    // Xử lý mỗi ngày ngẫu nhiên
     for (const currentDate of randomDates) {
         try {
-            // Randomly select check-in and check-out times within the allowed range
+            // Chọn ngẫu nhiên thời gian check-in và check-out trong phạm vi cho phép
             const checkInTime = new Date(currentDate);
             checkInTime.setHours(standardCheckInTime, 0, 0, 0);
             checkInTime.setMinutes(checkInTime.getMinutes() + Math.floor(Math.random() * maxLateCheckInMinutes));
@@ -1491,66 +1504,142 @@ async function simulateAttendance(folderPath, userID) {
             checkOutTime.setHours(standardCheckOutTime, 0, 0, 0);
             checkOutTime.setMinutes(checkOutTime.getMinutes() - Math.floor(Math.random() * maxEarlyCheckOutMinutes));
 
+            // Tính toán số phút đi trễ, về sớm và tăng ca
+            let lateMinutes = Math.max(0, checkInTime.getHours() * 60 + checkInTime.getMinutes() - (standardCheckInTime * 60));
+            let earlyLeaveMinutes = Math.max(0, (standardCheckOutTime * 60) - (checkOutTime.getHours() * 60 + checkOutTime.getMinutes()));
+            let overtimeMinutes = 0;
+
+            // Nếu có về sớm thì không có tăng ca và ngược lại
+            if (earlyLeaveMinutes > 0) {
+                overtimeMinutes = 0;
+            } else {
+                overtimeMinutes = Math.max(0, (checkOutTime.getHours() * 60 + checkOutTime.getMinutes()) - (standardCheckOutTime * 60));
+                earlyLeaveMinutes = 0;
+            }
+
             console.log(`Processing date: ${currentDate.toLocaleDateString()}`);
             console.log(`Check-in time: ${checkInTime}`);
             console.log(`Check-out time: ${checkOutTime}`);
 
-            // Loop through test files and process each face
-            for (const file of testFiles) {
-                const imgPath = path.join(testDir, file);
-                const img = await canvas.loadImage(imgPath);
-                const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            // Chọn ngẫu nhiên 1 ảnh trong thư mục test cho check-in và 1 ảnh khác cho check-out
+            const randomFiles = [];
+            while (randomFiles.length < 2) {
+                const randomFile = testFiles[Math.floor(Math.random() * testFiles.length)];
+                if (!randomFiles.includes(randomFile)) {
+                    randomFiles.push(randomFile);
+                }
+            }
 
-                if (!detection) {
-                    console.log(`No face detected in ${file}`);
-                    continue;
+            // Load và xử lý ảnh cho check-in
+            const checkInImgPath = path.join(testDir, randomFiles[0]);
+            const checkInImg = await canvas.loadImage(checkInImgPath);
+            const checkInDetection = await faceapi.detectSingleFace(checkInImg).withFaceLandmarks().withFaceDescriptor();
+
+            if (checkInDetection) {
+                const checkInDescriptor = Array.from(checkInDetection.descriptor); // Chuyển đổi Float32Array thành mảng thông thường
+                const checkInDescriptorJSON = JSON.stringify(checkInDescriptor);
+
+                // Đọc tệp ảnh và chuyển đổi thành base64
+                const checkInImageBuffer = await readFile(checkInImgPath);
+                const checkInImageBase64 = `data:image/jpeg;base64,${checkInImageBuffer.toString('base64')}`;
+
+                // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
+                const checkInResults = await new Promise((resolve, reject) => {
+                    db.query(sqlQuery, [userID], (err, results) => {
+                        if (err) return reject(err);
+                        resolve(results);
+                    });
+                });
+
+                let checkInFound = false;
+                for (const result of checkInResults) {
+                    const savedDescriptor = JSON.parse(result.FaceDescriptor);
+
+                    // So sánh face descriptor đã lưu với face descriptor hiện tại
+                    const distance = faceapi.euclideanDistance(savedDescriptor, checkInDescriptor);
+                    if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
+                        // Chèn bản ghi check-in vào bảng attendance
+                        const sqlInsertAttendance = `
+                            INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        `;
+                        await new Promise((resolve, reject) => {
+                            db.query(sqlInsertAttendance, [userID, result.UserName, checkInTime, 'Check in', checkInImageBase64, lateMinutes, 0, 0], (err) => {
+                                if (err) return reject(err);
+                                console.log(`Check-in recorded for user ${userID} on ${checkInTime}`);
+                                resolve();
+                            });
+                        });
+                        checkInFound = true;
+                        break;
+                    }
                 }
 
-                const faceDescriptorFloat32 = Array.from(detection.descriptor); // Convert Float32Array to regular array
-                const faceDescriptorJSON = JSON.stringify(faceDescriptorFloat32);
+                if (!checkInFound) {
+                    console.log(`No matching face descriptor found for check-in on ${checkInImgPath}`);
+                }
+            } else {
+                console.log(`No face detected in check-in image ${checkInImgPath}`);
+            }
 
-                // Query userimage table to find a match for the current face descriptor
-                const sqlQuery = `SELECT * FROM userimage WHERE ID_User = ?`;
-                db.query(sqlQuery, [userID], (err, results) => {
-                    if (err) throw err;
+            // Load và xử lý ảnh cho check-out
+            const checkOutImgPath = path.join(testDir, randomFiles[1]);
+            const checkOutImg = await canvas.loadImage(checkOutImgPath);
+            const checkOutDetection = await faceapi.detectSingleFace(checkOutImg).withFaceLandmarks().withFaceDescriptor();
 
-                    let found = false;
-                    for (const result of results) {
-                        const savedDescriptor = JSON.parse(result.FaceDescriptor);
+            if (checkOutDetection) {
+                const checkOutDescriptor = Array.from(checkOutDetection.descriptor); // Chuyển đổi Float32Array thành mảng thông thường
+                const checkOutDescriptorJSON = JSON.stringify(checkOutDescriptor);
 
-                        // Compare saved descriptor with current face descriptor
-                        const distance = faceapi.euclideanDistance(savedDescriptor, faceDescriptorFloat32);
-                        if (distance < 0.6) { // Adjust distance threshold as needed
-                            // Insert attendance record into attendance table
-                            const sqlInsertAttendance = `
-                                INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image) 
-                                VALUES (?, ?, ?, ?, ?)
-                            `;
-                            db.query(sqlInsertAttendance, [userID, result.UserName, checkInTime, 'Check In', file], (err) => {
-                                if (err) throw err;
-                                console.log(`Check-in recorded for user ${userID} on ${checkInTime}`);
-                            });
+                // Đọc tệp ảnh và chuyển đổi thành base64
+                const checkOutImageBuffer = await readFile(checkOutImgPath);
+                const checkOutImageBase64 = `data:image/jpeg;base64,${checkOutImageBuffer.toString('base64')}`;
 
-                            db.query(sqlInsertAttendance, [userID, result.UserName, checkOutTime, 'Check Out', file], (err) => {
-                                if (err) throw err;
-                                console.log(`Check-out recorded for user ${userID} on ${checkOutTime}`);
-                            });
-
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found) {
-                        console.log(`No matching face descriptor found for ${file}`);
-                    }
+                // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
+                const checkOutResults = await new Promise((resolve, reject) => {
+                    db.query(sqlQuery, [userID], (err, results) => {
+                        if (err) return reject(err);
+                        resolve(results);
+                    });
                 });
+
+                let checkOutFound = false;
+                for (const result of checkOutResults) {
+                    const savedDescriptor = JSON.parse(result.FaceDescriptor);
+
+                    // So sánh face descriptor đã lưu với face descriptor hiện tại
+                    const distance = faceapi.euclideanDistance(savedDescriptor, checkOutDescriptor);
+                    if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
+                        // Chèn bản ghi check-out vào bảng attendance
+                        const sqlInsertAttendance = `
+                            INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        `;
+                        await new Promise((resolve, reject) => {
+                            db.query(sqlInsertAttendance, [userID, result.UserName, checkOutTime, 'Check out', checkOutImageBase64, 0, earlyLeaveMinutes, overtimeMinutes], (err) => {
+                                if (err) return reject(err);
+                                console.log(`Check-out recorded for user ${userID} on ${checkOutTime}`);
+                                resolve();
+                            });
+                        });
+                        checkOutFound = true;
+                        break;
+                    }
+                }
+
+                if (!checkOutFound) {
+                    console.log(`No matching face descriptor found for check-out on ${checkOutImgPath}`);
+                }
+            } else {
+                console.log(`No face detected in check-out image ${checkOutImgPath}`);
             }
         } catch (error) {
             console.error(`Error processing files for ${currentDate.toLocaleDateString()}:`, error);
         }
     }
 }
+
+
 
 
 

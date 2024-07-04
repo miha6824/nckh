@@ -22,14 +22,16 @@
 
 .table th,
 .table td {
-    padding: 0.75rem;
-    vertical-align: top;
+    padding: 1rem;
+    vertical-align: middle;
     border-top: 1px solid #dee2e6;
+    text-align: center;
 }
 
 .table thead th {
-    vertical-align: bottom;
+    vertical-align: middle;
     border-bottom: 2px solid #dee2e6;
+    text-align: center;
 }
 
 .table tbody + tbody {
@@ -57,16 +59,18 @@
 
 .addButton:hover {
     background-color: #218838;
-    color: #fff;
 }
 
 .icon {
     margin-right: 5px;
+    vertical-align: middle;
 }
 
 .actions {
     display: flex;
     gap: 10px;
+    align-items: center;    
+    justify-content: flex-end;
 }
 
 .btn-primary {
@@ -89,7 +93,7 @@
 
 .imageContainer {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
 }
 
@@ -98,7 +102,7 @@
     height: 100px;
     object-fit: cover;
     border-radius: 8px;
-    margin: 5px;
+    margin-bottom: 10px;
 }
 
 .viewMoreButton {
@@ -114,64 +118,86 @@
 .viewMoreButton:hover {
     background-color: #138496;
 }
+
 .expandedImage {
     display: flex;
     align-items: center;
     margin-top: 10px;
-    }
-    
-    .expandedImage .image {
+}
+
+.expandedImage .image {
     width: 100px;
     height: 100px;
-    margin: 0;
     margin-right: 10px;
-    }
-    
-    .paginationContainer {
+}
+
+.paginationContainer {
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
-    }
-    
-    .pagination {
+}
+
+.pagination {
     display: flex;
     justify-content: center;
     margin-top: 20px;
-    }
-    
-    .pageItem {
+}
+
+.pageItem {
     list-style: none;
     margin: 0 5px;
-    }
-    
-    .pageLink {
+}
+
+.pageLink {
     color: #007bff;
     text-decoration: none;
     padding: 0.5rem 0.75rem;
     border: 1px solid #dee2e6;
     border-radius: 0.25rem;
-    }
-    
-    .pageLink
-    {
+    transition: background-color 0.3s ease;
+}
+
+.pageLink:hover {
     background-color: #e9ecef;
-    }
-    
-    .pageItemActive .pageLink {
+}
+
+.pageItem.active .pageLink {
     background-color: #007bff;
     color: #fff;
     border-color: #007bff;
-    }
-    
-    .btn-info {
+}
+
+.btn-info {
     background-color: #17a2b8;
     border: none;
     color: #fff;
     padding: 0.5rem 1rem;
     border-radius: 0.25rem;
-    }
-    
-    .btn-info
-    {
+}
+
+.btn-info:hover {
     background-color: #138496;
-    }
+}
+
+.imageWrapper {
+    position: relative;
+    margin-right: 10px;
+}
+
+.deleteButton {
+    position: absolute;
+    right: 0px;
+    background-color: transparent;
+    border: none;
+    color: #f93a3abd;
+    font-size: 20px;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.deleteButton:hover {
+    color: rgb(255, 0, 0);
+    transform: scale(1.1);
+}

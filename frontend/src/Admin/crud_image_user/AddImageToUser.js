@@ -3,6 +3,10 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import AdSidebar from '../AdNav/AdSidebar';
 import AdNavbar from '../AdNav/AdNavbar';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import styles from './AddImageToUser.module.css'
 
 function AddImageToUser() {
     const [formData, setFormData] = useState({
@@ -12,6 +16,7 @@ function AddImageToUser() {
     });
 
     const { id } = useParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         // Lấy thông tin về UserName và ID_User từ server khi component được tải
@@ -19,6 +24,7 @@ function AddImageToUser() {
             .then(res => {
                 const userInfo = res.data;
                 setFormData({
+                    ...formData, // Giữ lại các giá trị cũ
                     username: userInfo.UserName,
                     id_user: userInfo.ID_User
                 });
@@ -26,7 +32,7 @@ function AddImageToUser() {
             .catch(err => {
                 console.error("Error fetching user info:", err);
             });
-    }, [id]);
+    },);
 
     const handleChange = (e) => {
         if (e.target.name === 'image') {
@@ -51,6 +57,10 @@ function AddImageToUser() {
             });
     };
 
+    const handleGoBack = () => {
+        navigate('/CRUD_ImgUser');
+    };
+
     return (
         <div className="d-flex vh-100">
             <AdSidebar />
@@ -59,21 +69,24 @@ function AddImageToUser() {
                 <div className="container-fluid vh-100 d-flex justify-content-center align-items-center">
                     <div className="card w-50">
                         <div className="card-header">
+                            <div className={styles.backButton} onClick={handleGoBack}>
+                                <FontAwesomeIcon icon={faArrowLeft} />
+                            </div>
                             <h2 className="card-title">Create User</h2>
                         </div>
                         <div className="card-body">
                             <form onSubmit={handleSubmit}>
                                 <div className="form-group mb-3">
                                     <label htmlFor="username" className="form-label">Họ và tên</label>
-                                    <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} className="form-control" required />
+                                    <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} className="form-control" disabled />
                                 </div>
                                 <div className="form-group mb-3">
                                     <label htmlFor="image" className="form-label">Hình ảnh</label>
-                                    <input type="file" id="image" name="image" onChange={handleChange} className="form-control" accept=".png" required />
+                                    <input type="file" id="image" name="image" onChange={handleChange} className="form-control" accept="*" required />
                                 </div>
                                 <div className="form-group mb-3">
                                     <label htmlFor="id_user" className="form-label">ID_User</label>
-                                    <input type="text" id="id_user" name="id_user" value={formData.id_user} onChange={handleChange} className="form-control" required />
+                                    <input type="text" id="id_user" name="id_user" value={formData.id_user} onChange={handleChange} className="form-control" disabled />
                                 </div>
                                 <button type="submit" className="btn btn-primary">Create</button>
                             </form>

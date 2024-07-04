@@ -10,6 +10,7 @@ const Homepage = () => {
     useEffect(() => {
         const fetchAttendanceData = async () => {
             const userID = localStorage.getItem('ID_user');
+            console.log("User ID from localStorage:", userID);
             if (!userID) {
                 setError("Không tìm thấy User ID trong localStorage");
                 return;
