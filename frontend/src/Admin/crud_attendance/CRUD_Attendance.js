@@ -7,36 +7,44 @@ import AdNavbar from '../AdNav/AdNavbar';
 import styles from './CRUD_Attendance.module.css';
 import { FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import ReactPaginate from 'react-paginate';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 function CRUD_Attendance() {
     const [attendanceData, setAttendanceData] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
-    const attendancesPerPage = 5; // Hiển thị 5 chấm công trên mỗi trang
+    const attendancesPerPage = 4; // Hiển thị 5 chấm công trên mỗi trang
 
     useEffect(() => {
+        console.log('Fetching attendance data...');
         axios.get('http://localhost:8081/CRUD_Attendance')
             .then(res => {
+                console.log('Attendance data fetched:', res.data);
                 setAttendanceData(res.data);
             })
-            .catch(err => console.log(err));
+            .catch(err => console.log('Error fetching attendance data:', err));
     }, []);
 
     const handleDelete = async (id) => {
         try {
+            console.log(`Deleting attendance record with ID: ${id}`);
             await axios.delete(`http://localhost:8081/Delete_atten/${id}`);
             setAttendanceData(attendanceData.filter(data => data.ID !== id));
+            console.log(`Deleted attendance record with ID: ${id}`);
         } catch (err) {
-            console.log(err);
+            console.log('Error deleting attendance record:', err);
         }
     };
 
     const handlePageClick = ({ selected: selectedPage }) => {
+        console.log('Page selected:', selectedPage);
         setCurrentPage(selectedPage);
     };
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
+        console.log('Search term changed:', event.target.value);
         setCurrentPage(0); // Reset to first page on new search
     };
 
@@ -46,6 +54,8 @@ function CRUD_Attendance() {
     );
     const currentPageData = filteredAttendances.slice(offset, offset + attendancesPerPage);
     const pageCount = Math.ceil(filteredAttendances.length / attendancesPerPage);
+
+    console.log('Current page data:', currentPageData);
 
     return (
         <div className="d-flex vh-100">
@@ -82,26 +92,30 @@ function CRUD_Attendance() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {currentPageData.map(data => (
-                                        <tr key={data.ID}>
-                                            <td>{data.FullName}</td>
-                                            <td>{data.ID_User}</td>
-                                            <td>{moment(data.timestamp).format('YYYY-MM-DD HH:mm:ss')}</td>
-                                            <td>
-                                                {data.Image.startsWith('data:image/jpeg;base64,/9j/') ? (
-                                                    <img src={data.Image} alt={`attendance_${data.ID}`} className={styles.image} />
-                                                ) : (
-                                                    data.Image
-                                                )}
-                                            </td>
-                                            <td>{data.Status}</td>
-                                            <td className={styles.actions}>
-                                                <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(data.ID)}>
-                                                    <FaTrash className={styles.icon} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {currentPageData.map((data, index) => {
+                                        console.log(`Rendering row ${index} for data ID: ${data.ID}`);
+                                        return (
+                                            <tr key={data.ID}>
+                                                <td>{data.FullName}</td>
+                                                <td>{data.ID_User}</td>
+                                                <td>{moment(data.timestamp).format('YYYY-MM-DD HH:mm:ss')}</td>
+                                                <td>
+                                                    <LazyLoadImage
+                                                        alt={`attendance_${data.ID}`}
+                                                        src={data.Image}
+                                                        effect="blur"
+                                                        className={styles.image}
+                                                    />
+                                                </td>
+                                                <td>{data.Status}</td>
+                                                <td className={styles.actions}>
+                                                    <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(data.ID)}>
+                                                        <FaTrash className={styles.icon} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -113,7 +127,6 @@ function CRUD_Attendance() {
                             pageRangeDisplayed={5}
                             onPageChange={handlePageClick}
                             containerClassName={styles.pagination}
-                            subContainerClassName={'pages pagination'}
                             activeClassName={'active'}
                             previousClassName={styles.pageItem}
                             nextClassName={styles.pageItem}
@@ -121,7 +134,6 @@ function CRUD_Attendance() {
                             nextLinkClassName={styles.pageLink}
                             pageClassName={styles.pageItem}
                             pageLinkClassName={styles.pageLink}
-                            activeLinkClassName={styles.pageItemActive}
                         />
                     </div>
                 </div>

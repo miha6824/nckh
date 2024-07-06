@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const path = require("path");
@@ -23,12 +23,15 @@ app.use(cors({
 app.use(cookieParser());
 
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: "localhost",
     user: "root",
     password: "",
-    database: "qlcc"
+    database: "qlcc",
+    waitForConnections: true,
+    connectionLimit: 10,
 });
+
 
 
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
@@ -322,6 +325,14 @@ app.get("/CRUD_ImgUser", (req, res) => {
         FROM user u
         LEFT JOIN userimage ui ON u.ID = ui.ID_User
     `;
+    db.query(sql, (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json(data);
+    });
+});
+
+app.get("/CRUD_ImgUserforattendance", (req, res) => {
+    const sql = `SELECT * FROM userimage`;
     db.query(sql, (err, data) => {
         if (err) return res.status(500).json("Error");
         return res.status(200).json(data);
@@ -1374,17 +1385,20 @@ async function prepareData() {
         const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
         const files = await readdir(folderPath);
         const totalFiles = files.length;
-        const trainSize = Math.floor(totalFiles * 0.7);
-        const testSize = totalFiles - trainSize;
+        const getFeatureSize = Math.floor(totalFiles * 0.5);
+        const attendanceSimulatorSize = totalFiles - getFeatureSize;
 
-        const email = `${folder}@gmail.com`;
+        const email = `${folder.replace(/\s/g, '')}@gmail.com`;
         const password = '12345';
         const fullName = folder;
         const role = 'user';
-        const address = 'Hà Nội'
+        const address = 'Hà Nội';
+        const gender = 'Nam';
+        const telephone = '0912345678';
+        const dob = '2002-12-24';
 
-        const sqlCreateUser = `INSERT INTO user (Email,FullName,Address) VALUES (?,?,?)`;
-        db.query(sqlCreateUser, [email, fullName, address], (err, result) => {
+        const sqlCreateUser = `INSERT INTO user (Email,FullName,Sex,BirthDay,Telephone,Address) VALUES (?,?,?,?,?,?)`;
+        db.query(sqlCreateUser, [email, fullName, gender, dob, telephone, address], (err, result) => {
             if (err) throw err;
             const userID = result.insertId;
             const sqlCreateAccount = `INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)`;
@@ -1394,36 +1408,36 @@ async function prepareData() {
             });
         });
 
-        const trainFiles = files.slice(0, trainSize);
-        const testFiles = files.slice(trainSize);
+        const getFeatureFiles = files.slice(0, getFeatureSize);
+        const attendanceSimulatorFiles = files.slice(getFeatureSize);
 
-        const trainDir = path.join(folderPath, 'train');
-        const testDir = path.join(folderPath, 'test');
-        if (!fs.existsSync(trainDir)) fs.mkdirSync(trainDir);
-        if (!fs.existsSync(testDir)) fs.mkdirSync(testDir);
+        const getFeatureDir = path.join(folderPath, 'getFeature');
+        const attendanceSimulatorDir = path.join(folderPath, 'attendanceSimulator');
+        if (!fs.existsSync(getFeatureDir)) fs.mkdirSync(getFeatureDir);
+        if (!fs.existsSync(attendanceSimulatorDir)) fs.mkdirSync(attendanceSimulatorDir);
 
-        for (const file of trainFiles) {
-            fs.renameSync(path.join(folderPath, file), path.join(trainDir, file));
+        for (const file of getFeatureFiles) {
+            fs.renameSync(path.join(folderPath, file), path.join(getFeatureDir, file));
         }
-        for (const file of testFiles) {
-            fs.renameSync(path.join(folderPath, file), path.join(testDir, file));
+        for (const file of attendanceSimulatorFiles) {
+            fs.renameSync(path.join(folderPath, file), path.join(attendanceSimulatorDir, file));
         }
     }
     console.log("prepareData completed");
 }
 
-// Hàm trainModel để huấn luyện mô hình và lưu trữ mô tả khuôn mặt và ảnh
-async function trainModel(folderPath, userID) {
-    const trainDir = path.join(folderPath, 'train');
-    const files = await readdir(trainDir);
-    console.log(`Training model for ${path.basename(folderPath)} with ${files.length} files`);
+// Hàm getFeatureModel để huấn luyện mô hình và lưu trữ mô tả khuôn mặt và ảnh
+async function getFeatureModel(folderPath, userID) {
+    const getFeatureDir = path.join(folderPath, 'getFeature');
+    const files = await readdir(getFeatureDir);
+    console.log(`getFeature model for ${path.basename(folderPath)} with ${files.length} files`);
 
     const labeledDescriptors = [];
     let processedCount = 0;
 
     for (const file of files) {
         try {
-            const imgPath = path.join(trainDir, file);
+            const imgPath = path.join(getFeatureDir, file);
             const img = await canvas.loadImage(imgPath);
             const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
             if (!detection) continue;
@@ -1462,10 +1476,11 @@ async function trainModel(folderPath, userID) {
     return labeledDescriptors;
 }
 
+const sharp = require('sharp');
 
 async function simulateAttendance(folderPath, userID) {
-    const testDir = path.join(folderPath, 'test');
-    const testFiles = await readdir(testDir);
+    const attendanceSimulatorDir = path.join(folderPath, 'attendanceSimulator');
+    const attendanceSimulatorFiles = await readdir(attendanceSimulatorDir);
 
     const startDate = new Date('2024-07-01');
     const endDate = new Date('2024-07-31');
@@ -1519,19 +1534,19 @@ async function simulateAttendance(folderPath, userID) {
 
             console.log(`Processing date: ${currentDate.toLocaleDateString()}`);
             console.log(`Check-in time: ${checkInTime}`);
-            console.log(`Check-out time: ${checkOutTime}`);
+            console.log(`Check - out time: ${checkOutTime}`);
 
-            // Chọn ngẫu nhiên 1 ảnh trong thư mục test cho check-in và 1 ảnh khác cho check-out
+            // Chọn ngẫu nhiên 1 ảnh trong thư mục attendanceSimulator cho check-in và 1 ảnh khác cho check-out
             const randomFiles = [];
             while (randomFiles.length < 2) {
-                const randomFile = testFiles[Math.floor(Math.random() * testFiles.length)];
+                const randomFile = attendanceSimulatorFiles[Math.floor(Math.random() * attendanceSimulatorFiles.length)];
                 if (!randomFiles.includes(randomFile)) {
                     randomFiles.push(randomFile);
                 }
             }
 
             // Load và xử lý ảnh cho check-in
-            const checkInImgPath = path.join(testDir, randomFiles[0]);
+            const checkInImgPath = path.join(attendanceSimulatorDir, randomFiles[0]);
             const checkInImg = await canvas.loadImage(checkInImgPath);
             const checkInDetection = await faceapi.detectSingleFace(checkInImg).withFaceLandmarks().withFaceDescriptor();
 
@@ -1541,7 +1556,7 @@ async function simulateAttendance(folderPath, userID) {
 
                 // Đọc tệp ảnh và chuyển đổi thành base64
                 const checkInImageBuffer = await readFile(checkInImgPath);
-                const checkInImageBase64 = `data:image/jpeg;base64,${checkInImageBuffer.toString('base64')}`;
+                const checkInImageBase64 = `data: image/jpeg;base64,${checkInImageBuffer.toString('base64')}`;
 
                 // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
                 const checkInResults = await new Promise((resolve, reject) => {
@@ -1559,14 +1574,14 @@ async function simulateAttendance(folderPath, userID) {
                     const distance = faceapi.euclideanDistance(savedDescriptor, checkInDescriptor);
                     if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
                         // Chèn bản ghi check-in vào bảng attendance
-                        const sqlInsertAttendance = `
-                            INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        `;
+                        const sqlInsertAttendance =
+                            `INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes)
+                        VALUES(?, ?, ?, ?, ?, ?, ?, ?)`
+                            ;
                         await new Promise((resolve, reject) => {
                             db.query(sqlInsertAttendance, [userID, result.UserName, checkInTime, 'Check in', checkInImageBase64, lateMinutes, 0, 0], (err) => {
                                 if (err) return reject(err);
-                                console.log(`Check-in recorded for user ${userID} on ${checkInTime}`);
+                                console.log(`Check -in recorded for user ${userID} on ${checkInTime}`);
                                 resolve();
                             });
                         });
@@ -1576,14 +1591,14 @@ async function simulateAttendance(folderPath, userID) {
                 }
 
                 if (!checkInFound) {
-                    console.log(`No matching face descriptor found for check-in on ${checkInImgPath}`);
+                    console.log(`No matching face descriptor found for check -in on ${checkInImgPath}`);
                 }
             } else {
-                console.log(`No face detected in check-in image ${checkInImgPath}`);
+                console.log(`No face detected in check -in image ${checkInImgPath}`);
             }
 
             // Load và xử lý ảnh cho check-out
-            const checkOutImgPath = path.join(testDir, randomFiles[1]);
+            const checkOutImgPath = path.join(attendanceSimulatorDir, randomFiles[1]);
             const checkOutImg = await canvas.loadImage(checkOutImgPath);
             const checkOutDetection = await faceapi.detectSingleFace(checkOutImg).withFaceLandmarks().withFaceDescriptor();
 
@@ -1593,7 +1608,7 @@ async function simulateAttendance(folderPath, userID) {
 
                 // Đọc tệp ảnh và chuyển đổi thành base64
                 const checkOutImageBuffer = await readFile(checkOutImgPath);
-                const checkOutImageBase64 = `data:image/jpeg;base64,${checkOutImageBuffer.toString('base64')}`;
+                const checkOutImageBase64 = `data: image/jpeg;base64,${checkOutImageBuffer.toString('base64')};`
 
                 // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
                 const checkOutResults = await new Promise((resolve, reject) => {
@@ -1611,10 +1626,10 @@ async function simulateAttendance(folderPath, userID) {
                     const distance = faceapi.euclideanDistance(savedDescriptor, checkOutDescriptor);
                     if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
                         // Chèn bản ghi check-out vào bảng attendance
-                        const sqlInsertAttendance = `
-                            INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        `;
+                        const sqlInsertAttendance =
+                            `INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+                            ;
                         await new Promise((resolve, reject) => {
                             db.query(sqlInsertAttendance, [userID, result.UserName, checkOutTime, 'Check out', checkOutImageBase64, 0, earlyLeaveMinutes, overtimeMinutes], (err) => {
                                 if (err) return reject(err);
@@ -1628,13 +1643,13 @@ async function simulateAttendance(folderPath, userID) {
                 }
 
                 if (!checkOutFound) {
-                    console.log(`No matching face descriptor found for check-out on ${checkOutImgPath}`);
+                    console.log(`No matching face descriptor found for check - out on ${checkOutImgPath}`);
                 }
             } else {
                 console.log(`No face detected in check-out image ${checkOutImgPath}`);
             }
         } catch (error) {
-            console.error(`Error processing files for ${currentDate.toLocaleDateString()}:`, error);
+            console.error(Error`processing files for ${currentDate.toLocaleDateString()}:`, error);
         }
     }
 }
@@ -1642,10 +1657,19 @@ async function simulateAttendance(folderPath, userID) {
 
 
 
-
-
-
-
+async function getUserIdAsync(folder) {
+    return new Promise((resolve, reject) => {
+        const sqlGetUserID = `SELECT ID FROM user WHERE FullName = ?`;
+        db.query(sqlGetUserID, [folder], (err, result) => {
+            if (err) {
+                console.error(`Error getting user ID for ${folder}:`, err);
+                reject(err);
+            } else {
+                resolve(result[0].ID);
+            }
+        });
+    });
+}
 
 async function main() {
     try {
@@ -1654,19 +1678,10 @@ async function main() {
         const folders = await readdir(ORIGINAL_IMAGES_DIR);
         for (const folder of folders) {
             const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
+            const userID = await getUserIdAsync(folder);
 
-            // Get the user ID for the current folder (user)
-            const sqlGetUserID = `SELECT ID FROM user WHERE FullName = ?`;
-            db.query(sqlGetUserID, [folder], async (err, result) => {
-                if (err) {
-                    console.error(`Error getting user ID for ${folder}:`, err);
-                    return;
-                }
-
-                const userID = result[0].ID;
-                await trainModel(folderPath, userID); // Wait for training model to complete
-                await simulateAttendance(folderPath, userID); // Simulate attendance after training
-            });
+            await getFeatureModel(folderPath, userID);
+            await simulateAttendance(folderPath, userID);
         }
     } catch (error) {
         console.error("Error in main function:", error);
@@ -1674,14 +1689,15 @@ async function main() {
 }
 
 
-app.post('/train_and_evaluate', async (req, res) => {
+
+app.post('/getFeature_and_attendanceSimulator', async (req, res) => {
     try {
         await prepareData();
         await main();
-        res.status(200).json({ message: "Training and evaluation completed" });
+        res.status(200).json({ message: "getFeature and evaluation completed" });
     } catch (err) {
-        console.error("Error during training and evaluation:", err);
-        res.status(500).json({ error: "Error during training and evaluation" });
+        console.error("Error during getFeature and evaluation:", err);
+        res.status(500).json({ error: "Error during getFeature and evaluation" });
     }
 });
 

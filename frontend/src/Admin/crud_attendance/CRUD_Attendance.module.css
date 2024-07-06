@@ -8,25 +8,29 @@
     margin-top: 1rem;
     list-style-type: none;
     padding: 0;
-}
-
-.page-item {
+  }
+  
+  .pageItem {
     margin: 0 2px;
-}
-
-.page-link {
+  }
+  
+  .pageLink {
     border: 1px solid #dee2e6;
     padding: 5px 10px;
     color: #007bff;
     text-decoration: none;
     cursor: pointer;
-}
-
-.page-item.active .page-link {
+  }
+  
+  .pageItem.active .pageLink {
     background-color: #007bff;
     color: white;
     border: 1px solid #007bff;
-}
+  }
+  
+  li::marker {
+    content: none;
+  }
 
 .tableContainer {
     max-height: calc(100vh - 200px);

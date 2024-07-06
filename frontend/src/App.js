@@ -21,7 +21,7 @@ import CreateDepartment from './Admin/crud_department/CreateDepartment';
 import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
 import AttendanceSettings from './Admin/crud_attendance/AttendanceSettings';
 
-import TrainAndEvaluateButton from './TrainAndEvaluateButton/TrainAndEvaluateButton';
+import GetFeatureAndAttendanceSimulator from './GetFeatureAndAttendanceSimulator/GetFeatureAndAttendanceSimulator';
 import TrainAndSimulate from './TrainAndSimulate/TrainAndSimulate';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -52,7 +52,7 @@ function App() {
         <Route path="/CRUD_Attendance" element={<CRUD_Attendance />} />
         <Route path="/AttendanceSettings" element={<AttendanceSettings />} />
         <Route path="/FormReportComponent" element={<FormReportComponent />} />
-        <Route path="/TrainAndEvaluateButton" element={<TrainAndEvaluateButton />} />
+        <Route path="/GetFeatureAndAttendanceSimulator" element={<GetFeatureAndAttendanceSimulator />} />
         <Route path="/TrainAndSimulate" element={<TrainAndSimulate />} />
       </Routes>
     </Router>

@@ -59,7 +59,7 @@ function AttendancePage() {
     };
 
     const getUserDescriptors = async () => {
-        const response = await fetch('http://localhost:8081/CRUD_ImgUser');
+        const response = await fetch('http://localhost:8081/CRUD_ImgUserforattendance');
         const userData = await response.json();
         return userData.map(user => {
             return {
