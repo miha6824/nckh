@@ -25,6 +25,10 @@ function AdSidebar() {
                     <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
                     In báo cáo
                 </CNavItem>
+                <CNavItem href="/AssignPosition">
+                    <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
+                    Chức vụ
+                </CNavItem>
                 <CNavGroup toggler={<><CIcon customClassName="nav-icon" icon={cilPuzzle} /> Quản lý</>}>
                     <CNavItem href="/CRUD_User">
                         <span className="nav-icon"><span className="nav-icon-bullet"></span></span>

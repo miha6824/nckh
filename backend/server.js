@@ -239,8 +239,11 @@ app.delete('/Delete_atten/:id', (req, res) => {
 
 
 app.post('/create_user', (req, res) => {
-    const sql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
-    const values = [
+    const userSql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
+    const accountSql = "INSERT INTO account (Email, Password, ID_User, Role) VALUES ?";
+    const defaultPassword = '12345';
+
+    const userValues = [
         [
             req.body.email,
             req.body.fullName,
@@ -253,34 +256,31 @@ app.post('/create_user', (req, res) => {
         ]
     ];
 
-    // Thực hiện truy vấn vào cơ sở dữ liệu
-    db.query(sql, [values], (err, result) => {
+    db.query(userSql, [userValues], (err, result) => {
         if (err) {
             console.error('Lỗi khi thực hiện truy vấn:', err.stack);
             return res.status(500).json('Đã xảy ra lỗi khi tạo người dùng');
         }
-        console.log('Người dùng đã được tạo thành công');
-        return res.status(200).json('Người dùng đã được tạo thành công');
-    });
-});
 
-app.put('/update_user/:id', (req, res) => {
-    const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
-    const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD'); // Định dạng ngày tháng bằng moment
-    const values = [
-        req.body.email,
-        req.body.fullName,
-        req.body.sex,
-        dobFormatted, // Sử dụng ngày tháng đã định dạng
-        req.body.phoneNumber,
-        req.body.address,
-        req.body.id_departments,
-        req.body.hsl
-    ];
-    const id = req.params.id;
-    db.query(sql, [...values, id], (err, data) => {
-        if (err) return res.status(500).json("Error");
-        return res.status(200).json("User update successfully");
+        const userId = result.insertId; // Lấy ID của người dùng vừa tạo
+        const accountValues = [
+            [
+                req.body.email,
+                defaultPassword,
+                userId,
+                'user'
+            ]
+        ];
+
+        db.query(accountSql, [accountValues], (err, result) => {
+            if (err) {
+                console.error('Lỗi khi tạo tài khoản:', err.stack);
+                return res.status(500).json('Đã xảy ra lỗi khi tạo tài khoản');
+            }
+
+            console.log('Người dùng và tài khoản đã được tạo thành công');
+            return res.status(200).json('Người dùng và tài khoản đã được tạo thành công');
+        });
     });
 });
 
@@ -316,6 +316,49 @@ app.delete('/Delete_user/:id', (req, res) => {
         });
     });
 });
+
+
+
+
+// Lấy danh sách chức vụ
+app.get('/positions', (req, res) => {
+    const sql = "SELECT * FROM position";
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching positions:', err.stack);
+            return res.status(500).json('Error fetching positions');
+        }
+        res.json(results);
+    });
+});
+
+// Gán chức vụ cho nhân viên
+app.post('/assign_position', (req, res) => {
+    const sql = "INSERT INTO `position details` (MaCTChucvu, MaCV, ID_User, NgayBatDau, NgayKetThuc, LyDo) VALUES ?";
+    const values = [
+        [
+            req.body.MaCTChucvu,
+            req.body.MaCV,
+            req.body.ID_User,
+            req.body.NgayBatDau,
+            req.body.NgayKetThuc,
+            req.body.LyDo
+        ]
+    ];
+
+    db.query(sql, [values], (err, result) => {
+        if (err) {
+            console.error('Error assigning position:', err.stack);
+            return res.status(500).json('Error assigning position');
+        }
+        res.status(200).json('Position assigned successfully');
+    });
+});
+
+
+
+
+
 
 
 // lấy tất cả user kể cả không có ảnh
@@ -1505,7 +1548,7 @@ async function simulateAttendance(folderPath, userID) {
     }
 
     // Lấy 5 ngày ngẫu nhiên duy nhất trong tháng 7
-    const randomDates = getRandomDates(startDate, endDate, 5);
+    const randomDates = getRandomDates(startDate, endDate, 10);
 
     // Xử lý mỗi ngày ngẫu nhiên
     for (const currentDate of randomDates) {
@@ -1608,7 +1651,7 @@ async function simulateAttendance(folderPath, userID) {
 
                 // Đọc tệp ảnh và chuyển đổi thành base64
                 const checkOutImageBuffer = await readFile(checkOutImgPath);
-                const checkOutImageBase64 = `data: image/jpeg;base64,${checkOutImageBuffer.toString('base64')};`
+                const checkOutImageBase64 = `data: image/jpeg;base64,${checkOutImageBuffer.toString('base64')}`;
 
                 // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
                 const checkOutResults = await new Promise((resolve, reject) => {
