@@ -196,12 +196,6 @@ app.put('/change_password/:id', (req, res) => {
 });
 
 
-
-
-
-
-
-
 app.put('/update_account/:id', (req, res) => {
     const sql = "UPDATE account SET `Email`=?, `Password`=?, `ID_User`=?, `Role`=? WHERE ID=?";
     const values = [
@@ -283,6 +277,36 @@ app.post('/create_user', (req, res) => {
         });
     });
 });
+
+
+
+app.put('/update_user/:id', (req, res) => {
+    const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
+    const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD'); // Định dạng ngày tháng bằng moment
+    const values = [
+        req.body.email,
+        req.body.fullName,
+        req.body.sex,
+        dobFormatted, // Sử dụng ngày tháng đã định dạng
+        req.body.phoneNumber,
+        req.body.address,
+        req.body.id_departments,
+        req.body.hsl
+    ];
+    const id = req.params.id;
+    db.query(sql, [...values, id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("User update successfully");
+    });
+});
+
+
+
+
+
+
+
+
 
 app.delete('/Delete_user/:id', (req, res) => {
     const id = req.params.id;
