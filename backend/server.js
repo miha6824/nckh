@@ -99,12 +99,26 @@ app.post('/create_Department', (req, res) => {
     db.query(sql, [values], (err, result) => {
         if (err) {
             console.error('Lỗi khi thực hiện truy vấn:', err.stack);
-            return res.status(500).json('Đã xảy ra lỗi khi tạo tài khoản');
+            return res.status(500).json('Đã xảy ra lỗi khi tạo phòng ban dòng 102');
         }
-        console.log('tài khoản đã được tạo thành công');
-        return res.status(200).json('tài khoản đã được tạo thành công');
+        console.log('phòng ban đã được tạo thành công dòng 105');
+        return res.status(200).json('phòng ban đã được tạo thành công dòng 105');
     });
 });
+
+
+
+app.delete('/Delete_department/:id', (req, res) => {
+    const sql = "DELETE FROM department WHERE ID=?";
+    const id = req.params.id;
+    db.query(sql, [id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("Department delete successfully");
+    });
+});
+
+
+
 
 app.get("/HSLuong", (req, res) => {
     const sql = "SELECT * FROM salary";
@@ -236,6 +250,7 @@ app.post('/create_user', (req, res) => {
     const userSql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
     const accountSql = "INSERT INTO account (Email, Password, ID_User, Role) VALUES ?";
     const defaultPassword = '12345';
+    const positionSql = "INSERT INTO `position details` (MaCV, ID_User, ID_Department) VALUES ?";
 
     const userValues = [
         [
@@ -246,7 +261,7 @@ app.post('/create_user', (req, res) => {
             req.body.phoneNumber,
             req.body.address,
             req.body.id_departments,
-            req.body.hsl
+            req.body.hsl,
         ]
     ];
 
@@ -268,44 +283,71 @@ app.post('/create_user', (req, res) => {
 
         db.query(accountSql, [accountValues], (err, result) => {
             if (err) {
-                console.error('Lỗi khi tạo tài khoản:', err.stack);
+                console.error('Lỗi khi thêm tạo tài khoản:', err.stack);
                 return res.status(500).json('Đã xảy ra lỗi khi tạo tài khoản');
             }
 
             console.log('Người dùng và tài khoản đã được tạo thành công');
-            return res.status(200).json('Người dùng và tài khoản đã được tạo thành công');
+
+            const positionDetailsValues = [
+                [
+                    req.body.position, // Đảm bảo rằng giá trị này tương ứng với `MaCV`
+                    userId, // Đảm bảo `userId` đã được định nghĩa và chính xác
+                    req.body.id_departments // Đảm bảo rằng giá trị này tương ứng với `ID_Department`
+                ]
+            ];
+
+            db.query(positionSql, [positionDetailsValues], (err, result) => {
+                if (err) {
+                    console.error('Lỗi khi thêm chức vụ', err.stack);
+                    return res.status(500).json('Đã xảy ra lỗi khi thêm chức vụ');
+                }
+
+                console.log('Người dùng và tài khoản đã được tạo và thêm chức vụ thành công');
+                return res.status(200).json('Người dùng, tài khoản và chức vụ đã được tạo thành công');
+            });
         });
     });
 });
 
 
 
+
 app.put('/update_user/:id', (req, res) => {
-    const sql = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
-    const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD'); // Định dạng ngày tháng bằng moment
-    const values = [
+    const sqlUpdateUser = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
+    const sqlUpdatePosition = "UPDATE position_details SET MaCV=? WHERE ID_User=?";
+    const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD'); // Format date using moment
+    const valuesUser = [
         req.body.email,
         req.body.fullName,
         req.body.sex,
-        dobFormatted, // Sử dụng ngày tháng đã định dạng
+        dobFormatted,
         req.body.phoneNumber,
         req.body.address,
         req.body.id_departments,
-        req.body.hsl
+        req.body.hsl,
+        req.params.id
     ];
-    const id = req.params.id;
-    db.query(sql, [...values, id], (err, data) => {
-        if (err) return res.status(500).json("Error");
-        return res.status(200).json("User update successfully");
+    const valuesPosition = [
+        req.body.id_positions, // Assuming id_positions is the ID for the selected position
+        req.params.id
+    ];
+
+    db.query(sqlUpdateUser, valuesUser, (err, data) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json("Error");
+        }
+        // Update position details
+        db.query(sqlUpdatePosition, valuesPosition, (err, data) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json("Error");
+            }
+            return res.status(200).json("User updated successfully");
+        });
     });
 });
-
-
-
-
-
-
-
 
 
 app.delete('/Delete_user/:id', (req, res) => {
@@ -342,31 +384,48 @@ app.delete('/Delete_user/:id', (req, res) => {
 });
 
 
-
-
-// Lấy danh sách chức vụ
-app.get('/positions', (req, res) => {
-    const sql = "SELECT * FROM position";
-    db.query(sql, (err, results) => {
+app.get('/CRUD_positions', (req, res) => {
+    const sql = `
+        SELECT pd.ID,p.TenCV, u.FullName, d.TenPhongBan
+        FROM \`position\` p
+        JOIN \`position details\` pd ON p.ID = pd.MaCV
+        JOIN \`user\` u ON pd.ID_User = u.ID
+        JOIN \`department\` d ON pd.ID_Department = d.ID
+    `;
+    db.query(sql, (err, data) => {
         if (err) {
-            console.error('Error fetching positions:', err.stack);
-            return res.status(500).json('Error fetching positions');
+            console.error('Error fetching positions:', err);
+            return res.status(500).json("Error");
         }
-        res.json(results);
+        return res.status(200).json(data);
+    });
+});
+
+app.get("/positions", (req, res) => {
+    const sql = "SELECT * FROM position";
+    db.query(sql, (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json(data);
+    });
+});
+
+app.delete('/Delete_position_detail/:id', (req, res) => {
+    const sql = "DELETE FROM `position details` WHERE ID=?";
+    const id = req.params.id;
+    db.query(sql, [id], (err, data) => {
+        if (err) return res.status(500).json("Error");
+        return res.status(200).json("User delete successfully");
     });
 });
 
 // Gán chức vụ cho nhân viên
 app.post('/assign_position', (req, res) => {
-    const sql = "INSERT INTO `position details` (MaCTChucvu, MaCV, ID_User, NgayBatDau, NgayKetThuc, LyDo) VALUES ?";
+    const sql = "INSERT INTO `position details` (MaCV, ID_User,ID_Department) VALUES ?";
     const values = [
         [
-            req.body.MaCTChucvu,
             req.body.MaCV,
             req.body.ID_User,
-            req.body.NgayBatDau,
-            req.body.NgayKetThuc,
-            req.body.LyDo
+            req.body.ID_Department
         ]
     ];
 
@@ -379,6 +438,49 @@ app.post('/assign_position', (req, res) => {
     });
 });
 
+
+// Endpoint để lấy dữ liệu người dùng dựa trên ID
+app.get('/position_details/:id', (req, res) => {
+    const id = req.params.id;
+    console.log("Received user ID:", id);
+
+    const sql = "SELECT * FROM `position details` WHERE ID = ?";
+    db.query(sql, [id], (err, data) => {
+        if (err) {
+            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi server");
+        }
+
+        console.log("Data from database:", data);
+        if (data.length > 0) {
+            // Định dạng lại ngày tháng trước khi gửi dữ liệu về cho client
+            const user = data[0];
+            user.BirthDay = moment(user.BirthDay).format('YYYY-MM-DD'); // Định dạng lại ngày tháng
+
+            return res.status(200).json(user);
+        } else {
+            return res.status(404).json("Không tìm thấy người dùng");
+        }
+    });
+});
+
+app.put('/update_position/:id', (req, res) => {
+    const sqlUpdatePosition = "UPDATE `position details` SET `MaCV`=?, `ID_User`=?, `ID_Department`=? WHERE ID=?";
+    const valuesUserPosition = [
+        req.body.MaCV,
+        req.body.ID_User,
+        req.body.ID_Department,
+    ];
+    const id = req.params.id;
+    db.query(sqlUpdatePosition, [...valuesUserPosition, id], (err, data) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json("Error");
+        }
+
+        return res.status(200).json("User updated successfully");
+    });
+});
 
 
 

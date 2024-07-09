@@ -81,7 +81,7 @@ function CRUD_Department() {
                             </thead>
                             <tbody>
                                 {currentPageData.map((data, index) => (
-                                    <tr key={index}>
+                                    <tr key={data.ID}>
                                         <td>{data.ID}</td>
                                         <td>{data.KHPhongBan}</td>
                                         <td>{data.TenPhongBan}</td>

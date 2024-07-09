@@ -15,10 +15,12 @@ function UserCreate() {
         phoneNumber: '',
         address: '',
         id_departments: '',
-        hsl: ''
+        hsl: '',
+        position: ''
     });
     const [departments, setDepartments] = useState([]);
     const [salaryScales, setSalaryScales] = useState([]);
+    const [positions, setPositions] = useState([]);
 
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_Department')
@@ -27,6 +29,9 @@ function UserCreate() {
 
         axios.get('http://localhost:8081/HSLuong')
             .then(res => setSalaryScales(res.data))
+            .catch(err => console.log(err));
+        axios.get('http://localhost:8081/positions')
+            .then(res => setPositions(res.data))
             .catch(err => console.log(err));
     }, []);
 
@@ -142,6 +147,23 @@ function UserCreate() {
                                         {departments.map(dept => (
                                             <option key={dept.ID} value={dept.ID}>
                                                 {dept.TenPhongBan}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Chức vụ:</label>
+                                    <select
+                                        name="position"
+                                        value={formData.position}
+                                        onChange={handleChange}
+                                        required
+                                        className="form-control"
+                                    >
+                                        <option>Chọn chức vụ</option>
+                                        {positions.map(pos => (
+                                            <option key={pos.ID} value={pos.ID}>
+                                                {pos.TenCV}
                                             </option>
                                         ))}
                                     </select>

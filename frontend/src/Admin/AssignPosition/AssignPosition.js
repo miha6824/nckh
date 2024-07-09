@@ -8,15 +8,15 @@ import styles from './AssignPosition.module.css';
 function AssignPosition() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        MaCTChucvu: '',
         MaCV: '',
         ID_User: '',
-        NgayBatDau: '',
-        NgayKetThuc: '',
+        ID_Department: '', // Thêm ID_Department vào formData
         LyDo: ''
     });
     const [positions, setPositions] = useState([]);
     const [users, setUsers] = useState([]);
+    const [departments, setDepartments] = useState([]); // State để lưu trữ danh sách phòng ban
+    const [selectedUserName, setSelectedUserName] = useState(''); // State để lưu trữ tên nhân viên được chọn
 
     useEffect(() => {
         axios.get('http://localhost:8081/positions')
@@ -26,10 +26,27 @@ function AssignPosition() {
         axios.get('http://localhost:8081/CRUD_User')
             .then(res => setUsers(res.data))
             .catch(err => console.log(err));
+
+        axios.get('http://localhost:8081/CRUD_Department') // Gọi endpoint để lấy danh sách phòng ban
+            .then(res => setDepartments(res.data))
+            .catch(err => console.log(err));
     }, []);
 
+    useEffect(() => {
+        // Nếu ID_User thay đổi, cập nhật ID_Department và tên nhân viên
+        const selectedUser = users.find(user => user.ID === parseInt(formData.ID_User));
+        if (selectedUser) {
+            setFormData({
+                ...formData,
+                ID_Department: selectedUser.ID_Department
+            });
+            setSelectedUserName(selectedUser.FullName);
+        }
+    }, [formData.ID_User, users]);
+
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = (e) => {
@@ -73,6 +90,8 @@ function AssignPosition() {
                                         ))}
                                     </select>
                                 </div>
+                            </div>
+                            <div className="col-md-6">
                                 <div className="form-group">
                                     <label>Employee:</label>
                                     <select
@@ -90,31 +109,23 @@ function AssignPosition() {
                                         ))}
                                     </select>
                                 </div>
-
                             </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Start Date:</label>
-                                    <input
-                                        type="date"
-                                        name="NgayBatDau"
-                                        value={formData.NgayBatDau}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>End Date:</label>
-                                    <input
-                                        type="date"
-                                        name="NgayKetThuc"
-                                        value={formData.NgayKetThuc}
-                                        onChange={handleChange}
-                                        className="form-control"
-                                    />
-                                </div>
-
+                            <div className="form-group">
+                                <label>Department:</label>
+                                <select
+                                    name="ID_Department"
+                                    value={formData.ID_Department}
+                                    onChange={handleChange}
+                                    className="form-control"
+                                    disabled
+                                >
+                                    <option>Chọn phòng ban</option>
+                                    {departments.map(department => (
+                                        <option key={department.ID} value={department.ID}>
+                                            {department.TenPhongBan}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="form-group">
                                 <label>Reason:</label>

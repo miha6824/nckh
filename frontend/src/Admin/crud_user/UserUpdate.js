@@ -15,11 +15,13 @@ function UserUpdate() {
         phoneNumber: '',
         address: '',
         id_departments: '',
-        hsl: ''
+        hsl: '',
+        id_positions: '' // New state for selected position
     });
 
     const [departments, setDepartments] = useState([]);
     const [salaryScales, setSalaryScales] = useState([]);
+    const [positions, setPositions] = useState([]); // State for positions
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -35,13 +37,12 @@ function UserUpdate() {
                     address: PreUserInfo.Address,
                     sex: PreUserInfo.Sex,
                     id_departments: PreUserInfo.ID_Department,
-                    hsl: PreUserInfo.HSLuong
+                    hsl: PreUserInfo.HSLuong,
+                    id_positions: PreUserInfo.MaCV // Assuming MaCV is the position ID from position_details
                 });
             })
             .catch(err => console.log(err));
-    }, [id]);
 
-    useEffect(() => {
         axios.get('http://localhost:8081/CRUD_Department')
             .then(res => setDepartments(res.data))
             .catch(err => console.log(err));
@@ -49,7 +50,11 @@ function UserUpdate() {
         axios.get('http://localhost:8081/HSLuong')
             .then(res => setSalaryScales(res.data))
             .catch(err => console.log(err));
-    }, []);
+
+        axios.get('http://localhost:8081/CRUD_Position')
+            .then(res => setPositions(res.data))
+            .catch(err => console.log(err));
+    }, [id]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -60,7 +65,7 @@ function UserUpdate() {
         axios.put(`http://localhost:8081/update_user/${id}`, formData)
             .then(res => {
                 console.log(res.data);
-                alert('Thay đổi thành công');
+                alert('Update successful');
                 navigate('/CRUD_User');
             })
             .catch(err => console.log(err));
@@ -73,7 +78,7 @@ function UserUpdate() {
                 <AdNavbar />
                 <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
                     <div className={styles.userUpdateContainer}>
-                        <h2>Cập nhật người dùng</h2>
+                        <h2>Update User</h2>
                         <form onSubmit={handleSubmit} className="row">
                             <div className="col-md-6">
                                 <div className="form-group">
@@ -88,7 +93,7 @@ function UserUpdate() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Họ và Tên:</label>
+                                    <label>Full Name:</label>
                                     <input
                                         type="text"
                                         name="fullName"
@@ -99,7 +104,7 @@ function UserUpdate() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Giới tính:</label>
+                                    <label>Gender:</label>
                                     <select
                                         name="sex"
                                         value={formData.sex}
@@ -112,7 +117,7 @@ function UserUpdate() {
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label>Ngày sinh:</label>
+                                    <label>Birth Date:</label>
                                     <input
                                         type="date"
                                         name="dob"
@@ -125,7 +130,7 @@ function UserUpdate() {
                             </div>
                             <div className="col-md-6">
                                 <div className="form-group">
-                                    <label>Số điện thoại:</label>
+                                    <label>Phone Number:</label>
                                     <input
                                         type="text"
                                         name="phoneNumber"
@@ -136,7 +141,7 @@ function UserUpdate() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Địa chỉ:</label>
+                                    <label>Address:</label>
                                     <input
                                         type="text"
                                         name="address"
@@ -147,7 +152,7 @@ function UserUpdate() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Phòng ban:</label>
+                                    <label>Department:</label>
                                     <select
                                         name="id_departments"
                                         value={formData.id_departments}
@@ -163,24 +168,24 @@ function UserUpdate() {
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label>Hệ số lương:</label>
+                                    <label>Position:</label>
                                     <select
-                                        name="hsl"
-                                        value={formData.hsl}
+                                        name="id_positions"
+                                        value={formData.id_positions}
                                         onChange={handleChange}
                                         required
                                         className="form-control"
                                     >
-                                        {salaryScales.map(salary => (
-                                            <option key={salary.HSLuong} value={salary.HSLuong}>
-                                                {salary.HSLuong}
+                                        {positions.map(pos => (
+                                            <option key={pos.ID} value={pos.ID}>
+                                                {pos.TenCV}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                             </div>
                             <div className="col-12">
-                                <button type="submit" className="btn btn-primary">Cập nhật</button>
+                                <button type="submit" className="btn btn-primary">Update</button>
                             </div>
                         </form>
                     </div>

@@ -25,7 +25,7 @@ function AdSidebar() {
                     <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
                     In báo cáo
                 </CNavItem>
-                <CNavItem href="/AssignPosition">
+                <CNavItem href="/CRUD_Positions">
                     <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
                     Chức vụ
                 </CNavItem>

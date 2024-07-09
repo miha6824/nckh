@@ -5,39 +5,33 @@ import AdSidebar from '../AdNav/AdSidebar';
 import AdNavbar from '../AdNav/AdNavbar';
 import ReactPaginate from 'react-paginate';
 import { FaEdit, FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import styles from './CRUD_User.module.css';
+import styles from './CRUD_Positions.module.css';
 
-function CRUD_User() {
-    const [users, setUsers] = useState([]);
-    const [departments, setDepartments] = useState([]);
+const PositionList = () => {
+    const [positions, setPositions] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
-    const usersPerPage = 8;
+    const positionsPerPage = 10;
 
     useEffect(() => {
-        axios.get('http://localhost:8081/CRUD_User')
+        axios.get('http://localhost:8081/CRUD_positions')
             .then(res => {
-                const formattedUsers = res.data.map(item => ({
-                    ...item,
-                    BirthDay: new Date(item.BirthDay).toLocaleDateString('en-GB')
-                }));
-                setUsers(formattedUsers);
+                setPositions(res.data);
             })
-            .catch(err => console.log(err));
-
-        axios.get('http://localhost:8081/CRUD_Department')
-            .then(res => setDepartments(res.data))
-            .catch(err => console.log(err));
+            .catch(error => {
+                console.error('There was an error fetching the positions!', error);
+            });
     }, []);
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8081/Delete_user/${id}`);
-            setUsers(users.filter(user => user.ID !== id));
+            await axios.delete(`http://localhost:8081/Delete_position_detail/${id}`);
+            setPositions(positions.filter(data => data.ID !== id));
         } catch (err) {
             console.log(err);
         }
     };
+
 
     const handlePageClick = (event) => {
         setCurrentPage(event.selected);
@@ -48,18 +42,14 @@ function CRUD_User() {
         setCurrentPage(0); // Reset to first page on new search
     };
 
-    const offset = currentPage * usersPerPage;
-    const filteredUsers = users.filter(user =>
-        user.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.Email.toLowerCase().includes(searchTerm.toLowerCase())
+    const offset = currentPage * positionsPerPage;
+    const filteredPositions = positions.filter(position =>
+        position.TenCV.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        position.FullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        position.TenPhongBan.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    const currentPageData = filteredUsers.slice(offset, offset + usersPerPage);
-    const pageCount = Math.ceil(filteredUsers.length / usersPerPage);
-
-    const getDepartmentName = (departmentId) => {
-        const department = departments.find(dept => dept.ID === departmentId);
-        return department ? department.TenPhongBan : '';
-    };
+    const currentPageData = filteredPositions.slice(offset, offset + positionsPerPage);
+    const pageCount = Math.ceil(filteredPositions.length / positionsPerPage);
 
     return (
         <div className="d-flex vh-100">
@@ -67,9 +57,9 @@ function CRUD_User() {
             <div className="d-flex flex-column flex-grow-1">
                 <AdNavbar />
                 <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
-                    <div className={styles.crudUserContainer}>
+                    <div className={styles.crudPositionContainer}>
                         <div className="d-flex justify-content-between mb-3 align-items-center">
-                            <h2>Quản lý nhân viên</h2>
+                            <h2>Quản lý chức vụ</h2>
                             <div className="d-flex align-items-center">
                                 <input
                                     type="text"
@@ -78,42 +68,32 @@ function CRUD_User() {
                                     value={searchTerm}
                                     onChange={handleSearchChange}
                                 />
-                                <Link to="/create_User" className={styles.addButton}>
+                                <Link to="/AssignPosition" className={styles.addButton}>
                                     <FaPlus />
                                 </Link>
                             </div>
                         </div>
                         <div className={styles.tableContainer}>
-                            <table className="table table-bordered">
+                            <table className={`table table-bordered ${styles.positionTable}`}>
                                 <thead className={styles.tableHeader}>
                                     <tr>
-                                        <th>Email</th>
-                                        <th>Họ và Tên</th>
-                                        <th>Giới tính</th>
-                                        <th>Ngày sinh</th>
-                                        <th>Số điện thoại</th>
-                                        <th>Địa chỉ</th>
-                                        <th>Tên Phòng Ban</th>
-                                        <th>Hệ số lương</th>
+                                        <th>Chức vụ</th>
+                                        <th>Người sở hữu</th>
+                                        <th>Phòng ban</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {currentPageData.map(user => (
-                                        <tr key={user.ID}>
-                                            <td>{user.Email}</td>
-                                            <td>{user.FullName}</td>
-                                            <td>{user.Sex}</td>
-                                            <td>{user.BirthDay}</td>
-                                            <td>{user.Telephone}</td>
-                                            <td>{user.Address}</td>
-                                            <td>{getDepartmentName(user.ID_Department)}</td>
-                                            <td>{user.HSLuong}</td>
+                                <tbody className={styles.tableBody}>
+                                    {currentPageData.map((data, index) => (
+                                        <tr key={data.ID}>
+                                            <td>{data.TenCV}</td>
+                                            <td>{data.FullName}</td>
+                                            <td>{data.TenPhongBan}</td>
                                             <td className={styles.actions}>
-                                                <Link to={`/update_user/${user.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
+                                                <Link to={`/PositionUpdate/${data.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
                                                     <FaEdit /> Sửa
                                                 </Link>
-                                                <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(user.ID)}>
+                                                <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(data.ID)}>
                                                     <FaTrash /> Xoá
                                                 </button>
                                             </td>
@@ -143,6 +123,6 @@ function CRUD_User() {
             </div>
         </div>
     );
-}
+};
 
-export default CRUD_User;
+export default PositionList;

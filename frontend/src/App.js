@@ -21,6 +21,8 @@ import CreateDepartment from './Admin/crud_department/CreateDepartment';
 import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
 import AttendanceSettings from './Admin/crud_attendance/AttendanceSettings';
 import AssignPosition from './Admin/AssignPosition/AssignPosition';
+import CRUD_Positions from './Admin/AssignPosition/CRUD_Positions';
+import PositionUpdate from './Admin/AssignPosition/UpdatePosition';
 
 import GetFeatureAndAttendanceSimulator from './GetFeatureAndAttendanceSimulator/GetFeatureAndAttendanceSimulator';
 import TrainAndSimulate from './TrainAndSimulate/TrainAndSimulate';
@@ -54,6 +56,8 @@ function App() {
         <Route path="/AttendanceSettings" element={<AttendanceSettings />} />
         <Route path="/FormReportComponent" element={<FormReportComponent />} />
         <Route path="/AssignPosition" element={<AssignPosition />} />
+        <Route path="/CRUD_Positions" element={<CRUD_Positions />} />
+        <Route path="/PositionUpdate/:id" element={<PositionUpdate />} />
         <Route path="/GetFeatureAndAttendanceSimulator" element={<GetFeatureAndAttendanceSimulator />} />
         <Route path="/TrainAndSimulate" element={<TrainAndSimulate />} />
       </Routes>
