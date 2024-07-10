@@ -31,48 +31,42 @@ function CreateDepartment() {
     };
 
     return (
-        <div className="d-flex vh-100">
-            <AdSidebar />
-            <div className="d-flex flex-column flex-grow-1">
-                <AdNavbar />
-                <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
-                    <div className={styles.departmentCreateContainer}> {/* Use the same container class */}
-                        <h2>Tạo phòng ban</h2>
-                        <form onSubmit={handleSubmit} className="row">
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Kí hiệu phòng ban:</label>
-                                    <input
-                                        type="text"
-                                        name="khphongban"
-                                        value={formData.khphongban}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Tên phòng ban:</label>
-                                    <input
-                                        type="text"
-                                        name="tenphongban"
-                                        value={formData.tenphongban}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-12">
-                                <button type="submit" className="btn btn-primary">Tạo</button>
-                            </div>
-                        </form>
+
+        <div className={styles.departmentCreateContainer}> {/* Use the same container class */}
+            <h2>Tạo phòng ban</h2>
+            <form onSubmit={handleSubmit} className="row">
+                <div className="col-md-6">
+                    <div className="form-group">
+                        <label>Kí hiệu phòng ban:</label>
+                        <input
+                            type="text"
+                            name="khphongban"
+                            value={formData.khphongban}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        />
                     </div>
                 </div>
-            </div>
+                <div className="col-md-6">
+                    <div className="form-group">
+                        <label>Tên phòng ban:</label>
+                        <input
+                            type="text"
+                            name="tenphongban"
+                            value={formData.tenphongban}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        />
+                    </div>
+                </div>
+                <div className="col-12">
+                    <button type="submit" className="btn btn-primary">Tạo</button>
+                </div>
+            </form>
         </div>
+
     );
 }
 

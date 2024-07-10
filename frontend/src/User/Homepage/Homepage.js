@@ -30,7 +30,6 @@ const Homepage = () => {
 
     return (
         <div>
-            <UserNavbar />
             <div className={styles.HomepageContainer}>
                 <h2 className={styles.HomepageTitle}>Lịch sử chấm công</h2>
                 {error && <p className={styles.errorMessage}>{error}</p>}

@@ -23,7 +23,7 @@ function AdSidebar() {
                 <CNavTitle>Nav Title</CNavTitle>
                 <CNavItem href="/FormReportComponent">
                     <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
-                    In báo cáo
+                    Báo cáo
                 </CNavItem>
                 <CNavItem href="/CRUD_Positions">
                     <CIcon customClassName="nav-icon" icon={cilSpeedometer} />

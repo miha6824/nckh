@@ -39,36 +39,30 @@ const AttendanceSettings = () => {
     };
 
     return (
-        <div className="d-flex vh-100">
-            <AdSidebar />
-            <div className="d-flex flex-column flex-grow-1">
-                <AdNavbar />
-                <div className="container-fluid vh-100 overflow-auto d-flex flex-column align-items-center justify-content-center">
-                    <h1 className={styles.title}>Thiết lập giờ làm việc</h1>
-                    <div className={styles.calendarContainer}>
-                        <Calendar
-                            onChange={handleDateChange}
-                            value={selectedDate}
-                            locale="vi-VN"
-                            className={styles.reactCalendar}
-                        />
-                    </div>
-                    <form onSubmit={handleSetStandardTimes} className={styles.formContainer}>
-                        <label className={styles.label}>
-                            Ngày: {selectedDate.toLocaleDateString('vi-VN')}
-                        </label>
-                        <label className={styles.label}>
-                            Giờ check-in:
-                            <input type="time" value={checkinTime} onChange={(e) => setCheckinTime(e.target.value)} required className={styles.input} />
-                        </label>
-                        <label className={styles.label}>
-                            Giờ check-out:
-                            <input type="time" value={checkoutTime} onChange={(e) => setCheckoutTime(e.target.value)} required className={styles.input} />
-                        </label>
-                        <button type="submit" className={`${styles.submitButton} btn btn-primary`}>Thiết lập giờ tiêu chuẩn</button>
-                    </form>
-                </div>
+        <div>
+            <h1 className={styles.title}>Thiết lập giờ làm việc</h1>
+            <div className={styles.calendarContainer}>
+                <Calendar
+                    onChange={handleDateChange}
+                    value={selectedDate}
+                    locale="vi-VN"
+                    className={styles.reactCalendar}
+                />
             </div>
+            <form onSubmit={handleSetStandardTimes} className={styles.formContainer}>
+                <label className={styles.label}>
+                    Ngày: {selectedDate.toLocaleDateString('vi-VN')}
+                </label>
+                <label className={styles.label}>
+                    Giờ check-in:
+                    <input type="time" value={checkinTime} onChange={(e) => setCheckinTime(e.target.value)} required className={styles.input} />
+                </label>
+                <label className={styles.label}>
+                    Giờ check-out:
+                    <input type="time" value={checkoutTime} onChange={(e) => setCheckoutTime(e.target.value)} required className={styles.input} />
+                </label>
+                <button type="submit" className={`${styles.submitButton} btn btn-primary`}>Thiết lập giờ tiêu chuẩn</button>
+            </form>
         </div>
     );
 };

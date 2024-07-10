@@ -63,7 +63,7 @@ function AttendancePage() {
         const userData = await response.json();
         return userData.map(user => {
             return {
-                userName: user.UserName,
+                label: user.Label,
                 id_user: user.ID_User,
                 faceDescriptor: JSON.parse(user.FaceDescriptor)
             };
@@ -90,11 +90,11 @@ function AttendancePage() {
                             return (
                                 faceapi.euclideanDistance(faceDescriptor, user.faceDescriptor) <
                                 0.6
-                            ); // Ngưỡng khoảng cách
+                            );
                         });
 
                         if (match) {
-                            console.log('Khuôn mặt thuộc về:', match.userName);
+                            console.log('Khuôn mặt thuộc về:', match.label);
 
                             // Chụp ảnh khi nhận diện thành công
                             const photoCanvas = document.createElement('canvas');
@@ -111,7 +111,6 @@ function AttendancePage() {
                                 const response = await axios.post('http://localhost:8081/attendance', {
                                     userId: match.id_user,
                                     imageBase64: imageData,
-                                    fullName: match.userName
                                 });
                                 const res = await axios.get(`http://localhost:8081/user/${match.id_user}`);
                                 const preUserInfo = res.data;
@@ -133,7 +132,7 @@ function AttendancePage() {
                             ctxRef.current.fillStyle = 'green';
                             ctxRef.current.font = '24px Arial';
                             ctxRef.current.fillText(
-                                match.userName + '-' + match.id_user,
+                                match.label + '-' + match.id_user,
                                 x + 5,
                                 y + height + 24
                             );

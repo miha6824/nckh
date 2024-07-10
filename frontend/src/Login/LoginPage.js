@@ -7,6 +7,7 @@ const LoginPage = () => {
         email: '',
         password: '',
     });
+    const [error, setError] = useState('');
 
     const navigate = useNavigate();
 
@@ -23,12 +24,14 @@ const LoginPage = () => {
                         navigate('/home');
                     }
                 } else {
-                    alert(res.data); // Sửa thành res.data
+                    setError("Sai tài khoản hoặc mật khẩu");
                 }
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                console.log(err);
+                setError("Sai tài khoản hoặc mật khẩu");
+            });
     };
-
 
     return (
         <div className="d-flex justify-content-center align-items-center bg-primary vh-100">
@@ -45,6 +48,7 @@ const LoginPage = () => {
                         <input type="password" id="password" name="password" placeholder="Nhập mật khẩu của bạn"
                             onChange={e => setValues({ ...values, password: e.target.value })} className='form-control rounded-0' />
                     </div>
+                    {error && <div className="mb-3 text-danger">{error}</div>}
                     <button type='submit' className='btn btn-success w-100 rounded-0'>Sign in</button>
                     <Link to={'/register'} className='mt-3 btn btn-success w-100 rounded-0'>Sign Up</Link >
                 </form>

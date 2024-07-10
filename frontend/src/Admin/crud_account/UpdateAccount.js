@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import AdSidebar from '../AdNav/AdSidebar';
-import AdNavbar from '../AdNav/AdNavbar';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import styles from './UpdateAccount.module.css';
 
-function UserUpdate() {
+function UpdateAccount() {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -56,72 +54,64 @@ function UserUpdate() {
     };
 
     return (
-        <div className="d-flex vh-100">
-            <AdSidebar />
-            <div className="d-flex flex-column flex-grow-1">
-                <AdNavbar />
-                <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
-                    <div className={styles.accountUpdateContainer}>
-                        <h2>Cập nhật người dùng</h2>
-                        <form onSubmit={handleSubmit} className="row">
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Chủ sở hữu tài khoản</label>
-                                    <input
-                                        type="text"
-                                        name="id_user"
-                                        value={fullName}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                        disabled
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Role:</label>
-                                    <input
-                                        type="text"
-                                        name="role"
-                                        value={formData.role}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Email:</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Password:</label>
-                                    <input
-                                        type="text"
-                                        name="password"
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-12">
-                                <button type="submit" className="btn btn-primary">Cập nhật</button>
-                            </div>
-                        </form>
+        <div className={styles.accountUpdateContainer}>
+            <h2>Cập nhật người dùng</h2>
+            <form onSubmit={handleSubmit} className="row">
+                <div className="col-md-6">
+                    <div className="form-group">
+                        <label>Chủ sở hữu tài khoản</label>
+                        <input
+                            type="text"
+                            name="id_user"
+                            value={fullName}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                            disabled
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Role:</label>
+                        <input
+                            type="text"
+                            name="role"
+                            value={formData.role}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        />
                     </div>
                 </div>
-            </div>
+                <div className="col-md-6">
+                    <div className="form-group">
+                        <label>Email:</label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Password:</label>
+                        <input
+                            type="text"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        />
+                    </div>
+                </div>
+                <div className="col-12">
+                    <button type="submit" className="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
         </div>
     );
 }
 
-export default UserUpdate;
+export default UpdateAccount;

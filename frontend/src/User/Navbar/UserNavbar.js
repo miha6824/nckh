@@ -42,7 +42,7 @@ const AppNavbar = () => {
     return (
         <CNavbar expand="lg" colorScheme="dark" className="bg-dark custom-navbar">
             <CContainer fluid>
-                <CNavbarBrand href="/">Logo</CNavbarBrand>
+                <CNavbarBrand href="/home">Logo</CNavbarBrand>
                 <CNavbarToggler aria-label="Toggle navigation" />
                 <CCollapse className="navbar-collapse">
                     <CNavbarNav className="me-auto ms-5">

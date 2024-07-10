@@ -1,5 +1,88 @@
 .crudUserContainer {
   width: 100%;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.tableContainer {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+.tableHeader {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 1;
+}
+
+.searchInput {
+  width: 200px;
+  margin-right: 10px;
+  padding: 8px 15px;
+  border: 1px solid #ced4da;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #24c74a;
+  color: #fff;
+  font-size: 18px;
+  margin-left: 10px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: center;
+  padding: 12px;
+}
+
+.table th {
+  background-color: #b20e0e;
+  color: white;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actionButton {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+.editButton {
+  background-color: #0056b3;
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.editButton:hover {
+  background-color: #003f7f;
+}
+
+.deleteButton {
+  background-color: #ff0000;
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.deleteButton:hover {
+  background-color: #a71d2a;
 }
 
 .pagination {
@@ -26,89 +109,4 @@
   background-color: #007bff;
   color: white;
   border: 1px solid #007bff;
-}
-
-li::marker {
-  content: none;
-}
-
-.tableContainer {
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
-}
-
-.tableHeader {
-  position: sticky;
-  top: 0;
-  background-color: #f8f9fa; /* Light gray background */
-  z-index: 1;
-}
-
-.searchInput {
-  width: 200px;
-  margin-right: 10px;
-  padding: 8px 15px; /* Adjusted padding */
-  border: 1px solid #ced4da; /* Lighter border color */
-}
-
-.addButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: #24c74a; 
-  color: #fff;
-  font-size: 18px; 
-  margin-left: 10px;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th,
-.table td {
-  text-align: center;
-  padding: 12px; /* Increased padding */
-}
-
-.table th {
-  background-color: #b20e0e; /* Dark red header */
-  color: white; /* White text */
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-}
-
-.actionButton {
-  display: inline-block;
-  padding: 8px 12px; /* Adjusted padding */
-  border-radius: 4px;
-  text-decoration: none;
-  text-align: center;
-  cursor: pointer;
-}
-
-.editButton {
-  background-color: #0056b3; /* Blue edit button */
-  color: #fff;
-  border: 1px solid transparent; /* Transparent border */
-}
-
-.editButton:hover {
-  background-color: #003f7f; /* Darker blue on hover */
-}
-
-.deleteButton {
-  background-color: #ff0000; /* Red delete button */
-  color: #fff;
-  border: 1px solid transparent; /* Transparent border */
-}
-
-.deleteButton:hover {
-  background-color: #a71d2a; /* Darker red on hover */
 }

@@ -112,7 +112,6 @@ const Profile = () => {
 
     return (
         <div>
-            <UserNavbar />
             <div className={styles.profileContainer}>
                 <div className={styles.backButton} onClick={handleGoBack}>
                     <FontAwesomeIcon icon={faArrowLeft} />

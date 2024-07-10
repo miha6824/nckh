@@ -167,6 +167,34 @@ const UploadPhotoPage = () => {
         return () => clearInterval(interval); // Clean up khi component unmount
     }, [cameraActive]);
 
+    const renderUserImages = () => {
+        if (userImages.length === 0) {
+            return <p>Bạn chưa có ảnh nào.</p>;
+        } else if (userImages.length > 4) {
+            return (
+                <Slider {...sliderSettings}>
+                    {userImages.map(image => (
+                        <div key={image.ID} className={styles.imageItem}>
+                            <img src={`http://localhost:8081/Images/${image.Image}`} alt={image.UserName} className={styles.userImage} />
+                            <button type="button" onClick={() => handleDeleteImage(image.ID)} className={styles.deleteButton}>X</button>
+                        </div>
+                    ))}
+                </Slider>
+            );
+        } else {
+            return (
+                <div className={styles.imageGrid}>
+                    {userImages.map(image => (
+                        <div key={image.ID} className={styles.imageItem}>
+                            <img src={`http://localhost:8081/Images/${image.Image}`} alt={image.UserName} className={styles.userImage} />
+                            <button type="button" onClick={() => handleDeleteImage(image.ID)} className={styles.deleteButton}>X</button>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+    };
+
     const sliderSettings = {
         dots: true,
         speed: 500,
@@ -200,7 +228,6 @@ const UploadPhotoPage = () => {
 
     return (
         <div>
-            <UserNavbar className={styles.navbar} />
             <div className={styles.profilePage}>
                 <div className={styles.profileHeader}>
                     <div className={styles.avatarContainer}>
@@ -250,11 +277,6 @@ const UploadPhotoPage = () => {
                         </div>
                     </div>
                 )}
-
-
-
-
-
                 {capturedImage && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>
@@ -266,19 +288,8 @@ const UploadPhotoPage = () => {
                 )}
 
                 <div className={styles.userImages}>
-                    <h3>Danh sách ảnh của bạn</h3>
-                    {userImages.length === 0 ? (
-                        <p>Bạn chưa có ảnh nào.</p>
-                    ) : (
-                        <Slider {...sliderSettings}>
-                            {userImages.map(image => (
-                                <div key={image.ID} className={styles.imageItem}>
-                                    <img src={`http://localhost:8081/Images/${image.Image}`} alt={image.UserName} className={styles.userImage} />
-                                    <button onClick={() => handleDeleteImage(image.ID)} className={styles.deleteButton}>X</button>
-                                </div>
-                            ))}
-                        </Slider>
-                    )}
+                    <h2>Danh sách hình ảnh</h2>
+                    {renderUserImages()}
                 </div>
             </div>
         </div>

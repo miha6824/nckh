@@ -1,3 +1,4 @@
+// CRUD_User.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -12,7 +13,7 @@ function CRUD_User() {
     const [departments, setDepartments] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
-    const usersPerPage = 8;
+    const usersPerPage = 7;
 
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_User')
@@ -62,85 +63,77 @@ function CRUD_User() {
     };
 
     return (
-        <div className="d-flex vh-100">
-            <AdSidebar />
-            <div className="d-flex flex-column flex-grow-1">
-                <AdNavbar />
-                <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
-                    <div className={styles.crudUserContainer}>
-                        <div className="d-flex justify-content-between mb-3 align-items-center">
-                            <h2>Quản lý nhân viên</h2>
-                            <div className="d-flex align-items-center">
-                                <input
-                                    type="text"
-                                    className={styles.searchInput}
-                                    placeholder="Tìm kiếm..."
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
-                                />
-                                <Link to="/create_User" className={styles.addButton}>
-                                    <FaPlus />
-                                </Link>
-                            </div>
-                        </div>
-                        <div className={styles.tableContainer}>
-                            <table className="table table-bordered">
-                                <thead className={styles.tableHeader}>
-                                    <tr>
-                                        <th>Email</th>
-                                        <th>Họ và Tên</th>
-                                        <th>Giới tính</th>
-                                        <th>Ngày sinh</th>
-                                        <th>Số điện thoại</th>
-                                        <th>Địa chỉ</th>
-                                        <th>Tên Phòng Ban</th>
-                                        <th>Hệ số lương</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {currentPageData.map(user => (
-                                        <tr key={user.ID}>
-                                            <td>{user.Email}</td>
-                                            <td>{user.FullName}</td>
-                                            <td>{user.Sex}</td>
-                                            <td>{user.BirthDay}</td>
-                                            <td>{user.Telephone}</td>
-                                            <td>{user.Address}</td>
-                                            <td>{getDepartmentName(user.ID_Department)}</td>
-                                            <td>{user.HSLuong}</td>
-                                            <td className={styles.actions}>
-                                                <Link to={`/update_user/${user.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
-                                                    <FaEdit /> Sửa
-                                                </Link>
-                                                <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(user.ID)}>
-                                                    <FaTrash /> Xoá
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <ReactPaginate
-                            previousLabel={<FaArrowLeft />}
-                            nextLabel={<FaArrowRight />}
-                            pageCount={pageCount}
-                            marginPagesDisplayed={2}
-                            pageRangeDisplayed={5}
-                            onPageChange={handlePageClick}
-                            containerClassName={styles.pagination}
-                            activeClassName={'active'}
-                            previousClassName={styles.pageItem}
-                            nextClassName={styles.pageItem}
-                            previousLinkClassName={styles.pageLink}
-                            nextLinkClassName={styles.pageLink}
-                            pageClassName={styles.pageItem}
-                            pageLinkClassName={styles.pageLink}
-                        />
-                    </div>
+        <div className={`${styles.crudUserContainer} container-fluid`}>
+            <div className="d-flex justify-content-between mb-3 align-items-center">
+                <h2>Quản lý nhân viên</h2>
+                <div className="d-flex align-items-center">
+                    <input
+                        type="text"
+                        className={styles.searchInput}
+                        placeholder="Tìm kiếm..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                    <Link to="/create_User" className={styles.addButton}>
+                        <FaPlus />
+                    </Link>
                 </div>
             </div>
+            <div className={`${styles.tableContainer} table-responsive`}>
+                <table className="table table-bordered">
+                    <thead className={styles.tableHeader}>
+                        <tr>
+                            <th>Email</th>
+                            <th>Họ và Tên</th>
+                            <th>Giới tính</th>
+                            <th>Ngày sinh</th>
+                            <th>Số điện thoại</th>
+                            <th>Địa chỉ</th>
+                            <th>Tên Phòng Ban</th>
+                            <th>Hệ số lương</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentPageData.map(user => (
+                            <tr key={user.ID}>
+                                <td>{user.Email}</td>
+                                <td>{user.FullName}</td>
+                                <td>{user.Sex}</td>
+                                <td>{user.BirthDay}</td>
+                                <td>{user.Telephone}</td>
+                                <td>{user.Address}</td>
+                                <td>{getDepartmentName(user.ID_Department)}</td>
+                                <td>{user.HSLuong}</td>
+                                <td className={styles.actions}>
+                                    <Link to={`/update_user/${user.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
+                                        <FaEdit /> Sửa
+                                    </Link>
+                                    <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(user.ID)}>
+                                        <FaTrash /> Xoá
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <ReactPaginate
+                previousLabel={<FaArrowLeft />}
+                nextLabel={<FaArrowRight />}
+                pageCount={pageCount}
+                marginPagesDisplayed={2}
+                pageRangeDisplayed={5}
+                onPageChange={handlePageClick}
+                containerClassName={styles.pagination}
+                activeClassName={'active'}
+                previousClassName={styles.pageItem}
+                nextClassName={styles.pageItem}
+                previousLinkClassName={styles.pageLink}
+                nextLinkClassName={styles.pageLink}
+                pageClassName={styles.pageItem}
+                pageLinkClassName={styles.pageLink}
+            />
         </div>
     );
 }

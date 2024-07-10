@@ -185,21 +185,21 @@
     max-width: 800px;
 }
 
-.imageList {
-    display: flex;
-    overflow-x: auto;
-    gap: 20px;
-    padding-bottom: 20px;
-}
-
 .imageItem {
     position: relative;
-    width: 200px;
-    height: 200px;
+    width: 190px;
+    height: 190px;
     overflow: hidden;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
+}
+
+.imageGrid {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 10px; 
+    justify-content: flex-start; 
 }
 
 .imageItem:hover {
@@ -316,3 +316,4 @@
     color: #ff0000;
     z-index: 1000;
 }
+

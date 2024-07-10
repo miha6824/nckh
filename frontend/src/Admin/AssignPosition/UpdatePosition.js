@@ -62,87 +62,81 @@ function PositionUpdate() {
 
 
     return (
-        <div className="d-flex vh-100">
-            <AdSidebar />
-            <div className="d-flex flex-column flex-grow-1">
-                <AdNavbar />
-                <div className="container-fluid vh-100 overflow-auto d-flex justify-content-center align-items-center">
-                    <div className={styles.updatePositionContainer}>
-                        <h2>Update User</h2>
-                        <form onSubmit={handleSubmit} className="row">
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Position:</label>
-                                    <select
-                                        name="MaCV"
-                                        value={formData.MaCV}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    >
-                                        <option>Chọn chức vụ</option>
-                                        {positions.map(position => (
-                                            <option key={position.ID} value={position.ID}>
-                                                {position.TenCV}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="form-group">
-                                    <label>Employee:</label>
-                                    <select
-                                        name="ID_User"
-                                        value={formData.ID_User}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    >
-                                        <option>Chọn nhân viên</option>
-                                        {users.map(user => (
-                                            <option key={user.ID} value={user.ID}>
-                                                {user.FullName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Department:</label>
-                                    <select
-                                        name="ID_Department"
-                                        value={formData.ID_Department}
-                                        onChange={handleChange}
-                                        className="form-control"
-                                        disabled
-                                    >
-                                        <option>Chọn phòng ban</option>
-                                        {departments.map(department => (
-                                            <option key={department.ID} value={department.ID}>
-                                                {department.TenPhongBan}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Reason:</label>
-                                    <textarea
-                                        name="LyDo"
-                                        value={formData.LyDo}
-                                        onChange={handleChange}
-                                        required
-                                        className="form-control"
-                                    ></textarea>
-                                </div>
-                            </div>
-                            <div className="col-12">
-                                <button type="submit" className="btn btn-primary">Update</button>
-                            </div>
-                        </form>
+
+        <div className={styles.updatePositionContainer}>
+            <h2>Sửa chức vụ nhân viên</h2>
+            <form onSubmit={handleSubmit} className="row">
+                <div className="col-md-6">
+                    <div className="form-group">
+                        <label>Chức vụ:</label>
+                        <select
+                            name="MaCV"
+                            value={formData.MaCV}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        >
+                            <option>Chọn chức vụ</option>
+                            {positions.map(position => (
+                                <option key={position.ID} value={position.ID}>
+                                    {position.TenCV}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
-            </div>
+                <div className="col-md-6">
+                    <div className="form-group">
+                        <label>Nhân viên:</label>
+                        <select
+                            name="ID_User"
+                            value={formData.ID_User}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        >
+                            <option>Chọn nhân viên</option>
+                            {users.map(user => (
+                                <option key={user.ID} value={user.ID}>
+                                    {user.FullName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                <div className="form-group">
+                    <label>Phòng ban:</label>
+                    <select
+                        name="ID_Department"
+                        value={formData.ID_Department}
+                        onChange={handleChange}
+                        className="form-control"
+                        disabled
+                    >
+                        <option>Chọn phòng ban</option>
+                        {departments.map(department => (
+                            <option key={department.ID} value={department.ID}>
+                                {department.TenPhongBan}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Lý do:</label>
+                    <textarea
+                        name="LyDo"
+                        value={formData.LyDo}
+                        onChange={handleChange}
+                        required
+                        className="form-control"
+                    ></textarea>
+                </div>
+                <div className="col-12">
+                    <button type="submit" className="btn btn-primary">Sửa</button>
+                </div>
+            </form>
         </div>
+
     );
 }
 

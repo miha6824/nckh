@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2");
+const mysql = require("mysql");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const path = require("path");
@@ -211,29 +211,48 @@ app.put('/change_password/:id', (req, res) => {
 
 
 app.put('/update_account/:id', (req, res) => {
-    const sql = "UPDATE account SET `Email`=?, `Password`=?, `ID_User`=?, `Role`=? WHERE ID=?";
+    const updateAccountSql = "UPDATE account SET `Email`=?, `Password`=?, `ID_User`=?, `Role`=? WHERE ID=?";
+    const updateUserEmailSql = "UPDATE user SET `Email`=? WHERE ID=?";
     const values = [
         req.body.email,
         req.body.password,
         req.body.id_user,
         req.body.role,
-    ]
-    const id = req.params.id;
-    db.query(sql, [...values, id], (err, data) => {
-        if (err) return res.status(500).json("Error");
-        return res.status(200).json("User update successfully");
+        req.params.id
+    ];
+
+    // Update account table
+    db.query(updateAccountSql, values, (err, accountResult) => {
+        if (err) {
+            console.log("Error updating account:", err);
+            return res.status(500).json("Error updating account");
+        }
+
+        // Update user table
+        db.query(updateUserEmailSql, [req.body.email, req.body.id_user], (err, userResult) => {
+            if (err) {
+                console.log("Error updating user email:", err);
+                return res.status(500).json("Error updating user email");
+            }
+
+            return res.status(200).json("User and email update successfully");
+        });
     });
 });
 
 
 
+
 app.get("/CRUD_Attendance", (req, res) => {
-    const sql = "SELECT * FROM attendance";
+    const sql = "SELECT a.ID, a.ID_User, u.FullName, a.timestamp, a.Status, a.Image, a.LateMinutes, a.EarlyLeaveMinutes, a.OvertimeMinutes " +
+        "FROM attendance a " +
+        "INNER JOIN user u ON a.ID_User = u.ID";
     db.query(sql, (err, data) => {
         if (err) return res.status(500).json("Error");
         return res.status(200).json(data);
     });
 });
+
 
 app.delete('/Delete_atten/:id', (req, res) => {
     const sql = "DELETE FROM attendance WHERE ID=?";
@@ -247,76 +266,103 @@ app.delete('/Delete_atten/:id', (req, res) => {
 
 
 app.post('/create_user', (req, res) => {
-    const userSql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
-    const accountSql = "INSERT INTO account (Email, Password, ID_User, Role) VALUES ?";
-    const defaultPassword = '12345';
-    const positionSql = "INSERT INTO `position details` (MaCV, ID_User, ID_Department) VALUES ?";
+    const checkUserSql = `
+        SELECT * FROM user 
+        WHERE Email = ? AND FullName = ? AND Sex = ? AND BirthDay = ? AND Telephone = ? AND Address = ? AND ID_Department = ? AND HSLuong = ?`;
 
-    const userValues = [
-        [
-            req.body.email,
-            req.body.fullName,
-            req.body.sex,
-            req.body.dob,
-            req.body.phoneNumber,
-            req.body.address,
-            req.body.id_departments,
-            req.body.hsl,
-        ]
+    const checkUserValues = [
+        req.body.email,
+        req.body.fullName,
+        req.body.sex,
+        req.body.dob,
+        req.body.phoneNumber,
+        req.body.address,
+        req.body.id_departments,
+        req.body.hsl,
     ];
 
-    db.query(userSql, [userValues], (err, result) => {
+    db.query(checkUserSql, checkUserValues, (err, results) => {
         if (err) {
-            console.error('Lỗi khi thực hiện truy vấn:', err.stack);
-            return res.status(500).json('Đã xảy ra lỗi khi tạo người dùng');
+            console.error('Lỗi khi kiểm tra người dùng:', err.stack);
+            return res.status(500).json('Đã xảy ra lỗi khi kiểm tra người dùng');
         }
 
-        const userId = result.insertId; // Lấy ID của người dùng vừa tạo
-        const accountValues = [
-            [
-                req.body.email,
-                defaultPassword,
-                userId,
-                'user'
-            ]
-        ];
+        if (results.length > 0) {
+            return res.status(400).json('Người dùng đã tồn tại');
+        } else {
+            const userSql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
+            const accountSql = "INSERT INTO account (Email, Password, ID_User, Role) VALUES ?";
+            const defaultPassword = '12345';
+            const positionSql = "INSERT INTO `position details` (MaCV, ID_User, ID_Department) VALUES ?";
 
-        db.query(accountSql, [accountValues], (err, result) => {
-            if (err) {
-                console.error('Lỗi khi thêm tạo tài khoản:', err.stack);
-                return res.status(500).json('Đã xảy ra lỗi khi tạo tài khoản');
-            }
-
-            console.log('Người dùng và tài khoản đã được tạo thành công');
-
-            const positionDetailsValues = [
+            const userValues = [
                 [
-                    req.body.position, // Đảm bảo rằng giá trị này tương ứng với `MaCV`
-                    userId, // Đảm bảo `userId` đã được định nghĩa và chính xác
-                    req.body.id_departments // Đảm bảo rằng giá trị này tương ứng với `ID_Department`
+                    req.body.email,
+                    req.body.fullName,
+                    req.body.sex,
+                    req.body.dob,
+                    req.body.phoneNumber,
+                    req.body.address,
+                    req.body.id_departments,
+                    req.body.hsl,
                 ]
             ];
 
-            db.query(positionSql, [positionDetailsValues], (err, result) => {
+            db.query(userSql, [userValues], (err, result) => {
                 if (err) {
-                    console.error('Lỗi khi thêm chức vụ', err.stack);
-                    return res.status(500).json('Đã xảy ra lỗi khi thêm chức vụ');
+                    console.error('Lỗi khi thực hiện truy vấn:', err.stack);
+                    return res.status(500).json('Đã xảy ra lỗi khi tạo người dùng');
                 }
 
-                console.log('Người dùng và tài khoản đã được tạo và thêm chức vụ thành công');
-                return res.status(200).json('Người dùng, tài khoản và chức vụ đã được tạo thành công');
+                const userId = result.insertId;
+                const accountValues = [
+                    [
+                        req.body.email,
+                        defaultPassword,
+                        userId,
+                        'user'
+                    ]
+                ];
+
+                db.query(accountSql, [accountValues], (err, result) => {
+                    if (err) {
+                        console.error('Lỗi khi thêm tạo tài khoản:', err.stack);
+                        return res.status(500).json('Đã xảy ra lỗi khi tạo tài khoản');
+                    }
+
+                    console.log('Người dùng và tài khoản đã được tạo thành công');
+
+                    const positionDetailsValues = [
+                        [
+                            req.body.position,
+                            userId,
+                            req.body.id_departments
+                        ]
+                    ];
+
+                    db.query(positionSql, [positionDetailsValues], (err, result) => {
+                        if (err) {
+                            console.error('Lỗi khi thêm chức vụ', err.stack);
+                            return res.status(500).json('Đã xảy ra lỗi khi thêm chức vụ');
+                        }
+
+                        console.log('Người dùng và tài khoản đã được tạo và thêm chức vụ thành công');
+                        return res.status(200).json('Người dùng, tài khoản và chức vụ đã được tạo thành công');
+                    });
+                });
             });
-        });
+        }
     });
 });
 
 
 
 
+
 app.put('/update_user/:id', (req, res) => {
     const sqlUpdateUser = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
-    const sqlUpdatePosition = "UPDATE position_details SET MaCV=? WHERE ID_User=?";
-    const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD'); // Format date using moment
+    const positionSql = "INSERT INTO `position details` (MaCV, ID_User, ID_Department) VALUES ?";
+    const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD');
     const valuesUser = [
         req.body.email,
         req.body.fullName,
@@ -328,60 +374,79 @@ app.put('/update_user/:id', (req, res) => {
         req.body.hsl,
         req.params.id
     ];
+    const id = req.params.id;
+
+    // Lấy các giá trị từ req.body để thêm vào bảng position details
     const valuesPosition = [
-        req.body.id_positions, // Assuming id_positions is the ID for the selected position
-        req.params.id
+        [
+            req.body.position,
+            id,
+            req.body.id_departments
+        ]
     ];
 
     db.query(sqlUpdateUser, valuesUser, (err, data) => {
         if (err) {
-            console.error("Database error:", err);
-            return res.status(500).json("Error");
+            console.error("Lỗi cơ sở dữ liệu:", err);
+            return res.status(500).json("Lỗi");
         }
-        // Update position details
-        db.query(sqlUpdatePosition, valuesPosition, (err, data) => {
+
+        // Thực hiện câu lệnh SQL insert vào position details
+        db.query(positionSql, [valuesPosition], (err, data) => {
             if (err) {
-                console.error("Database error:", err);
-                return res.status(500).json("Error");
+                console.error("Lỗi cơ sở dữ liệu:", err);
+                return res.status(500).json("Lỗi");
             }
-            return res.status(200).json("User updated successfully");
+            return res.status(200).json("Cập nhật người dùng thành công");
         });
     });
 });
+
+
 
 
 app.delete('/Delete_user/:id', (req, res) => {
     const id = req.params.id;
     const deleteAccountSql = "DELETE FROM account WHERE ID_User=?";
-    const deleteUserSql = "DELETE FROM user WHERE ID=?";
     const deleteImgUserSql = "DELETE FROM userimage WHERE ID_User=?";
     const deleteAttendance = "DELETE FROM attendance WHERE ID_User=?";
+    const deletePosition = "DELETE FROM `position details` WHERE ID_User=?";
+    const deleteUserSql = "DELETE FROM user WHERE ID=?";
+
+    // Xóa các bản ghi liên quan trước
     db.query(deleteAccountSql, [id], (err, data) => {
         if (err) {
-            console.error(err); // Log lỗi
+            console.error(err);
             return res.status(500).json("Error deleting related account records");
         }
         db.query(deleteImgUserSql, [id], (err, data) => {
             if (err) {
-                console.error(err); // Log lỗi
-                return res.status(500).json("Error deleting user");
+                console.error(err);
+                return res.status(500).json("Error deleting user images");
             }
             db.query(deleteAttendance, [id], (err, data) => {
                 if (err) {
-                    console.error(err); // Log lỗi
-                    return res.status(500).json("Error deleting user");
+                    console.error(err);
+                    return res.status(500).json("Error deleting attendance records");
                 }
-                db.query(deleteUserSql, [id], (err, data) => {
+                db.query(deletePosition, [id], (err, data) => {
                     if (err) {
-                        console.error(err); // Log lỗi
-                        return res.status(500).json("Error deleting user");
+                        console.error(err);
+                        return res.status(500).json("Error deleting position details");
                     }
-                    return res.status(200).json("User and related account records deleted successfully");
+                    db.query(deleteUserSql, [id], (err, data) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).json("Error deleting user");
+                        }
+                        return res.status(200).json("User deleted successfully");
+                    });
                 });
             });
         });
     });
 });
+
 
 
 app.get('/CRUD_positions', (req, res) => {
@@ -392,6 +457,7 @@ app.get('/CRUD_positions', (req, res) => {
         JOIN \`user\` u ON pd.ID_User = u.ID
         JOIN \`department\` d ON pd.ID_Department = d.ID
     `;
+
     db.query(sql, (err, data) => {
         if (err) {
             console.error('Error fetching positions:', err);
@@ -546,9 +612,6 @@ app.delete('/Delete_ImgUser/:id', (req, res) => {
     });
 });
 
-
-
-
 app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
     const id = req.params.id;
     console.log("Received request to upload image for user ID:", id);
@@ -559,7 +622,7 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
     }
 
     // Thực hiện truy vấn SQL để lấy thông tin về UserName và ID_User từ bảng `user`
-    const userInfoQuery = "SELECT FullName as UserName, ID as ID_User FROM user WHERE ID = ?";
+    const userInfoQuery = "SELECT FullName as Label, ID as ID_User FROM user WHERE ID = ?";
     db.query(userInfoQuery, [id], async (err, userInfo) => {
         if (err) {
             console.error("Database error:", err);
@@ -571,10 +634,10 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const userName = userInfo[0].UserName;
+        const label = userInfo[0].Label;
         const userId = userInfo[0].ID_User;
 
-        const sql = "INSERT INTO userimage (UserName, Image, ID_User, FaceDescriptor) VALUES ?";
+        const sql = "INSERT INTO userimage (Label, Image, ID_User, FaceDescriptor) VALUES ?";
         let progress = 0;
         try {
             console.log(`Progress: ${progress}% - Starting image processing...`);
@@ -604,7 +667,7 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
 
             const values = [
                 [
-                    userName,
+                    label,
                     req.file.filename,
                     userId,
                     JSON.stringify(descriptorArray)
@@ -636,7 +699,7 @@ app.post('/create_ImgUser', upload.single('image'), async (req, res) => {
         return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const sql = "INSERT INTO userimage (UserName, Image, ID_User, FaceDescriptor) VALUES ?";
+    const sql = "INSERT INTO userimage (Label, Image, ID_User, FaceDescriptor) VALUES ?";
     let progress = 0;
 
     try {
@@ -694,8 +757,8 @@ app.post('/create_ImgUser', upload.single('image'), async (req, res) => {
 // Thêm vào endpoint đăng nhập  
 app.post('/login', (req, res) => {
     console.log("Received email:", req.body.email);
-    const sql = "SELECT * FROM account WHERE Email = ?";
-    db.query(sql, [req.body.email], (err, data) => {
+    const sql = "SELECT * FROM account WHERE Email = ? AND Password = ?";
+    db.query(sql, [req.body.email, req.body.password], (err, data) => {
         if (err) {
             console.error("Database error:", err);
             return res.status(500).json("Lỗi server");
@@ -712,8 +775,6 @@ app.post('/login', (req, res) => {
                     return res.status(500).json("Lỗi server");
                 }
                 if (userData.length > 0) {
-                    const token = jwt.sign({ userID: account.ID_User }, 'secret', { expiresIn: '1h' });
-                    res.cookie('token', token, { httpOnly: true });
                     return res.status(200).json({ message: "Đăng nhập thành công", userData: userData[0] });
                 } else {
                     return res.status(404).json("Không tìm thấy thông tin người dùng");
@@ -724,6 +785,7 @@ app.post('/login', (req, res) => {
         }
     });
 });
+
 
 
 app.get('/logout', (req, res) => {
@@ -831,78 +893,68 @@ app.delete('/deleteUserImage/:userID/:imageID', (req, res) => {
     });
 });
 
-
-
-
-
-
-
-
 app.post('/ImgUserAddUserSite/:id', upload.single('image'), async (req, res) => {
     const id = req.params.id;
-    console.log("Received request to upload image for user ID:", id);
+    console.log("yêu cầu upload ảnh của id:", id);
 
     if (!req.file) {
-        console.log("No file uploaded");
-        return res.status(400).json({ error: "No file uploaded" });
+        console.log("không có hình ảnh nào tải lên");
+        return res.status(400).json({ error: "không có hình ảnh nào tải lên" });
     }
 
-    // Thực hiện truy vấn SQL để lấy thông tin về UserName và ID_User
-    const userInfoQuery = "SELECT UserName, ID_User FROM userimage WHERE ID = ?";
-    db.query(userInfoQuery, [id], async (err, userInfo) => {
-        const sql = "INSERT INTO userimage (UserName, Image, ID_User, FaceDescriptor) VALUES ?";
-        let progress = 0;
-        try {
-            console.log(`Progress: ${progress}% - Starting image processing...`);
+    const sql = "INSERT INTO userimage (Label, Image, ID_User, FaceDescriptor) VALUES ?";
+    let progress = 0;
+    try {
+        console.log(`Progress: ${progress}% - Starting image processing...`);
 
-            // Bắt đầu quá trình trích xuất đặc trưng khuôn mặt từ ảnh
-            progress += 20;
-            const imagePath = path.join(__dirname, 'public/Images', req.file.filename);
-            console.log(`Progress: ${progress}% - Loading image...`);
-            const img = await canvas.loadImage(imagePath);
+        // Bắt đầu quá trình trích xuất đặc trưng khuôn mặt từ ảnh
+        progress += 20;
+        const imagePath = path.join(__dirname, 'public/Images', req.file.filename);
+        console.log(`Progress: ${progress}% - Loading image...`);
+        const img = await canvas.loadImage(imagePath);
 
-            progress += 20;
-            console.log(`Progress: ${progress}% - Detecting face and extracting features...`);
-            const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+        progress += 20;
+        console.log(`Progress: ${progress}% - Detecting face and extracting features...`);
+        const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
 
-            if (!detections) {
-                console.log(`Progress: ${progress}% - No face detected`);
-                return res.status(400).json({ error: "No face detected" });
-            }
-
-            progress += 20;
-            console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
-            const descriptor = detections.descriptor;
-            const descriptorArray = Array.from(descriptor); // Chuyển đổi Float32Array thành mảng thường để lưu vào MySQL
-
-            progress += 20;
-            console.log(`Progress: ${progress}% - Converting descriptor to array...`);
-
-            const values = [
-                [
-                    req.body.username,
-                    req.file.filename,
-                    req.body.id_user,
-                    JSON.stringify(descriptorArray)
-                ]
-            ];
-
-            progress += 20;
-            console.log(`Progress: ${progress}% - Inserting data into database...`);
-            db.query(sql, [values], (err, data) => {
-                if (err) {
-                    console.error("Database error:", err);
-                    return res.status(500).json("Error");
-                }
-                console.log(`Progress: 100% - Data inserted successfully`);
-                return res.status(200).json("Img created and face descriptor saved successfully");
-            });
-        } catch (error) {
-            console.error("Face API error:", error);
-            return res.status(500).json("Error processing image");
+        if (!detections) {
+            console.log(`Progress: ${progress}% - No face detected`);
+            return res.status(400).json({ error: "No face detected" });
         }
-    });
+
+        progress += 20;
+        console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
+        const descriptor = detections.descriptor;
+        const descriptorArray = Array.from(descriptor); // Chuyển đổi Float32Array thành mảng thường để lưu vào MySQL
+
+        progress += 20;
+        console.log(`Progress: ${progress}% - Converting descriptor to array...`);
+
+        const values = [
+            [
+                req.body.username,
+                req.file.filename,
+                req.body.id_user,
+                JSON.stringify(descriptorArray)
+            ]
+        ];
+
+        progress += 20;
+        console.log(`Progress: ${progress}% - Inserting data into database...`);
+        db.query(sql, [values], (err, data) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json("Error");
+            }
+            console.log(`Progress: 100% - Data inserted successfully`);
+            return res.status(200).json("Img created and face descriptor saved successfully");
+        });
+    } catch (error) {
+        console.error("Face API error:", error);
+        return res.status(500).json("Error processing image");
+    }
 });
+
 
 
 
@@ -1054,10 +1106,51 @@ app.post('/setStandardTimes', (req, res) => {
 
 
 
+app.get('/getStandardTimes', (req, res) => {
+    const { month, year } = req.query;
+
+    const startDate = moment(`${year}-${month}-01`).format('YYYY-MM-DD');
+    const endDate = moment(`${year}-${month}-01`).endOf('month').format('YYYY-MM-DD');
+
+    const sql = `
+        SELECT date, checkin_time, checkout_time
+        FROM standard_times
+        WHERE date BETWEEN ? AND ?
+    `;
+
+    db.query(sql, [startDate, endDate], (err, data) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json("Error");
+        }
+
+        console.log("Query result:", data);
+
+        const defaultCheckinTime = "08:00:00";
+        const defaultCheckoutTime = "17:00:00";
+
+        const daysInMonth = moment(`${year}-${month}`, 'YYYY-MM').daysInMonth();
+        const workSchedule = [];
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const currentDate = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD').format('YYYY-MM-DD');
+            const standardTime = data.find(item => moment(item.date).format('YYYY-MM-DD') === currentDate);
+            console.log("Current date:", currentDate, "Standard time found:", standardTime);
+            workSchedule.push({
+                date: currentDate,
+                checkin_time: standardTime ? standardTime.checkin_time : defaultCheckinTime,
+                checkout_time: standardTime ? standardTime.checkout_time : defaultCheckoutTime
+            });
+        }
+
+        return res.status(200).json(workSchedule);
+    });
+});
+
 // Endpoint để ghi nhận điểm danh
 app.post('/attendance', (req, res) => {
     const { userId, fullName, imageBase64 } = req.body;
-    const lateCheckInThreshold = 5; // Điều chỉnh ngưỡng này tùy theo quy định của tổ chức
+    const lateCheckInThreshold = 1; // sao bao nhiểu phút được tính là checkin muộn
     const overTimeThreshold = 30; // Số phút cho phép tăng ca
 
     const checkLastAttendanceSql = "SELECT timestamp FROM attendance WHERE ID_User = ? ORDER BY timestamp DESC LIMIT 1";
@@ -1090,12 +1183,12 @@ app.post('/attendance', (req, res) => {
                 standardCheckOutTime = standardTimesResult[0].checkout_time;
             }
 
-            handleAttendance(userId, fullName, imageBase64, result, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res);
+            handleAttendance(userId, imageBase64, result, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res);
         });
     });
 });
 
-function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res) {
+function handleAttendance(userId, imageBase64, lastAttendanceResult, currentTime, currentMinutes, standardCheckInTime, standardCheckOutTime, lateCheckInThreshold, overTimeThreshold, res) {
     let lateMinutes = 0;
     let earlyLeaveMinutes = 0;
     let overtimeMinutes = 0;
@@ -1120,8 +1213,8 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
             }
 
             // Thực hiện insert vào bảng attendance với tình trạng đã xác định
-            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status, EarlyLeaveMinutes, OvertimeMinutes) VALUES (?, ?, ?, ?, ?, ?)";
-            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status, earlyLeaveMinutes, overtimeMinutes], (err, result) => {
+            const insertAttendanceSql = "INSERT INTO attendance (ID_User, Image, Status, EarlyLeaveMinutes, OvertimeMinutes) VALUES (?, ?, ?, ?, ?)";
+            db.query(insertAttendanceSql, [userId, imageBase64, Status, earlyLeaveMinutes, overtimeMinutes], (err, result) => {
                 if (err) {
                     console.error("Lỗi khi thêm bản ghi điểm danh:", err);
                     return res.status(500).json("Lỗi khi lưu điểm danh");
@@ -1139,8 +1232,8 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
             }
 
             // Thực hiện insert vào bảng attendance với tình trạng đã xác định
-            const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status, LateMinutes) VALUES (?, ?, ?, ?, ?)";
-            db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status, lateMinutes], (err, result) => {
+            const insertAttendanceSql = "INSERT INTO attendance (ID_User, Image, Status, LateMinutes) VALUES (?, ?, ?, ?)";
+            db.query(insertAttendanceSql, [userId, imageBase64, Status, lateMinutes], (err, result) => {
                 if (err) {
                     console.error("Lỗi khi thêm bản ghi điểm danh:", err);
                     return res.status(500).json("Lỗi khi lưu điểm danh");
@@ -1158,8 +1251,8 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
         }
 
         // Thực hiện insert vào bảng attendance với tình trạng đã xác định
-        const insertAttendanceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status, LateMinutes) VALUES (?, ?, ?, ?, ?)";
-        db.query(insertAttendanceSql, [userId, fullName, imageBase64, Status, lateMinutes], (err, result) => {
+        const insertAttendanceSql = "INSERT INTO attendance (ID_User, Image, Status, LateMinutes) VALUES (?, ?, ?, ?)";
+        db.query(insertAttendanceSql, [userId, imageBase64, Status, lateMinutes], (err, result) => {
             if (err) {
                 console.error("Lỗi khi thêm bản ghi điểm danh:", err);
                 return res.status(500).json("Lỗi khi lưu điểm danh");
@@ -1168,6 +1261,7 @@ function handleAttendance(userId, fullName, imageBase64, lastAttendanceResult, c
         });
     }
 }
+
 
 
 
@@ -1196,12 +1290,11 @@ const job = schedule.scheduleJob('59 23 * * *', () => {
                 }
 
                 if (result.length === 0) {
-                    const insertAbsenceSql = "INSERT INTO attendance (ID_User, FullName, Image, Status) VALUES (?, ?, ?, ?)";
-                    const fullName = user.FullName || "Unknown";
+                    const insertAbsenceSql = "INSERT INTO attendance (ID_User, Image, Status) VALUES (?, ?, ?)";
                     const imageBase64 = "nghỉ làm";
                     const status = "nghỉ làm";
 
-                    db.query(insertAbsenceSql, [user.ID, fullName, imageBase64, status], (err, result) => {
+                    db.query(insertAbsenceSql, [user.ID, imageBase64, status], (err, result) => {
                         if (err) {
                             console.error("Lỗi khi thêm bản ghi nghỉ làm:", err);
                             return;
@@ -1341,9 +1434,6 @@ app.post('/export-to-excel', async (req, res) => {
 
 
 
-
-
-// Endpoint để lấy dữ liệu chấm công của người dùng trong vòng 1 tháng
 // Endpoint để lấy dữ liệu chấm công của người dùng trong vòng 1 tháng
 app.get('/attendance/:id', (req, res) => {
     const id = req.params.id;
@@ -1398,11 +1488,152 @@ app.get('/attendance/:id', (req, res) => {
 
 
 
-// //mô hình mô phỏng nhận diện qua tập test 
-// const { promisify } = require('util');
-// const readdir = promisify(fs.readdir);
-// const readFile = promisify(fs.readFile);
 
+const TRAINTEST_DIR = path.join(__dirname, 'traintest');
+
+async function prepareData() {
+    const folders = await readdir(TRAINTEST_DIR);
+    for (const folder of folders) {
+        const folderPath = path.join(TRAINTEST_DIR, folder);
+        const files = await readdir(folderPath);
+        const totalFiles = files.length;
+        const trainSize = Math.floor(totalFiles * 0.6);
+        const testSize = totalFiles - trainSize;
+
+        // Chia ảnh thành tập train và test
+        const trainFiles = files.slice(0, trainSize);
+        const testFiles = files.slice(trainSize);
+
+        // Lưu tập train và test vào folder riêng
+        const trainDir = path.join(folderPath, 'train');
+        const testDir = path.join(folderPath, 'test');
+        if (!fs.existsSync(trainDir)) fs.mkdirSync(trainDir);
+        if (!fs.existsSync(testDir)) fs.mkdirSync(testDir);
+
+        for (const file of trainFiles) {
+            fs.renameSync(path.join(folderPath, file), path.join(trainDir, file));
+        }
+        for (const file of testFiles) {
+            fs.renameSync(path.join(folderPath, file), path.join(testDir, file));
+        }
+    }
+    console.log("prepareData completed");
+}
+
+async function trainModel(folderPath) {
+    const trainDir = path.join(folderPath, 'train');
+    const files = await readdir(trainDir);
+    console.log(`Training model for ${path.basename(folderPath)} with ${files.length} files`);
+
+    const labeledDescriptors = [];
+    let processedCount = 0;
+
+    for (const file of files) {
+        try {
+            const imgPath = path.join(trainDir, file);
+            const img = await canvas.loadImage(imgPath);
+            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            if (!detection) continue;
+
+            const label = path.basename(folderPath);
+            labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(label, [detection.descriptor]));
+
+            processedCount++;
+            const progress = (processedCount / files.length) * 100;
+            console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+        } catch (error) {
+            console.error(`Error processing file ${file} in ${folderPath}:`, error);
+        }
+    }
+
+    return labeledDescriptors;
+}
+
+async function evaluateModel(folderPath, labeledDescriptors) {
+    const testDir = path.join(folderPath, 'test');
+    const files = await readdir(testDir);
+    console.log(`Evaluating model for ${path.basename(folderPath)} with ${files.length} files`);
+
+    let truePositives = 0;
+    let falsePositives = 0;
+    let trueNegatives = 0;
+    let falseNegatives = 0;
+
+    for (const file of files) {
+        try {
+            const imgPath = path.join(testDir, file);
+            const img = await canvas.loadImage(imgPath);
+            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            if (!detection) {
+                if (path.basename(folderPath) === 'unknown') {
+                    trueNegatives++;
+                } else {
+                    falseNegatives++;
+                }
+                continue;
+            }
+
+            const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors);
+            const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+
+            if (bestMatch.label === path.basename(folderPath)) {
+                truePositives++;
+            } else {
+                if (bestMatch.label === 'unknown') {
+                    falseNegatives++;
+                } else {
+                    falsePositives++;
+                }
+            }
+        } catch (error) {
+            console.error(`Error processing file ${file} in ${folderPath}:`, error);
+        }
+    }
+
+    const precision = truePositives / (truePositives + falsePositives);
+    const recall = truePositives / (truePositives + falseNegatives);
+    const f1Score = 2 * (precision * recall) / (precision + recall);
+
+    console.log(`Precision for ${path.basename(folderPath)}: ${precision}`);
+    console.log(`Recall for ${path.basename(folderPath)}: ${recall}`);
+    console.log(`F1 Score for ${path.basename(folderPath)}: ${f1Score}`);
+
+    return { precision, recall, f1Score };
+}
+
+async function main() {
+    try {
+        await LoadModels();
+
+        const folders = await readdir(TRAINTEST_DIR);
+        for (const folder of folders) {
+            const folderPath = path.join(TRAINTEST_DIR, folder);
+            const labeledDescriptors = await trainModel(folderPath);
+            const evaluation = await evaluateModel(folderPath, labeledDescriptors);
+            console.log(`Evaluation for ${folder}:`, evaluation);
+        }
+    } catch (error) {
+        console.error("Error in main function:", error);
+    }
+}
+
+app.post('/train_and_evaluate', async (req, res) => {
+    try {
+        await prepareData();
+        await main();
+        res.status(200).json({ message: "Training and evaluation completed" });
+    } catch (err) {
+        console.error("Error during training and evaluation:", err);
+        res.status(500).json({ error: "Error during training and evaluation" });
+    }
+});
+
+
+
+
+const { promisify } = require('util');
+const readdir = promisify(fs.readdir);
+const readFile = promisify(fs.readFile);
 // const ORIGINAL_IMAGES_DIR = path.join(__dirname, 'Original Images');
 
 // async function prepareData() {
@@ -1411,18 +1642,20 @@ app.get('/attendance/:id', (req, res) => {
 //         const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
 //         const files = await readdir(folderPath);
 //         const totalFiles = files.length;
-//         const trainSize = Math.floor(totalFiles * 0.7);
-//         const testSize = totalFiles - trainSize;
+//         const getFeatureSize = Math.floor(totalFiles * 0.5);
+//         const attendanceSimulatorSize = totalFiles - getFeatureSize;
 
-//         // Tạo tài khoản email và mật khẩu dựa trên tên folder
-//         const email = `${folder}@gmail.com`;
+//         const email = `${folder.replace(/\s/g, '')}@gmail.com`;
 //         const password = '12345';
 //         const fullName = folder;
 //         const role = 'user';
+//         const address = 'Hà Nội';
+//         const gender = 'Nam';
+//         const telephone = '0912345678';
+//         const dob = '2002-12-24';
 
-//         // Lưu tài khoản vào database
-//         const sqlCreateUser = `INSERT INTO user (FullName) VALUES (?)`;
-//         db.query(sqlCreateUser, [fullName], (err, result) => {
+//         const sqlCreateUser = `INSERT INTO user (Email,FullName,Sex,BirthDay,Telephone,Address) VALUES (?,?,?,?,?,?)`;
+//         db.query(sqlCreateUser, [email, fullName, gender, dob, telephone, address], (err, result) => {
 //             if (err) throw err;
 //             const userID = result.insertId;
 //             const sqlCreateAccount = `INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)`;
@@ -1432,47 +1665,66 @@ app.get('/attendance/:id', (req, res) => {
 //             });
 //         });
 
-//         // Chia ảnh thành tập train và test
-//         const trainFiles = files.slice(0, trainSize);
-//         const testFiles = files.slice(trainSize);
+//         const getFeatureFiles = files.slice(0, getFeatureSize);
+//         const attendanceSimulatorFiles = files.slice(getFeatureSize);
 
-//         // Lưu tập train và test vào folder riêng
-//         const trainDir = path.join(folderPath, 'train');
-//         const testDir = path.join(folderPath, 'test');
-//         if (!fs.existsSync(trainDir)) fs.mkdirSync(trainDir);
-//         if (!fs.existsSync(testDir)) fs.mkdirSync(testDir);
+//         const getFeatureDir = path.join(folderPath, 'getFeature');
+//         const attendanceSimulatorDir = path.join(folderPath, 'attendanceSimulator');
+//         if (!fs.existsSync(getFeatureDir)) fs.mkdirSync(getFeatureDir);
+//         if (!fs.existsSync(attendanceSimulatorDir)) fs.mkdirSync(attendanceSimulatorDir);
 
-//         for (const file of trainFiles) {
-//             fs.renameSync(path.join(folderPath, file), path.join(trainDir, file));
+//         for (const file of getFeatureFiles) {
+//             fs.renameSync(path.join(folderPath, file), path.join(getFeatureDir, file));
 //         }
-//         for (const file of testFiles) {
-//             fs.renameSync(path.join(folderPath, file), path.join(testDir, file));
+//         for (const file of attendanceSimulatorFiles) {
+//             fs.renameSync(path.join(folderPath, file), path.join(attendanceSimulatorDir, file));
 //         }
 //     }
 //     console.log("prepareData completed");
 // }
 
-// async function trainModel(folderPath) {
-//     const trainDir = path.join(folderPath, 'train');
-//     const files = await readdir(trainDir);
-//     console.log(`Training model for ${path.basename(folderPath)} with ${files.length} files`);
+// // Hàm getFeatureModel để huấn luyện mô hình và lưu trữ mô tả khuôn mặt và ảnh
+// async function getFeatureModel(folderPath, userID) {
+//     const getFeatureDir = path.join(folderPath, 'getFeature');
+//     const files = await readdir(getFeatureDir);
+//     console.log(`getFeature model for ${path.basename(folderPath)} with ${files.length} files`);
 
 //     const labeledDescriptors = [];
 //     let processedCount = 0;
 
 //     for (const file of files) {
 //         try {
-//             const imgPath = path.join(trainDir, file);
+//             const imgPath = path.join(getFeatureDir, file);
 //             const img = await canvas.loadImage(imgPath);
 //             const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
 //             if (!detection) continue;
 
 //             const label = path.basename(folderPath);
-//             labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(label, [detection.descriptor]));
+//             labeledDescriptors.push({
+//                 label,
+//                 descriptor: detection.descriptor
+//             });
+
+//             // Save image to public/Images folder with timestamp filename
+//             const targetFileName = `${Date.now()}${path.extname(file)}`;
+//             const targetPath = path.join('public', 'Images', targetFileName);
+//             fs.copyFileSync(imgPath, targetPath);
 
 //             processedCount++;
 //             const progress = (processedCount / files.length) * 100;
 //             console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+
+//             // Convert Float32Array descriptor to JSON string for storage
+//             const faceDescriptorFloat32 = Array.from(detection.descriptor); // Convert Float32Array to regular array
+//             const faceDescriptorJSON = JSON.stringify(faceDescriptorFloat32);
+
+//             // Save face descriptor to database
+//             const sqlInsert = `INSERT INTO userimage (Label, Image, ID_User, FaceDescriptor) VALUES (?, ?, ?, ?)`;
+//             db.query(sqlInsert, [label, targetFileName, userID, faceDescriptorJSON], (err, result) => {
+//                 if (err) throw err;
+//                 console.log(`Saved face descriptor for ${label}`);
+//             });
+
 //         } catch (error) {
 //             console.error(`Error processing file ${file} in ${folderPath}:`, error);
 //         }
@@ -1482,39 +1734,199 @@ app.get('/attendance/:id', (req, res) => {
 // }
 
 
+// async function simulateAttendance(folderPath, userID) {
+//     const attendanceSimulatorDir = path.join(folderPath, 'attendanceSimulator');
+//     const attendanceSimulatorFiles = await readdir(attendanceSimulatorDir);
 
-// async function evaluateModel(folderPath, labeledDescriptors) {
-//     const testDir = path.join(folderPath, 'test');
-//     const files = await readdir(testDir);
-//     console.log(`Evaluating model for ${path.basename(folderPath)} with ${files.length} files`);
+//     const startDate = new Date('2024-07-01');
+//     const endDate = new Date('2024-07-31');
+//     const standardCheckInTime = 8; // 8 AM
+//     const standardCheckOutTime = 17; // 5 PM
+//     const maxLateCheckInMinutes = 30; // Số phút tối đa check-in muộn
+//     const maxEarlyCheckOutMinutes = 120; // Số phút tối đa check-out sớm
 
-//     let correct = 0;
-//     let processedCount = 0;
+//     // Định nghĩa sqlQuery ở đây để sử dụng trong các hàm con
+//     const sqlQuery = `SELECT * FROM userimage WHERE ID_User = ?`;
 
-//     for (const file of files) {
-//         try {
-//             const imgPath = path.join(testDir, file);
-//             const img = await canvas.loadImage(imgPath);
-//             const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-//             if (!detection) continue;
-
-//             const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors);
-//             const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-
-//             if (bestMatch.label === path.basename(folderPath)) {
-//                 correct++;
-//             }
-
-//             processedCount++;
-//             const progress = (processedCount / files.length) * 100;
-//             console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
-//         } catch (error) {
-//             console.error(`Error processing file ${file} in ${folderPath}:`, error);
+//     // Hàm để tạo một tập hợp các ngày ngẫu nhiên tăng dần
+//     function getRandomDates(startDate, endDate, count) {
+//         const dates = [];
+//         const date = new Date(startDate);
+//         while (dates.length < count) {
+//             date.setDate(date.getDate() + Math.floor(Math.random() * 3) + 1); // Tăng ngày lên ngẫu nhiên từ 1 đến 3 ngày
+//             if (date > endDate) break;
+//             dates.push(new Date(date));
 //         }
+//         return dates;
 //     }
 
-//     console.log(`Accuracy for ${path.basename(folderPath)}: ${(correct / files.length) * 100}%`);
+//     // Lấy 5 ngày ngẫu nhiên duy nhất trong tháng 7
+//     const randomDates = getRandomDates(startDate, endDate, 10);
+
+//     // Xử lý mỗi ngày ngẫu nhiên
+//     for (const currentDate of randomDates) {
+//         try {
+//             // Chọn ngẫu nhiên thời gian check-in và check-out trong phạm vi cho phép
+//             const checkInTime = new Date(currentDate);
+//             checkInTime.setHours(standardCheckInTime, 0, 0, 0);
+//             checkInTime.setMinutes(checkInTime.getMinutes() + Math.floor(Math.random() * maxLateCheckInMinutes));
+
+//             const checkOutTime = new Date(currentDate);
+//             checkOutTime.setHours(standardCheckOutTime, 0, 0, 0);
+//             checkOutTime.setMinutes(checkOutTime.getMinutes() - Math.floor(Math.random() * maxEarlyCheckOutMinutes));
+
+//             // Tính toán số phút đi trễ, về sớm và tăng ca
+//             let lateMinutes = Math.max(0, checkInTime.getHours() * 60 + checkInTime.getMinutes() - (standardCheckInTime * 60));
+//             let earlyLeaveMinutes = Math.max(0, (standardCheckOutTime * 60) - (checkOutTime.getHours() * 60 + checkOutTime.getMinutes()));
+//             let overtimeMinutes = 0;
+
+//             // Nếu có về sớm thì không có tăng ca và ngược lại
+//             if (earlyLeaveMinutes > 0) {
+//                 overtimeMinutes = 0;
+//             } else {
+//                 overtimeMinutes = Math.max(0, (checkOutTime.getHours() * 60 + checkOutTime.getMinutes()) - (standardCheckOutTime * 60));
+//                 earlyLeaveMinutes = 0;
+//             }
+
+//             console.log(`Processing date: ${currentDate.toLocaleDateString()}`);
+//             console.log(`Check-in time: ${checkInTime}`);
+//             console.log(`Check - out time: ${checkOutTime}`);
+
+//             // Chọn ngẫu nhiên 1 ảnh trong thư mục attendanceSimulator cho check-in và 1 ảnh khác cho check-out
+//             const randomFiles = [];
+//             while (randomFiles.length < 2) {
+//                 const randomFile = attendanceSimulatorFiles[Math.floor(Math.random() * attendanceSimulatorFiles.length)];
+//                 if (!randomFiles.includes(randomFile)) {
+//                     randomFiles.push(randomFile);
+//                 }
+//             }
+
+//             // Load và xử lý ảnh cho check-in
+//             const checkInImgPath = path.join(attendanceSimulatorDir, randomFiles[0]);
+//             const checkInImg = await canvas.loadImage(checkInImgPath);
+//             const checkInDetection = await faceapi.detectSingleFace(checkInImg).withFaceLandmarks().withFaceDescriptor();
+
+//             if (checkInDetection) {
+//                 const checkInDescriptor = Array.from(checkInDetection.descriptor); // Chuyển đổi Float32Array thành mảng thông thường
+//                 const checkInDescriptorJSON = JSON.stringify(checkInDescriptor);
+
+//                 // Đọc tệp ảnh và chuyển đổi thành base64
+//                 const checkInImageBuffer = await readFile(checkInImgPath);
+//                 const checkInImageBase64 = `data: image/jpeg;base64,${checkInImageBuffer.toString('base64')}`;
+
+//                 // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
+//                 const checkInResults = await new Promise((resolve, reject) => {
+//                     db.query(sqlQuery, [userID], (err, results) => {
+//                         if (err) return reject(err);
+//                         resolve(results);
+//                     });
+//                 });
+
+//                 let checkInFound = false;
+//                 for (const result of checkInResults) {
+//                     const savedDescriptor = JSON.parse(result.FaceDescriptor);
+
+//                     // So sánh face descriptor đã lưu với face descriptor hiện tại
+//                     const distance = faceapi.euclideanDistance(savedDescriptor, checkInDescriptor);
+//                     if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
+//                         // Chèn bản ghi check-in vào bảng attendance
+//                         const sqlInsertAttendance =
+//                             `INSERT INTO attendance (ID_User, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes)
+//                         VALUES(?, ?, ?, ?, ?, ?, ?)`
+//                             ;
+//                         await new Promise((resolve, reject) => {
+//                             db.query(sqlInsertAttendance, [userID, checkInTime, 'Check in', checkInImageBase64, lateMinutes, 0, 0], (err) => {
+//                                 if (err) return reject(err);
+//                                 console.log(`Check -in recorded for user ${userID} on ${checkInTime}`);
+//                                 resolve();
+//                             });
+//                         });
+//                         checkInFound = true;
+//                         break;
+//                     }
+//                 }
+
+//                 if (!checkInFound) {
+//                     console.log(`No matching face descriptor found for check -in on ${checkInImgPath}`);
+//                 }
+//             } else {
+//                 console.log(`No face detected in check -in image ${checkInImgPath}`);
+//             }
+
+//             // Load và xử lý ảnh cho check-out
+//             const checkOutImgPath = path.join(attendanceSimulatorDir, randomFiles[1]);
+//             const checkOutImg = await canvas.loadImage(checkOutImgPath);
+//             const checkOutDetection = await faceapi.detectSingleFace(checkOutImg).withFaceLandmarks().withFaceDescriptor();
+
+//             if (checkOutDetection) {
+//                 const checkOutDescriptor = Array.from(checkOutDetection.descriptor); // Chuyển đổi Float32Array thành mảng thông thường
+//                 const checkOutDescriptorJSON = JSON.stringify(checkOutDescriptor);
+
+//                 // Đọc tệp ảnh và chuyển đổi thành base64
+//                 const checkOutImageBuffer = await readFile(checkOutImgPath);
+//                 const checkOutImageBase64 = `data: image/jpeg;base64,${checkOutImageBuffer.toString('base64')}`;
+
+//                 // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
+//                 const checkOutResults = await new Promise((resolve, reject) => {
+//                     db.query(sqlQuery, [userID], (err, results) => {
+//                         if (err) return reject(err);
+//                         resolve(results);
+//                     });
+//                 });
+
+//                 let checkOutFound = false;
+//                 for (const result of checkOutResults) {
+//                     const savedDescriptor = JSON.parse(result.FaceDescriptor);
+
+//                     // So sánh face descriptor đã lưu với face descriptor hiện tại
+//                     const distance = faceapi.euclideanDistance(savedDescriptor, checkOutDescriptor);
+//                     if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
+//                         // Chèn bản ghi check-out vào bảng attendance
+//                         const sqlInsertAttendance =
+//                             `INSERT INTO attendance (ID_User, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes) 
+//                             VALUES (?, ?, ?, ?, ?, ?, ?)`
+//                             ;
+//                         await new Promise((resolve, reject) => {
+//                             db.query(sqlInsertAttendance, [userID, checkOutTime, 'Check out', checkOutImageBase64, 0, earlyLeaveMinutes, overtimeMinutes], (err) => {
+//                                 if (err) return reject(err);
+//                                 console.log(`Check-out recorded for user ${userID} on ${checkOutTime}`);
+//                                 resolve();
+//                             });
+//                         });
+//                         checkOutFound = true;
+//                         break;
+//                     }
+//                 }
+
+//                 if (!checkOutFound) {
+//                     console.log(`No matching face descriptor found for check - out on ${checkOutImgPath}`);
+//                 }
+//             } else {
+//                 console.log(`No face detected in check-out image ${checkOutImgPath}`);
+//             }
+//         } catch (error) {
+//             console.error(Error`processing files for ${currentDate.toLocaleDateString()}:`, error);
+//         }
+//     }
 // }
+
+
+
+
+// async function getUserIdAsync(folder) {
+//     return new Promise((resolve, reject) => {
+//         const sqlGetUserID = `SELECT ID FROM user WHERE FullName = ?`;
+//         db.query(sqlGetUserID, [folder], (err, result) => {
+//             if (err) {
+//                 console.error(`Error getting user ID for ${folder}:`, err);
+//                 reject(err);
+//             } else {
+//                 resolve(result[0].ID);
+//             }
+//         });
+//     });
+// }
+
 // async function main() {
 //     try {
 //         await LoadModels();
@@ -1522,353 +1934,28 @@ app.get('/attendance/:id', (req, res) => {
 //         const folders = await readdir(ORIGINAL_IMAGES_DIR);
 //         for (const folder of folders) {
 //             const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
-//             const labeledDescriptors = await trainModel(folderPath);
-//             await evaluateModel(folderPath, labeledDescriptors);
+//             const userID = await getUserIdAsync(folder);
+
+//             await getFeatureModel(folderPath, userID);
+//             await simulateAttendance(folderPath, userID);
 //         }
 //     } catch (error) {
 //         console.error("Error in main function:", error);
 //     }
 // }
 
-// app.post('/train_and_evaluate', async (req, res) => {
+
+
+// app.post('/getFeature_and_attendanceSimulator', async (req, res) => {
 //     try {
 //         await prepareData();
 //         await main();
-//         res.status(200).json({ message: "Training and evaluation completed" });
+//         res.status(200).json({ message: "getFeature and evaluation completed" });
 //     } catch (err) {
-//         console.error("Error during training and evaluation:", err);
-//         res.status(500).json({ error: "Error during training and evaluation" });
+//         console.error("Error during getFeature and evaluation:", err);
+//         res.status(500).json({ error: "Error during getFeature and evaluation" });
 //     }
 // });
-
-
-
-const { promisify } = require('util');
-const readdir = promisify(fs.readdir);
-const readFile = promisify(fs.readFile);
-const ORIGINAL_IMAGES_DIR = path.join(__dirname, 'Original Images');
-
-async function prepareData() {
-    const folders = await readdir(ORIGINAL_IMAGES_DIR);
-    for (const folder of folders) {
-        const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
-        const files = await readdir(folderPath);
-        const totalFiles = files.length;
-        const getFeatureSize = Math.floor(totalFiles * 0.5);
-        const attendanceSimulatorSize = totalFiles - getFeatureSize;
-
-        const email = `${folder.replace(/\s/g, '')}@gmail.com`;
-        const password = '12345';
-        const fullName = folder;
-        const role = 'user';
-        const address = 'Hà Nội';
-        const gender = 'Nam';
-        const telephone = '0912345678';
-        const dob = '2002-12-24';
-
-        const sqlCreateUser = `INSERT INTO user (Email,FullName,Sex,BirthDay,Telephone,Address) VALUES (?,?,?,?,?,?)`;
-        db.query(sqlCreateUser, [email, fullName, gender, dob, telephone, address], (err, result) => {
-            if (err) throw err;
-            const userID = result.insertId;
-            const sqlCreateAccount = `INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)`;
-            db.query(sqlCreateAccount, [email, password, userID, role], (err, result) => {
-                if (err) throw err;
-                console.log(`Created account for ${fullName}`);
-            });
-        });
-
-        const getFeatureFiles = files.slice(0, getFeatureSize);
-        const attendanceSimulatorFiles = files.slice(getFeatureSize);
-
-        const getFeatureDir = path.join(folderPath, 'getFeature');
-        const attendanceSimulatorDir = path.join(folderPath, 'attendanceSimulator');
-        if (!fs.existsSync(getFeatureDir)) fs.mkdirSync(getFeatureDir);
-        if (!fs.existsSync(attendanceSimulatorDir)) fs.mkdirSync(attendanceSimulatorDir);
-
-        for (const file of getFeatureFiles) {
-            fs.renameSync(path.join(folderPath, file), path.join(getFeatureDir, file));
-        }
-        for (const file of attendanceSimulatorFiles) {
-            fs.renameSync(path.join(folderPath, file), path.join(attendanceSimulatorDir, file));
-        }
-    }
-    console.log("prepareData completed");
-}
-
-// Hàm getFeatureModel để huấn luyện mô hình và lưu trữ mô tả khuôn mặt và ảnh
-async function getFeatureModel(folderPath, userID) {
-    const getFeatureDir = path.join(folderPath, 'getFeature');
-    const files = await readdir(getFeatureDir);
-    console.log(`getFeature model for ${path.basename(folderPath)} with ${files.length} files`);
-
-    const labeledDescriptors = [];
-    let processedCount = 0;
-
-    for (const file of files) {
-        try {
-            const imgPath = path.join(getFeatureDir, file);
-            const img = await canvas.loadImage(imgPath);
-            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-            if (!detection) continue;
-
-            const label = path.basename(folderPath);
-            labeledDescriptors.push({
-                label,
-                descriptor: detection.descriptor
-            });
-
-            // Save image to public/Images folder with timestamp filename
-            const targetFileName = `${Date.now()}${path.extname(file)}`;
-            const targetPath = path.join('public', 'Images', targetFileName);
-            fs.copyFileSync(imgPath, targetPath);
-
-            processedCount++;
-            const progress = (processedCount / files.length) * 100;
-            console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
-
-            // Convert Float32Array descriptor to JSON string for storage
-            const faceDescriptorFloat32 = Array.from(detection.descriptor); // Convert Float32Array to regular array
-            const faceDescriptorJSON = JSON.stringify(faceDescriptorFloat32);
-
-            // Save face descriptor to database
-            const sqlInsert = `INSERT INTO userimage (UserName, Image, ID_User, FaceDescriptor) VALUES (?, ?, ?, ?)`;
-            db.query(sqlInsert, [label, targetFileName, userID, faceDescriptorJSON], (err, result) => {
-                if (err) throw err;
-                console.log(`Saved face descriptor for ${label}`);
-            });
-
-        } catch (error) {
-            console.error(`Error processing file ${file} in ${folderPath}:`, error);
-        }
-    }
-
-    return labeledDescriptors;
-}
-
-const sharp = require('sharp');
-
-async function simulateAttendance(folderPath, userID) {
-    const attendanceSimulatorDir = path.join(folderPath, 'attendanceSimulator');
-    const attendanceSimulatorFiles = await readdir(attendanceSimulatorDir);
-
-    const startDate = new Date('2024-07-01');
-    const endDate = new Date('2024-07-31');
-    const standardCheckInTime = 8; // 8 AM
-    const standardCheckOutTime = 17; // 5 PM
-    const maxLateCheckInMinutes = 30; // Số phút tối đa check-in muộn
-    const maxEarlyCheckOutMinutes = 120; // Số phút tối đa check-out sớm
-
-    // Định nghĩa sqlQuery ở đây để sử dụng trong các hàm con
-    const sqlQuery = `SELECT * FROM userimage WHERE ID_User = ?`;
-
-    // Hàm để tạo một tập hợp các ngày ngẫu nhiên tăng dần
-    function getRandomDates(startDate, endDate, count) {
-        const dates = [];
-        const date = new Date(startDate);
-        while (dates.length < count) {
-            date.setDate(date.getDate() + Math.floor(Math.random() * 3) + 1); // Tăng ngày lên ngẫu nhiên từ 1 đến 3 ngày
-            if (date > endDate) break;
-            dates.push(new Date(date));
-        }
-        return dates;
-    }
-
-    // Lấy 5 ngày ngẫu nhiên duy nhất trong tháng 7
-    const randomDates = getRandomDates(startDate, endDate, 10);
-
-    // Xử lý mỗi ngày ngẫu nhiên
-    for (const currentDate of randomDates) {
-        try {
-            // Chọn ngẫu nhiên thời gian check-in và check-out trong phạm vi cho phép
-            const checkInTime = new Date(currentDate);
-            checkInTime.setHours(standardCheckInTime, 0, 0, 0);
-            checkInTime.setMinutes(checkInTime.getMinutes() + Math.floor(Math.random() * maxLateCheckInMinutes));
-
-            const checkOutTime = new Date(currentDate);
-            checkOutTime.setHours(standardCheckOutTime, 0, 0, 0);
-            checkOutTime.setMinutes(checkOutTime.getMinutes() - Math.floor(Math.random() * maxEarlyCheckOutMinutes));
-
-            // Tính toán số phút đi trễ, về sớm và tăng ca
-            let lateMinutes = Math.max(0, checkInTime.getHours() * 60 + checkInTime.getMinutes() - (standardCheckInTime * 60));
-            let earlyLeaveMinutes = Math.max(0, (standardCheckOutTime * 60) - (checkOutTime.getHours() * 60 + checkOutTime.getMinutes()));
-            let overtimeMinutes = 0;
-
-            // Nếu có về sớm thì không có tăng ca và ngược lại
-            if (earlyLeaveMinutes > 0) {
-                overtimeMinutes = 0;
-            } else {
-                overtimeMinutes = Math.max(0, (checkOutTime.getHours() * 60 + checkOutTime.getMinutes()) - (standardCheckOutTime * 60));
-                earlyLeaveMinutes = 0;
-            }
-
-            console.log(`Processing date: ${currentDate.toLocaleDateString()}`);
-            console.log(`Check-in time: ${checkInTime}`);
-            console.log(`Check - out time: ${checkOutTime}`);
-
-            // Chọn ngẫu nhiên 1 ảnh trong thư mục attendanceSimulator cho check-in và 1 ảnh khác cho check-out
-            const randomFiles = [];
-            while (randomFiles.length < 2) {
-                const randomFile = attendanceSimulatorFiles[Math.floor(Math.random() * attendanceSimulatorFiles.length)];
-                if (!randomFiles.includes(randomFile)) {
-                    randomFiles.push(randomFile);
-                }
-            }
-
-            // Load và xử lý ảnh cho check-in
-            const checkInImgPath = path.join(attendanceSimulatorDir, randomFiles[0]);
-            const checkInImg = await canvas.loadImage(checkInImgPath);
-            const checkInDetection = await faceapi.detectSingleFace(checkInImg).withFaceLandmarks().withFaceDescriptor();
-
-            if (checkInDetection) {
-                const checkInDescriptor = Array.from(checkInDetection.descriptor); // Chuyển đổi Float32Array thành mảng thông thường
-                const checkInDescriptorJSON = JSON.stringify(checkInDescriptor);
-
-                // Đọc tệp ảnh và chuyển đổi thành base64
-                const checkInImageBuffer = await readFile(checkInImgPath);
-                const checkInImageBase64 = `data: image/jpeg;base64,${checkInImageBuffer.toString('base64')}`;
-
-                // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
-                const checkInResults = await new Promise((resolve, reject) => {
-                    db.query(sqlQuery, [userID], (err, results) => {
-                        if (err) return reject(err);
-                        resolve(results);
-                    });
-                });
-
-                let checkInFound = false;
-                for (const result of checkInResults) {
-                    const savedDescriptor = JSON.parse(result.FaceDescriptor);
-
-                    // So sánh face descriptor đã lưu với face descriptor hiện tại
-                    const distance = faceapi.euclideanDistance(savedDescriptor, checkInDescriptor);
-                    if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
-                        // Chèn bản ghi check-in vào bảng attendance
-                        const sqlInsertAttendance =
-                            `INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes)
-                        VALUES(?, ?, ?, ?, ?, ?, ?, ?)`
-                            ;
-                        await new Promise((resolve, reject) => {
-                            db.query(sqlInsertAttendance, [userID, result.UserName, checkInTime, 'Check in', checkInImageBase64, lateMinutes, 0, 0], (err) => {
-                                if (err) return reject(err);
-                                console.log(`Check -in recorded for user ${userID} on ${checkInTime}`);
-                                resolve();
-                            });
-                        });
-                        checkInFound = true;
-                        break;
-                    }
-                }
-
-                if (!checkInFound) {
-                    console.log(`No matching face descriptor found for check -in on ${checkInImgPath}`);
-                }
-            } else {
-                console.log(`No face detected in check -in image ${checkInImgPath}`);
-            }
-
-            // Load và xử lý ảnh cho check-out
-            const checkOutImgPath = path.join(attendanceSimulatorDir, randomFiles[1]);
-            const checkOutImg = await canvas.loadImage(checkOutImgPath);
-            const checkOutDetection = await faceapi.detectSingleFace(checkOutImg).withFaceLandmarks().withFaceDescriptor();
-
-            if (checkOutDetection) {
-                const checkOutDescriptor = Array.from(checkOutDetection.descriptor); // Chuyển đổi Float32Array thành mảng thông thường
-                const checkOutDescriptorJSON = JSON.stringify(checkOutDescriptor);
-
-                // Đọc tệp ảnh và chuyển đổi thành base64
-                const checkOutImageBuffer = await readFile(checkOutImgPath);
-                const checkOutImageBase64 = `data: image/jpeg;base64,${checkOutImageBuffer.toString('base64')}`;
-
-                // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
-                const checkOutResults = await new Promise((resolve, reject) => {
-                    db.query(sqlQuery, [userID], (err, results) => {
-                        if (err) return reject(err);
-                        resolve(results);
-                    });
-                });
-
-                let checkOutFound = false;
-                for (const result of checkOutResults) {
-                    const savedDescriptor = JSON.parse(result.FaceDescriptor);
-
-                    // So sánh face descriptor đã lưu với face descriptor hiện tại
-                    const distance = faceapi.euclideanDistance(savedDescriptor, checkOutDescriptor);
-                    if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
-                        // Chèn bản ghi check-out vào bảng attendance
-                        const sqlInsertAttendance =
-                            `INSERT INTO attendance (ID_User, FullName, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-                            ;
-                        await new Promise((resolve, reject) => {
-                            db.query(sqlInsertAttendance, [userID, result.UserName, checkOutTime, 'Check out', checkOutImageBase64, 0, earlyLeaveMinutes, overtimeMinutes], (err) => {
-                                if (err) return reject(err);
-                                console.log(`Check-out recorded for user ${userID} on ${checkOutTime}`);
-                                resolve();
-                            });
-                        });
-                        checkOutFound = true;
-                        break;
-                    }
-                }
-
-                if (!checkOutFound) {
-                    console.log(`No matching face descriptor found for check - out on ${checkOutImgPath}`);
-                }
-            } else {
-                console.log(`No face detected in check-out image ${checkOutImgPath}`);
-            }
-        } catch (error) {
-            console.error(Error`processing files for ${currentDate.toLocaleDateString()}:`, error);
-        }
-    }
-}
-
-
-
-
-async function getUserIdAsync(folder) {
-    return new Promise((resolve, reject) => {
-        const sqlGetUserID = `SELECT ID FROM user WHERE FullName = ?`;
-        db.query(sqlGetUserID, [folder], (err, result) => {
-            if (err) {
-                console.error(`Error getting user ID for ${folder}:`, err);
-                reject(err);
-            } else {
-                resolve(result[0].ID);
-            }
-        });
-    });
-}
-
-async function main() {
-    try {
-        await LoadModels();
-
-        const folders = await readdir(ORIGINAL_IMAGES_DIR);
-        for (const folder of folders) {
-            const folderPath = path.join(ORIGINAL_IMAGES_DIR, folder);
-            const userID = await getUserIdAsync(folder);
-
-            await getFeatureModel(folderPath, userID);
-            await simulateAttendance(folderPath, userID);
-        }
-    } catch (error) {
-        console.error("Error in main function:", error);
-    }
-}
-
-
-
-app.post('/getFeature_and_attendanceSimulator', async (req, res) => {
-    try {
-        await prepareData();
-        await main();
-        res.status(200).json({ message: "getFeature and evaluation completed" });
-    } catch (err) {
-        console.error("Error during getFeature and evaluation:", err);
-        res.status(500).json({ error: "Error during getFeature and evaluation" });
-    }
-});
 
 
 

@@ -1,0 +1,21 @@
+.form-group {
+    margin: 10px;
+}
+
+.table {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 800px;
+    border: 1px solid #ddd;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.table th {
+    background-color: #f4f4f4;
+}

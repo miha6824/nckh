@@ -1,3 +1,4 @@
+/* FormReportComponent.module.css */
 .formReportContainer {
     padding: 20px;
 }
@@ -33,7 +34,7 @@
     flex-direction: column;
 }
 
-.datePickerGroup label{
+.datePickerGroup label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
@@ -54,9 +55,9 @@
 }
 
 .generateButtonContainer {
-    margin-top: 10px;
     display: flex;
     justify-content: flex-end;
+    margin-top: 10px;
 }
 
 .generateButton {
@@ -66,8 +67,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-left: 10px; /* Adjust margin-left as needed */
-    margin-top: 15px;
+    margin-left: 10px;
     height: 40px;
 }
 

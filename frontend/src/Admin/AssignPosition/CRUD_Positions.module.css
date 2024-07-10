@@ -11,23 +11,31 @@
 .tableHeader {
   position: sticky;
   top: 0;
+  background-color: #f8f9fa; /* Background color for sticky header */
   text-align: center;
   z-index: 1;
-}
-.tableBody{
-  position: sticky;
-  top: 0;
-  text-align: center;
-  z-index: 1;
+  font-weight: bold;
 }
 
+.tableBody {
+  text-align: center;
+}
 
 .searchInput {
   width: 200px;
   margin-right: 10px;
   padding: 8px 15px;
   border: 1px solid #ced4da;
-  border-radius: 4px;
+ 
+}
+
+.departmentSelect {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  background-color: #fff;
+  color: #495057;
+  cursor: pointer;
+  margin-right: 10px;
 }
 
 .addButton {
@@ -61,7 +69,6 @@
   border-radius: 4px;
   text-decoration: none;
   text-align: center;
-
 }
 
 .editButton {
@@ -71,7 +78,6 @@
 }
 
 .editButton:hover {
-  color: #fff ;
   background-color: #0050a6;
 }
 
@@ -82,7 +88,6 @@
 }
 
 .deleteButton:hover {
-  color: #fff;
   background-color: #c82333;
 }
 
