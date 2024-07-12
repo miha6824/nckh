@@ -9,6 +9,7 @@ function CRUD_Department() {
     const [departments, setDepartments] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(0);
+    const [error, setError] = useState('');
     const departmentsPerPage = 10; // Number of departments per page
 
     useEffect(() => {
@@ -21,10 +22,18 @@ function CRUD_Department() {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8081/Delete_department/${id}`);
-            setDepartments(departments.filter(data => data.ID !== id));
+            const res = await axios.delete(`http://localhost:8081/Delete_department/${id}`);
+            if (res.status === 200) {
+                setDepartments(departments.filter(data => data.ID !== id));
+                alert('Xóa thành công');
+                setError(''); // Clear error message if delete is successful
+            }
         } catch (err) {
-            console.log(err);
+            if (err.response && err.response.data) {
+                setError(err.response.data); // Set error message from server
+            } else {
+                console.log(err);
+            }
         }
     };
 
@@ -62,6 +71,7 @@ function CRUD_Department() {
                     </Link>
                 </div>
             </div>
+            {error && <div className="text-danger mb-3">{error}</div>}
             <div className={`${styles.tableContainer} table-responsive`}>
                 <table className="table table-bordered">
                     <thead className={styles.tableHeader}>

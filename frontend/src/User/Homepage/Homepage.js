@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import UserNavbar from '../Navbar/UserNavbar';
 import styles from './home.module.css';
 
 const Homepage = () => {

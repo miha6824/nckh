@@ -109,11 +109,27 @@ app.post('/create_Department', (req, res) => {
 
 
 app.delete('/Delete_department/:id', (req, res) => {
-    const sql = "DELETE FROM department WHERE ID=?";
     const id = req.params.id;
-    db.query(sql, [id], (err, data) => {
-        if (err) return res.status(500).json("Error");
-        return res.status(200).json("Department delete successfully");
+
+    // Kiểm tra xem có nhân viên nào trong phòng ban không
+    const checkEmployeesSql = "SELECT COUNT(*) AS employeeCount FROM user WHERE ID_Department = ?";
+    db.query(checkEmployeesSql, [id], (err, data) => {
+        if (err) {
+            return res.status(500).json("Error");
+        }
+
+        if (data[0].employeeCount > 0) {
+            return res.status(400).json("Phòng ban vẫn còn nhân viên");
+        }
+
+        // Nếu không có nhân viên nào trong phòng ban, tiến hành xóa phòng ban
+        const deleteSql = "DELETE FROM department WHERE ID = ?";
+        db.query(deleteSql, [id], (err, data) => {
+            if (err) {
+                return res.status(500).json("Error");
+            }
+            return res.status(200).json("Department deleted successfully");
+        });
     });
 });
 
@@ -213,32 +229,56 @@ app.put('/change_password/:id', (req, res) => {
 app.put('/update_account/:id', (req, res) => {
     const updateAccountSql = "UPDATE account SET `Email`=?, `Password`=?, `ID_User`=?, `Role`=? WHERE ID=?";
     const updateUserEmailSql = "UPDATE user SET `Email`=? WHERE ID=?";
-    const values = [
-        req.body.email,
-        req.body.password,
-        req.body.id_user,
-        req.body.role,
-        req.params.id
-    ];
+    const { email, password, role } = req.body;
 
-    // Update account table
-    db.query(updateAccountSql, values, (err, accountResult) => {
+    // Kiểm tra role hợp lệ
+    if (role !== 'user' && role !== 'admin') {
+        return res.status(400).json("Vai trò không hợp lệ. Vai trò chỉ có thể là 'user' hoặc 'admin'.");
+    }
+
+    // Kiểm tra mật khẩu không chứa ký tự tiếng Việt hoặc dấu
+    const vietnamesePattern = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+    if (vietnamesePattern.test(password)) {
+        return res.status(400).json("Mật khẩu không được chứa các ký tự tiếng Việt hoặc dấu.");
+    }
+
+    // Fetch ID_User from the account table
+    db.query("SELECT ID_User, Email FROM account WHERE ID=?", [req.params.id], (err, result) => {
         if (err) {
-            console.log("Error updating account:", err);
-            return res.status(500).json("Error updating account");
+            console.log("Error fetching account data:", err);
+            return res.status(500).json("Error fetching account data");
         }
 
-        // Update user table
-        db.query(updateUserEmailSql, [req.body.email, req.body.id_user], (err, userResult) => {
+        const currentEmail = result[0].Email;
+        const id_user = result[0].ID_User;
+
+        const values = [email, password, id_user, role, req.params.id];
+
+        // Update account table
+        db.query(updateAccountSql, values, (err, accountResult) => {
             if (err) {
-                console.log("Error updating user email:", err);
-                return res.status(500).json("Error updating user email");
+                console.log("Error updating account:", err);
+                return res.status(500).json("Error updating account");
             }
 
-            return res.status(200).json("User and email update successfully");
+            if (currentEmail !== email) {
+                // Update user table if email has changed
+                db.query(updateUserEmailSql, [email, id_user], (err, userResult) => {
+                    if (err) {
+                        console.log("Error updating user email:", err);
+                        return res.status(500).json("Error updating user email");
+                    }
+                    return res.status(200).json("User and email updated successfully");
+                });
+            } else {
+                return res.status(200).json("User and role updated successfully");
+            }
         });
     });
 });
+
+
+
 
 
 

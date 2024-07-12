@@ -8,11 +8,11 @@ function UpdateAccount() {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
-        id_user: '',
         role: '',
     });
 
     const [fullName, setFullName] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const { id } = useParams();
     const navigate = useNavigate();
@@ -24,7 +24,6 @@ function UpdateAccount() {
                 setFormData({
                     email: PreAccountInfo.Email,
                     password: PreAccountInfo.Password,
-                    id_user: PreAccountInfo.ID_User,
                     role: PreAccountInfo.Role,
                 });
 
@@ -42,29 +41,56 @@ function UpdateAccount() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const validateForm = () => {
+        const { email, password, role } = formData;
+
+        // Kiểm tra role hợp lệ
+        if (role !== 'user' && role !== 'admin') {
+            setErrorMessage('Vai trò không hợp lệ. Vai trò chỉ có thể là "user" hoặc "admin".');
+            return false;
+        }
+
+        // Kiểm tra mật khẩu không chứa ký tự tiếng Việt hoặc dấu
+        const vietnamesePattern = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+        if (vietnamesePattern.test(password)) {
+            setErrorMessage('Mật khẩu không được chứa các ký tự tiếng Việt hoặc dấu.');
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         axios.put(`http://localhost:8081/update_account/${id}`, formData)
             .then(res => {
                 console.log(res.data);
                 alert('Thay đổi thành công');
                 navigate('/CRUD_Account');
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                console.log(err);
+                setErrorMessage('Có lỗi xảy ra trong quá trình cập nhật tài khoản.');
+            });
     };
 
     return (
         <div className={styles.accountUpdateContainer}>
             <h2>Cập nhật người dùng</h2>
+            {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-6">
                     <div className="form-group">
                         <label>Chủ sở hữu tài khoản</label>
                         <input
                             type="text"
-                            name="id_user"
+                            name="fullName"
                             value={fullName}
-                            onChange={handleChange}
                             required
                             className="form-control"
                             disabled
