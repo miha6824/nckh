@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import AdSidebar from '../AdNav/AdSidebar';
-import AdNavbar from '../AdNav/AdNavbar';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import styles from './AssignPosition.module.css';
 
 function AssignPosition() {
@@ -15,8 +15,10 @@ function AssignPosition() {
     });
     const [positions, setPositions] = useState([]);
     const [users, setUsers] = useState([]);
-    const [departments, setDepartments] = useState([]); // State để lưu trữ danh sách phòng ban
-    const [selectedUserName, setSelectedUserName] = useState(''); // State để lưu trữ tên nhân viên được chọn
+    const [departments, setDepartments] = useState([]);
+    const [selectedUserName, setSelectedUserName] = useState('');
+
+
 
     useEffect(() => {
         axios.get('http://localhost:8081/positions')
@@ -63,9 +65,16 @@ function AssignPosition() {
             });
     };
 
+    const handleGoBack = () => {
+        navigate(-1);
+    };
+
     return (
 
         <div className={styles.assignPositionContainer}>
+            <div className={styles.backButton} onClick={handleGoBack}>
+                <FontAwesomeIcon icon={faArrowLeft} />
+            </div>
             <h2>Thêm chức vụ cho nhân viên</h2>
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-6">

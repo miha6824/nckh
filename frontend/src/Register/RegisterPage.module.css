@@ -1,16 +1,94 @@
-/* RegisterPage.module.css */
+.background {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+    height: 100vh;
+    font-family: 'Arial', sans-serif;
+}
 
-.formWrapper {
-    width: 50%; /* Độ rộng của form */
+.registerContainer {
+    background-color: #fff;
+    padding: 3rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 700px; 
+    text-align: center;
+}
+
+.title {
+    margin-bottom: 1.5rem; 
+    font-size: 2rem; 
+    color: #333;
 }
 
 .formRow {
-    flex-direction: row; /* Sắp xếp các cột theo chiều ngang */
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
 }
 
 .formColumn {
-    flex: 1; /* Cột tự mở rộng để điều chỉnh kích thước */
-    margin-right: 20px; /* Khoảng cách giữa các cột */
+    flex: 1;
+    margin-right: 1rem;
 }
 
-/* Thêm các định dạng khác tùy theo nhu cầu */
+.formColumn:last-child {
+    margin-right: 0;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.formGroup label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.formControl {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btnPrimary {
+    background-color: #28a745;
+    color: #fff;
+    padding: 0.75rem; 
+    border: none;
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 1rem; 
+    transition: background-color 0.3s;
+}
+
+.btnPrimary:hover {
+    background-color: #218838;
+}
+
+.btnSecondary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s;
+}
+
+.btnSecondary:hover {
+    background-color: #0056b3;
+}
+
+.message {
+    margin-top: 1.5rem;
+    color: #d9534f;
+}

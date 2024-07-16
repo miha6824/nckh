@@ -88,8 +88,7 @@ function AttendancePage() {
                         const faceDescriptor = detection.descriptor;
                         const match = userDescriptors.find((user) => {
                             return (
-                                faceapi.euclideanDistance(faceDescriptor, user.faceDescriptor) <
-                                0.6
+                                faceapi.euclideanDistance(faceDescriptor, user.faceDescriptor) < 0.6
                             );
                         });
 
@@ -164,23 +163,23 @@ function AttendancePage() {
     };
 
     return (
-        <div>
+        <div className={styles.container}>
             <Link to='/login' className={`${styles.btn} btn btn-success rounded-0`}>Sign-In</Link>
-            <div className={styles.App}>
-                {initializing && <span>Initializing...</span>}
-                <div className={styles.displayflex}>
+            <div className={styles.app}>
+                {initializing && <span className={styles.initializing}>Initializing...</span>}
+                <div className={styles.videoContainer}>
                     <video ref={videoRef} autoPlay muted height={videoHeight} width={videoWidth} onPlay={handleVideoOnPlay} />
-                    <canvas ref={canvasRef} className={styles.positionabsolute} width={videoWidth} height={videoHeight} />
+                    <canvas ref={canvasRef} className={styles.canvas} width={videoWidth} height={videoHeight} />
                 </div>
-                <div className={styles.userinfocontainer}>
+                <div className={styles.userInfoContainer}>
                     <h2>User Info</h2>
-                    <p>Email: {userInfo.email}</p>
-                    <p>Full Name: {userInfo.fullName}</p>
-                    <p>Date of Birth: {userInfo.dob}</p>
-                    <p>Phone Number: {userInfo.phoneNumber}</p>
-                    <p>Address: {userInfo.address}</p>
-                    <p>Gender: {userInfo.gender}</p>
-                    <p>ID_Department: {userInfo.id_department}</p>
+                    <p><strong>Email:</strong> {userInfo.email}</p>
+                    <p><strong>Full Name:</strong> {userInfo.fullName}</p>
+                    <p><strong>Date of Birth:</strong> {userInfo.dob}</p>
+                    <p><strong>Phone Number:</strong> {userInfo.phoneNumber}</p>
+                    <p><strong>Address:</strong> {userInfo.address}</p>
+                    <p><strong>Gender:</strong> {userInfo.gender}</p>
+                    <p><strong>ID_Department:</strong> {userInfo.id_department}</p>
                 </div>
             </div>
         </div>

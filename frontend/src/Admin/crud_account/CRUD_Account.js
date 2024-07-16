@@ -108,6 +108,7 @@ function CRUD_Account() {
                 onPageChange={handlePageClick}
                 containerClassName={styles.pagination}
                 activeClassName={'active'}
+                activeLinkClassName={styles.activeLink}
                 previousClassName={styles.pageItem}
                 nextClassName={styles.pageItem}
                 previousLinkClassName={styles.pageLink}

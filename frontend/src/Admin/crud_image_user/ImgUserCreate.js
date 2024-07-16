@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import AdSidebar from '../AdNav/AdSidebar';
-import AdNavbar from '../AdNav/AdNavbar';
 
 function ImgUserCreate() {
     const [formData, setFormData] = useState({

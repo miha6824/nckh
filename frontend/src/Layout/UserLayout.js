@@ -1,4 +1,3 @@
-// UserLayout.js
 import React from 'react';
 import UserNavbar from '../User/Navbar/UserNavbar'
 

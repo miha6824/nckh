@@ -32,3 +32,12 @@
 .btn:hover {
     background-color: #0056b3;
 }
+.backButton {
+    cursor: pointer;
+    transition: font-size 0.3s, color 0.3s;
+  }
+  
+  .backButton:hover {
+    font-size: 24px;
+    color: #007bff;
+  }

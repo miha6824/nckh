@@ -63,7 +63,7 @@ function CRUD_Attendance() {
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
-                    <Link to="/create_Attendance" className={styles.addButton}>
+                    <Link to="/AddAttendance" className={styles.addButton}>
                         <FaPlus />
                     </Link>
                 </div>
@@ -112,6 +112,7 @@ function CRUD_Attendance() {
                 onPageChange={handlePageClick}
                 containerClassName={styles.pagination}
                 activeClassName={'active'}
+                activeLinkClassName={styles.activeLink}
                 previousClassName={styles.pageItem}
                 nextClassName={styles.pageItem}
                 previousLinkClassName={styles.pageLink}

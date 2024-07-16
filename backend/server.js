@@ -77,7 +77,7 @@ app.get("/CRUD_Department", (req, res) => {
 });
 
 app.get('/DepartmentName/:id', (req, res) => {
-    const sql = "SELECT TenPhongBan FROM department WHERE ID=?";
+    const sql = "SELECT * FROM department WHERE ID=?";
     const id = req.params.id;
     db.query(sql, [id], (err, data) => {
         if (err) return res.status(500).json("Error");
@@ -87,10 +87,9 @@ app.get('/DepartmentName/:id', (req, res) => {
 });
 
 app.post('/create_Department', (req, res) => {
-    const sql = "INSERT INTO Department (KHPhongBan, TenPhongBan) VALUES ?";
+    const sql = "INSERT INTO Department (TenPhongBan) VALUES ?";
     const values = [
         [
-            req.body.khphongban,
             req.body.tenphongban,
         ]
     ];
@@ -106,7 +105,21 @@ app.post('/create_Department', (req, res) => {
     });
 });
 
+app.put('/update_Department/:id', (req, res) => {
+    const sqlUpdateDepartment = "UPDATE department SET `TenPhongBan`=? WHERE ID=?";
+    const valuesDepartment = [
+        req.body.TenPhongBan
+    ];
+    const id = req.params.id;
+    db.query(sqlUpdateDepartment, [...valuesDepartment, id], (err, result) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json("Error");
+        }
 
+        return res.status(200).json("Department updated successfully");
+    });
+});
 
 app.delete('/Delete_department/:id', (req, res) => {
     const id = req.params.id;
@@ -333,7 +346,7 @@ app.post('/create_user', (req, res) => {
             const userSql = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address, ID_Department, HSLuong) VALUES ?";
             const accountSql = "INSERT INTO account (Email, Password, ID_User, Role) VALUES ?";
             const defaultPassword = '12345';
-            const positionSql = "INSERT INTO `position details` (MaCV, ID_User, ID_Department) VALUES ?";
+            const defaultPositionId = 7; // ID của chức vụ mặc định (Nhân viên)
 
             const userValues = [
                 [
@@ -372,9 +385,10 @@ app.post('/create_user', (req, res) => {
 
                     console.log('Người dùng và tài khoản đã được tạo thành công');
 
+                    const positionSql = "INSERT INTO `position details` (MaCV, ID_User, ID_Department) VALUES ?";
                     const positionDetailsValues = [
                         [
-                            req.body.position,
+                            defaultPositionId, // Sử dụng ID chức vụ mặc định ở đây
                             userId,
                             req.body.id_departments
                         ]
@@ -399,9 +413,10 @@ app.post('/create_user', (req, res) => {
 
 
 
+
 app.put('/update_user/:id', (req, res) => {
     const sqlUpdateUser = "UPDATE user SET `Email`=?, `FullName`=?, `Sex`=?, `BirthDay`=?, `Telephone`=?, `Address`=?, `ID_Department`=?, `HSLuong`=? WHERE ID=?";
-    const positionSql = "INSERT INTO `position details` (MaCV, ID_User, ID_Department) VALUES ?";
+    const positionSql = "UPDATE `position details` SET `ID_Department`=? WHERE ID_User = ?";
     const dobFormatted = moment(req.body.dob).format('YYYY-MM-DD');
     const valuesUser = [
         req.body.email,
@@ -419,8 +434,6 @@ app.put('/update_user/:id', (req, res) => {
     // Lấy các giá trị từ req.body để thêm vào bảng position details
     const valuesPosition = [
         [
-            req.body.position,
-            id,
             req.body.id_departments
         ]
     ];
@@ -432,7 +445,7 @@ app.put('/update_user/:id', (req, res) => {
         }
 
         // Thực hiện câu lệnh SQL insert vào position details
-        db.query(positionSql, [valuesPosition], (err, data) => {
+        db.query(positionSql, [...valuesPosition, id], (err, data) => {
             if (err) {
                 console.error("Lỗi cơ sở dữ liệu:", err);
                 return res.status(500).json("Lỗi");
@@ -491,11 +504,11 @@ app.delete('/Delete_user/:id', (req, res) => {
 
 app.get('/CRUD_positions', (req, res) => {
     const sql = `
-        SELECT pd.ID,p.TenCV, u.FullName, d.TenPhongBan
-        FROM \`position\` p
-        JOIN \`position details\` pd ON p.ID = pd.MaCV
-        JOIN \`user\` u ON pd.ID_User = u.ID
-        JOIN \`department\` d ON pd.ID_Department = d.ID
+    SELECT u.FullName, d.TenPhongBan, pd.ID, p.TenCV 
+    FROM user u 
+    JOIN \`position details\` pd ON u.ID = pd.ID_User 
+    JOIN department d ON u.ID_Department = d.ID 
+    JOIN position p ON pd.MaCV = p. ID
     `;
 
     db.query(sql, (err, data) => {
@@ -506,6 +519,38 @@ app.get('/CRUD_positions', (req, res) => {
         return res.status(200).json(data);
     });
 });
+
+app.get('/user_position/:id', (req, res) => {
+    const id = req.params.id;
+
+    const sql =
+        `
+            SELECT p.TenCV
+            FROM \`position details\` pd
+            INNER JOIN \`position\` p ON pd.MaCV = p.ID
+            WHERE pd.ID_User = ?
+        `
+        ;
+
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Lỗi truy vấn SQL:', err);
+            res.status(500).json({ error: 'Lỗi khi truy vấn cơ sở dữ liệu' });
+            return;
+        }
+
+        if (results.length === 0) {
+            res.status(404).json({ error: 'Không tìm thấy chức vụ cho nhân viên này' });
+        } else {
+            const position = results[0].TenCV;
+            res.json({ position });
+        }
+    });
+});
+
+
+
+
 
 app.get("/positions", (req, res) => {
     const sql = "SELECT * FROM position";
@@ -592,6 +637,93 @@ app.put('/update_position/:id', (req, res) => {
 
 
 
+// Endpoint để lấy danh sách các chức vụ
+app.get('/positions', (req, res) => {
+    const sql = 'SELECT * FROM position';
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error fetching positions:', err);
+            res.status(500).json({ error: 'Error fetching positions' });
+            return;
+        }
+        res.json(result);
+    });
+});
+
+// Endpoint để thêm một chức vụ mới
+app.post('/addpositions', (req, res) => {
+    const { TenCV } = req.body;
+    const sql = 'INSERT INTO `position` (TenCV) VALUES (?)';
+    db.query(sql, [TenCV], (err, result) => {
+        if (err) {
+            console.error('Error adding position:', err);
+            res.status(500).json({ error: 'Error adding position' });
+            return;
+        }
+        res.json({ message: 'Position added successfully' });
+    });
+});
+
+// Endpoint để xoá một chức vụ
+app.delete('/deletepositions/:id', (req, res) => {
+    const id = req.params.id;
+
+    // Kiểm tra xem có người đang giữ chức vụ này trong bảng `position details`
+    const checkSql = 'SELECT * FROM `position details` WHERE MaCV = ?';
+    db.query(checkSql, [id], (err, result) => {
+        if (err) {
+            console.error('Error checking position details:', err);
+            res.status(500).json({ error: 'Error checking position details' });
+            return;
+        }
+
+        // Nếu có người đang giữ chức vụ này, không cho phép xóa
+        if (result.length > 0) {
+            res.status(400).json({ error: 'Chức vụ đang có người giữ, không thể xóa' });
+            return;
+        }
+
+        // Nếu không có người đang giữ, tiến hành xóa chức vụ từ bảng `position`
+        const deleteSql = 'DELETE FROM `position` WHERE ID = ?';
+        db.query(deleteSql, [id], (err, result) => {
+            if (err) {
+                console.error('Error deleting position:', err);
+                res.status(500).json({ error: 'Error deleting position' });
+                return;
+            }
+            res.json({ message: 'Position deleted successfully' });
+        });
+    });
+});
+
+
+// Endpoint để cập nhật một chức vụ
+app.put('/updatepositions/:id', (req, res) => {
+    const id = req.params.id;
+    const { TenCV } = req.body;
+    const sql = 'UPDATE position SET TenCV = ? WHERE ID = ?';
+    db.query(sql, [TenCV, id], (err, result) => {
+        if (err) {
+            console.error('Error updating position:', err);
+            res.status(500).json({ error: 'Error updating position' });
+            return;
+        }
+        res.json({ message: 'Position updated successfully' });
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // lấy tất cả user kể cả không có ảnh
 app.get("/CRUD_ImgUser", (req, res) => {
@@ -599,7 +731,7 @@ app.get("/CRUD_ImgUser", (req, res) => {
         SELECT u.ID as UserID, u.FullName, ui.ID as ImageID, ui.Image
         FROM user u
         LEFT JOIN userimage ui ON u.ID = ui.ID_User
-    `;
+        `;
     db.query(sql, (err, data) => {
         if (err) return res.status(500).json("Error");
         return res.status(200).json(data);
@@ -614,7 +746,7 @@ app.get("/CRUD_ImgUserforattendance", (req, res) => {
     });
 });
 
-// Delete a user image
+// xóa ảnh nhân viên
 app.delete('/Delete_ImgUser/:id', (req, res) => {
     const sql = "SELECT Image FROM userimage WHERE ID=?";
     const id = req.params.id;
@@ -654,11 +786,11 @@ app.delete('/Delete_ImgUser/:id', (req, res) => {
 
 app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
     const id = req.params.id;
-    console.log("Received request to upload image for user ID:", id);
+    console.log("789 ID up ảnh:", id);
 
     if (!req.file) {
-        console.log("No file uploaded");
-        return res.status(400).json({ error: "No file uploaded" });
+        console.log("không có hình ảnh nào tải lên 791");
+        return res.status(400).json({ error: "không có hình ảnh nào tải lên" });
     }
 
     // Thực hiện truy vấn SQL để lấy thông tin về UserName và ID_User từ bảng `user`
@@ -680,30 +812,30 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
         const sql = "INSERT INTO userimage (Label, Image, ID_User, FaceDescriptor) VALUES ?";
         let progress = 0;
         try {
-            console.log(`Progress: ${progress}% - Starting image processing...`);
+            console.log(`Progress: ${progress}% - bắt đầu tải ảnh`);
 
             // Bắt đầu quá trình trích xuất đặc trưng khuôn mặt từ ảnh
             progress += 20;
             const imagePath = path.join(__dirname, 'public/Images', req.file.filename);
-            console.log(`Progress: ${progress}% - Loading image...`);
+            console.log(`Progress: ${progress} % - Loading image...`);
             const img = await canvas.loadImage(imagePath);
 
             progress += 20;
-            console.log(`Progress: ${progress}% - Detecting face and extracting features...`);
+            console.log(`Progress: ${progress} % - tìm khuôn mặt để extract faceDescrip`);
             const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
 
             if (!detections) {
-                console.log(`Progress: ${progress}% - No face detected`);
+                console.log(`Progress: ${progress} % - No face detected`);
                 return res.status(400).json({ error: "No face detected" });
             }
 
             progress += 20;
-            console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
+            console.log(`Progress: ${progress} % -tìm thấy khuôn mặt bắt đầu extract`);
             const descriptor = detections.descriptor;
             const descriptorArray = Array.from(descriptor);
 
             progress += 20;
-            console.log(`Progress: ${progress}% - Converting descriptor to array...`);
+            console.log(`Progress: ${progress} % - chuyển thành ma trận 32-bit`);
 
             const values = [
                 [
@@ -715,14 +847,14 @@ app.post('/ImgUserAdd/:id', upload.single('image'), async (req, res) => {
             ];
 
             progress += 20;
-            console.log(`Progress: ${progress}% - Inserting data into database...`);
+            console.log(`Progress: ${progress} % - lưu vào db`);
             db.query(sql, [values], (err, data) => {
                 if (err) {
                     console.error("Database error:", err);
                     return res.status(500).json("Error");
                 }
-                console.log(`Progress: 100% - Data inserted successfully`);
-                return res.status(200).json("Img created and face descriptor saved successfully");
+                console.log(`Progress: 100 % - lưu data thành công`);
+                return res.status(200).json("lưu ảnh và faceDescription thành công");
             });
         } catch (error) {
             console.error("Face API error:", error);
@@ -743,30 +875,30 @@ app.post('/create_ImgUser', upload.single('image'), async (req, res) => {
     let progress = 0;
 
     try {
-        console.log(`Progress: ${progress}% - Starting image processing...`);
+        console.log(`Progress: ${progress} % - bắt đầu tải ảnh`);
 
         // Bắt đầu quá trình trích xuất đặc trưng khuôn mặt từ ảnh
         progress += 20;
         const imagePath = path.join(__dirname, 'public/Images', req.file.filename);
-        console.log(`Progress: ${progress}% - Loading image...`);
+        console.log(`Progress: ${progress} % - Loading image...`);
         const img = await canvas.loadImage(imagePath);
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Detecting face and extracting features...`);
+        console.log(`Progress: ${progress} % - tìm khuôn mặt để extract faceDescrip`);
         const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
 
         if (!detections) {
-            console.log(`Progress: ${progress}% - No face detected`);
+            console.log(`Progress: ${progress} % - No face detected`);
             return res.status(400).json({ error: "No face detected" });
         }
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
+        console.log(`Progress: ${progress} % - tìm thấy khuôn mặt extract faceDescrip`);
         const descriptor = detections.descriptor;
         const descriptorArray = Array.from(descriptor); // Chuyển đổi Float32Array thành mảng thường để lưu vào MySQL
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Converting descriptor to array...`);
+        console.log(`Progress: ${progress} % - chuyển thành ma trận 32-bit`);
 
         const values = [
             [
@@ -778,14 +910,14 @@ app.post('/create_ImgUser', upload.single('image'), async (req, res) => {
         ];
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Inserting data into database...`);
+        console.log(`Progress: ${progress} % - lưu vào db`);
         db.query(sql, [values], (err, data) => {
             if (err) {
                 console.error("Database error:", err);
                 return res.status(500).json("Error");
             }
-            console.log(`Progress: 100% - Data inserted successfully`);
-            return res.status(200).json("Img created and face descriptor saved successfully");
+            console.log(`Progress: 100 % - lưu data thành công`);
+            return res.status(200).json("lưu ảnh và faceDescription thành công");
         });
     } catch (error) {
         console.error("Face API error:", error);
@@ -835,37 +967,43 @@ app.get('/logout', (req, res) => {
 });
 
 
-// Endpoint for user registration
+// Endpoint tạo tài khoản nhân viên
 app.post('/register', (req, res) => {
     const { email, password, fullName, sex, birthday, telephone, address } = req.body;
     const sqlCheck = "SELECT * FROM account WHERE Email = ?";
     const sqlInsertUser = "INSERT INTO user (Email, FullName, Sex, BirthDay, Telephone, Address) VALUES (?, ?, ?, ?, ?, ?)";
     const sqlInsertAccount = "INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)";
+    const sqlInsertPositionDetails = "INSERT INTO `position details` (ID_User, MaCV) VALUES (?, ?)";
 
-    // Check if email already exists
     db.query(sqlCheck, [email], (err, data) => {
         if (err) {
             console.error("Database error:", err);
             return res.status(500).json("Error");
         }
         if (data.length > 0) {
-            return res.status(409).json("Email already exists");
+            return res.status(409).json("Email đã tồn tại");
         } else {
-            // Insert new user
             db.query(sqlInsertUser, [email, fullName, sex, birthday, telephone, address], (err, result) => {
                 if (err) {
                     console.error("Database error:", err);
                     return res.status(500).json("Error");
                 }
                 const userID = result.insertId;
-                const role = "user"; // Set role to "user"
-                // Insert new account
+                const role = "user";
+
                 db.query(sqlInsertAccount, [email, password, userID, role], (err, result) => {
                     if (err) {
                         console.error("Database error:", err);
                         return res.status(500).json("Error");
                     }
-                    return res.status(200).json("User registered successfully");
+
+                    db.query(sqlInsertPositionDetails, [userID, 7], (err, result) => {
+                        if (err) {
+                            console.error("Database error:", err);
+                            return res.status(500).json("Error");
+                        }
+                        return res.status(200).json("User registered successfully with default position details");
+                    });
                 });
             });
         }
@@ -874,10 +1012,11 @@ app.post('/register', (req, res) => {
 
 
 
+
 // API endpoint để lấy tất cả ảnh của người dùng dựa trên ID_User
 app.get('/userImages/:userID', (req, res) => {
     const userID = req.params.userID;
-    const sql = `SELECT * FROM userimage WHERE ID_User = ?`;
+    const sql = `SELECT * FROM userimage WHERE ID_User = ? `;
     db.query(sql, userID, (err, result) => {
         if (err) {
             console.error("Error retrieving user images:", err);
@@ -897,8 +1036,8 @@ app.delete('/deleteUserImage/:userID/:imageID', (req, res) => {
     const userID = req.params.userID;
     const imageID = req.params.imageID;
 
-    // First, get the image file name to delete the file
-    const getImageSql = `SELECT Image FROM userimage WHERE ID_User = ? AND ID = ?`;
+
+    const getImageSql = `SELECT Image FROM userimage WHERE ID_User = ? AND ID = ? `;
     db.query(getImageSql, [userID, imageID], (err, result) => {
         if (err) {
             console.error("Error fetching image:", err);
@@ -913,7 +1052,7 @@ app.delete('/deleteUserImage/:userID/:imageID', (req, res) => {
         const imageName = result[0].Image;
 
         // Delete the image record from the database
-        const deleteSql = `DELETE FROM userimage WHERE ID_User = ? AND ID = ?`;
+        const deleteSql = `DELETE FROM userimage WHERE ID_User = ? AND ID = ? `;
         db.query(deleteSql, [userID, imageID], (err, result) => {
             if (err) {
                 console.error("Error deleting image record:", err);
@@ -945,30 +1084,30 @@ app.post('/ImgUserAddUserSite/:id', upload.single('image'), async (req, res) => 
     const sql = "INSERT INTO userimage (Label, Image, ID_User, FaceDescriptor) VALUES ?";
     let progress = 0;
     try {
-        console.log(`Progress: ${progress}% - Starting image processing...`);
+        console.log(`Progress: ${progress} % - Starting image processing...`);
 
         // Bắt đầu quá trình trích xuất đặc trưng khuôn mặt từ ảnh
         progress += 20;
         const imagePath = path.join(__dirname, 'public/Images', req.file.filename);
-        console.log(`Progress: ${progress}% - Loading image...`);
+        console.log(`Progress: ${progress} % - Loading image...`);
         const img = await canvas.loadImage(imagePath);
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Detecting face and extracting features...`);
+        console.log(`Progress: ${progress} % - Tìm khuôn mặt để extrac faceDescrip`);
         const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
 
         if (!detections) {
-            console.log(`Progress: ${progress}% - No face detected`);
+            console.log(`Progress: ${progress} % - No face detected`);
             return res.status(400).json({ error: "No face detected" });
         }
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Face detected, extracting descriptor...`);
+        console.log(`Progress: ${progress} % - bắt đầu extrac faceDescrip`);
         const descriptor = detections.descriptor;
         const descriptorArray = Array.from(descriptor); // Chuyển đổi Float32Array thành mảng thường để lưu vào MySQL
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Converting descriptor to array...`);
+        console.log(`Progress: ${progress} % - chuyển sang mảng 32-bit`);
 
         const values = [
             [
@@ -980,18 +1119,18 @@ app.post('/ImgUserAddUserSite/:id', upload.single('image'), async (req, res) => 
         ];
 
         progress += 20;
-        console.log(`Progress: ${progress}% - Inserting data into database...`);
+        console.log(`Progress: ${progress} % - tải lên db`);
         db.query(sql, [values], (err, data) => {
             if (err) {
                 console.error("Database error:", err);
                 return res.status(500).json("Error");
             }
-            console.log(`Progress: 100% - Data inserted successfully`);
-            return res.status(200).json("Img created and face descriptor saved successfully");
+            console.log(`Progress:Hoàn thành`);
+            return res.status(200).json("tạo ảnh và lưu faceDescrip thành công");
         });
     } catch (error) {
-        console.error("Face API error:", error);
-        return res.status(500).json("Error processing image");
+        console.error("Lỗi face-api:", error);
+        return res.status(500).json("lỗi quá trình tải ảnh");
     }
 });
 
@@ -1039,30 +1178,6 @@ app.get('/userInfo4AddImgUserSite/:id', (req, res) => {
         res.json(userInfo[0]);
     });
 });
-
-
-
-app.get('/department/:id', (req, res) => {
-    const id = req.params.id;
-    console.log("Received user ID:", id); // Thêm console.log để kiểm tra ID người dùng nhận được
-
-    const sql = "SELECT * FROM departments WHERE ID = ?";
-    db.query(sql, [id], (err, data) => {
-        if (err) {
-            console.error("Lỗi truy vấn cơ sở dữ liệu:", err);
-            return res.status(500).json("Lỗi server");
-        }
-        console.log("Data from database:", data); // Thêm console.log để kiểm tra dữ liệu từ cơ sở dữ liệu
-
-        if (data.length > 0) {
-            return res.status(200).json(data[0]);
-        } else {
-            return res.status(404).json("Không tìm thấy người dùng");
-        }
-    });
-});
-
-
 
 
 // Endpoint để lấy dữ liệu người dùng dựa trên ID
@@ -1127,12 +1242,12 @@ app.post('/setStandardTimes', (req, res) => {
     const formattedCheckoutTime = checkoutTime.length === 5 ? `${checkoutTime}:00` : checkoutTime;
 
     const insertOrUpdateStandardTimesSql = `
-        INSERT INTO standard_times (date, checkin_time, checkout_time)
-        VALUES (?, ?, ?)
+        INSERT INTO standard_times(date, checkin_time, checkout_time)
+        VALUES(?, ?, ?)
         ON DUPLICATE KEY UPDATE
             checkin_time = VALUES(checkin_time),
-            checkout_time = VALUES(checkout_time)
-    `;
+    checkout_time = VALUES(checkout_time)
+        `;
 
     db.query(insertOrUpdateStandardTimesSql, [date, formattedCheckinTime, formattedCheckoutTime], (err, result) => {
         if (err) {
@@ -1149,8 +1264,8 @@ app.post('/setStandardTimes', (req, res) => {
 app.get('/getStandardTimes', (req, res) => {
     const { month, year } = req.query;
 
-    const startDate = moment(`${year}-${month}-01`).format('YYYY-MM-DD');
-    const endDate = moment(`${year}-${month}-01`).endOf('month').format('YYYY-MM-DD');
+    const startDate = moment(`${year}-${month}-01`, 'YYYY-MM-DD').startOf('month').format('YYYY-MM-DD');
+    const endDate = moment(`${year}-${month}-01`, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD');
 
     const sql = `
         SELECT date, checkin_time, checkout_time
@@ -1164,8 +1279,6 @@ app.get('/getStandardTimes', (req, res) => {
             return res.status(500).json("Error");
         }
 
-        console.log("Query result:", data);
-
         const defaultCheckinTime = "08:00:00";
         const defaultCheckoutTime = "17:00:00";
 
@@ -1175,7 +1288,6 @@ app.get('/getStandardTimes', (req, res) => {
         for (let day = 1; day <= daysInMonth; day++) {
             const currentDate = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD').format('YYYY-MM-DD');
             const standardTime = data.find(item => moment(item.date).format('YYYY-MM-DD') === currentDate);
-            console.log("Current date:", currentDate, "Standard time found:", standardTime);
             workSchedule.push({
                 date: currentDate,
                 checkin_time: standardTime ? standardTime.checkin_time : defaultCheckinTime,
@@ -1186,6 +1298,7 @@ app.get('/getStandardTimes', (req, res) => {
         return res.status(200).json(workSchedule);
     });
 });
+
 
 // Endpoint để ghi nhận điểm danh
 app.post('/attendance', (req, res) => {
@@ -1303,6 +1416,45 @@ function handleAttendance(userId, imageBase64, lastAttendanceResult, currentTime
 }
 
 
+app.post('/addAttendance', upload.single('image'), async (req, res) => {
+    try {
+        const { ID_User, checkinTime, checkoutTime } = req.body;
+        const image = req.file;
+
+        // Chuyển ảnh sang dạng base64
+        const imgPath = image.path;
+        const imgBuffer = fs.readFileSync(imgPath);
+        const imgBase64 = imgBuffer.toString('base64');
+
+        // Tính toán thời gian chấm công
+        const standardCheckin = new Date();
+        standardCheckin.setHours(8, 0, 0); // Giờ checkin tiêu chuẩn là 8:00 AM
+        const standardCheckout = new Date();
+        standardCheckout.setHours(17, 0, 0); // Giờ checkout tiêu chuẩn là 5:00 PM
+
+        const actualCheckin = new Date(checkinTime);
+        const actualCheckout = new Date(checkoutTime);
+
+        const lateMinutes = Math.max(0, (actualCheckin - standardCheckin) / (1000 * 60));
+        const earlyLeaveMinutes = Math.max(0, (standardCheckout - actualCheckout) / (1000 * 60));
+        const overtimeMinutes = Math.max(0, (actualCheckout - standardCheckout) / (1000 * 60));
+
+        // Thêm bản ghi checkin
+        const checkinSql = "INSERT INTO attendance (ID_User, timestamp, Status, Image, LateMinutes) VALUES (?, ?, 'checkin', ?, ?)";
+        await db.query(checkinSql, [ID_User, checkinTime, imgBase64, lateMinutes]);
+
+        // Thêm bản ghi checkout
+        const checkoutSql = "INSERT INTO attendance (ID_User, timestamp, Status, Image, EarlyLeaveMinutes, OvertimeMinutes) VALUES (?, ?, 'checkout', ?, ?, ?)";
+        await db.query(checkoutSql, [ID_User, checkoutTime, imgBase64, earlyLeaveMinutes, overtimeMinutes]);
+
+        fs.unlinkSync(imgPath); // Xóa ảnh tạm sau khi xử lý xong
+
+        res.status(200).json({ message: 'Attendance added successfully' });
+    } catch (error) {
+        console.error('Error adding attendance:', error);
+        res.status(500).json({ error: 'Error adding attendance' });
+    }
+});
 
 
 
@@ -1369,15 +1521,15 @@ app.post('/generate-report', (req, res) => {
 
     const query = `
         SELECT a.ID_User, u.FullName, DATE(a.timestamp) AS Date,
-               MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
-               MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
-               SUM(a.LateMinutes) AS LateMinutes,
-               SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
-               SUM(a.OvertimeMinutes) AS OvertimeMinutes
+    MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
+    MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
+    SUM(a.LateMinutes) AS LateMinutes,
+    SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
+    SUM(a.OvertimeMinutes) AS OvertimeMinutes
         FROM attendance a
         JOIN user u ON a.ID_User = u.ID
         WHERE u.ID_Department = ? AND u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
-        GROUP BY a.ID_User, u.FullName, Date(a.timestamp)
+    GROUP BY a.ID_User, u.FullName, Date(a.timestamp)
     `;
 
     db.query(query, [department, employee, startDate, endDate], (err, results) => {
@@ -1423,16 +1575,16 @@ app.post('/export-to-excel', async (req, res) => {
         // Fetch data from database
         const query = `
             SELECT u.FullName, DATE(a.timestamp) AS Date,
-                   MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
-                   MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
-                   SUM(a.LateMinutes) AS LateMinutes,
-                   SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
-                   SUM(a.OvertimeMinutes) AS OvertimeMinutes
+    MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
+    MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
+    SUM(a.LateMinutes) AS LateMinutes,
+    SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
+    SUM(a.OvertimeMinutes) AS OvertimeMinutes
             FROM attendance a
             JOIN user u ON a.ID_User = u.ID
             WHERE u.ID = ? AND DATE(a.timestamp) BETWEEN ? AND ?
-            GROUP BY u.FullName, DATE(a.timestamp)
-        `;
+    GROUP BY u.FullName, DATE(a.timestamp)
+    `;
 
         const results = await new Promise((resolve, reject) => {
             db.query(query, [employee, startDate, endDate], (err, results) => {
@@ -1461,7 +1613,7 @@ app.post('/export-to-excel', async (req, res) => {
 
         // Set response headers
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename=${employee}-${startDate}-to-${endDate}.xlsx`);
+        res.setHeader('Content-Disposition', `attachment; filename = ${employee} -${startDate} -to - ${endDate}.xlsx`);
 
         // Send workbook as response
         await workbook.xlsx.write(res);
@@ -1482,16 +1634,16 @@ app.get('/attendance/:id', (req, res) => {
 
     const sql = `
         SELECT a.ID_User, u.FullName, DATE(a.timestamp) AS Date,
-               MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
-               MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
-               SUM(a.LateMinutes) AS LateMinutes,
-               SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
-               SUM(a.OvertimeMinutes) AS OvertimeMinutes
+    MIN(CASE WHEN a.Status LIKE 'check in%' THEN TIME(a.timestamp) END) AS CheckIn,
+        MAX(CASE WHEN a.Status LIKE 'check out%' THEN TIME(a.timestamp) END) AS CheckOut,
+            SUM(a.LateMinutes) AS LateMinutes,
+                SUM(a.EarlyLeaveMinutes) AS EarlyLeaveMinutes,
+                    SUM(a.OvertimeMinutes) AS OvertimeMinutes
         FROM attendance a
         JOIN user u ON a.ID_User = u.ID
         WHERE a.ID_User = ? AND DATE(a.timestamp) BETWEEN ? AND ?
-        GROUP BY a.ID_User, u.FullName, DATE(a.timestamp)
-    `;
+    GROUP BY a.ID_User, u.FullName, DATE(a.timestamp)
+        `;
 
     db.query(sql, [id, startDate, endDate], (err, data) => {
         if (err) {
@@ -1528,7 +1680,7 @@ app.get('/attendance/:id', (req, res) => {
 
 
 
-
+// Mô hình tính toán độ chính xác
 const TRAINTEST_DIR = path.join(__dirname, 'traintest');
 
 async function prepareData() {
@@ -1580,14 +1732,15 @@ async function trainModel(folderPath) {
 
             processedCount++;
             const progress = (processedCount / files.length) * 100;
-            console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+            console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}% `);
         } catch (error) {
-            console.error(`Error processing file ${file} in ${folderPath}:`, error);
+            console.error(`Error processing file ${file} in ${folderPath}: `, error);
         }
     }
 
     return labeledDescriptors;
 }
+const { readdir } = require('fs').promises;
 
 async function evaluateModel(folderPath, labeledDescriptors) {
     const testDir = path.join(folderPath, 'test');
@@ -1598,6 +1751,8 @@ async function evaluateModel(folderPath, labeledDescriptors) {
     let falsePositives = 0;
     let trueNegatives = 0;
     let falseNegatives = 0;
+
+    let falsePredictions = []; // Mảng để lưu các tên file mà mô hình dự đoán sai
 
     for (const file of files) {
         try {
@@ -1619,6 +1774,7 @@ async function evaluateModel(folderPath, labeledDescriptors) {
             if (bestMatch.label === path.basename(folderPath)) {
                 truePositives++;
             } else {
+                falsePredictions.push(file); // Thêm tên file vào mảng falsePredictions
                 if (bestMatch.label === 'unknown') {
                     falseNegatives++;
                 } else {
@@ -1626,7 +1782,7 @@ async function evaluateModel(folderPath, labeledDescriptors) {
                 }
             }
         } catch (error) {
-            console.error(`Error processing file ${file} in ${folderPath}:`, error);
+            console.error(`Error processing file ${file} in ${folderPath}: `, error);
         }
     }
 
@@ -1634,12 +1790,14 @@ async function evaluateModel(folderPath, labeledDescriptors) {
     const recall = truePositives / (truePositives + falseNegatives);
     const f1Score = 2 * (precision * recall) / (precision + recall);
 
-    console.log(`Precision for ${path.basename(folderPath)}: ${precision}`);
-    console.log(`Recall for ${path.basename(folderPath)}: ${recall}`);
-    console.log(`F1 Score for ${path.basename(folderPath)}: ${f1Score}`);
+    console.log(`Precision for ${path.basename(folderPath)}: ${precision} `);
+    console.log(`Recall for ${path.basename(folderPath)}: ${recall} `);
+    console.log(`F1 Score for ${path.basename(folderPath)}: ${f1Score} `);
+    console.log(`False predictions for ${path.basename(folderPath)}: `, falsePredictions); // In ra các tên file mà mô hình dự đoán sai
 
-    return { precision, recall, f1Score };
+    return { precision, recall, f1Score, falsePredictions };
 }
+
 
 async function main() {
     try {
@@ -1650,7 +1808,7 @@ async function main() {
             const folderPath = path.join(TRAINTEST_DIR, folder);
             const labeledDescriptors = await trainModel(folderPath);
             const evaluation = await evaluateModel(folderPath, labeledDescriptors);
-            console.log(`Evaluation for ${folder}:`, evaluation);
+            console.log(`Evaluation for ${folder}: `, evaluation);
         }
     } catch (error) {
         console.error("Error in main function:", error);
@@ -1670,9 +1828,9 @@ app.post('/train_and_evaluate', async (req, res) => {
 
 
 
-
+// Mô hình giả lập chấm công
 const { promisify } = require('util');
-const readdir = promisify(fs.readdir);
+// const readdir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 // const ORIGINAL_IMAGES_DIR = path.join(__dirname, 'Original Images');
 
@@ -1685,7 +1843,7 @@ const readFile = promisify(fs.readFile);
 //         const getFeatureSize = Math.floor(totalFiles * 0.5);
 //         const attendanceSimulatorSize = totalFiles - getFeatureSize;
 
-//         const email = `${folder.replace(/\s/g, '')}@gmail.com`;
+//         const email = `${ folder.replace(/\s/g, '') } @gmail.com`;
 //         const password = '12345';
 //         const fullName = folder;
 //         const role = 'user';
@@ -1694,14 +1852,14 @@ const readFile = promisify(fs.readFile);
 //         const telephone = '0912345678';
 //         const dob = '2002-12-24';
 
-//         const sqlCreateUser = `INSERT INTO user (Email,FullName,Sex,BirthDay,Telephone,Address) VALUES (?,?,?,?,?,?)`;
+//         const sqlCreateUser = `INSERT INTO user(Email, FullName, Sex, BirthDay, Telephone, Address) VALUES(?,?,?,?,?,?)`;
 //         db.query(sqlCreateUser, [email, fullName, gender, dob, telephone, address], (err, result) => {
 //             if (err) throw err;
 //             const userID = result.insertId;
-//             const sqlCreateAccount = `INSERT INTO account (Email, Password, ID_User, Role) VALUES (?, ?, ?, ?)`;
+//             const sqlCreateAccount = `INSERT INTO account(Email, Password, ID_User, Role) VALUES(?, ?, ?, ?)`;
 //             db.query(sqlCreateAccount, [email, password, userID, role], (err, result) => {
 //                 if (err) throw err;
-//                 console.log(`Created account for ${fullName}`);
+//                 console.log(`Created account for ${ fullName }`);
 //             });
 //         });
 
@@ -1727,7 +1885,7 @@ const readFile = promisify(fs.readFile);
 // async function getFeatureModel(folderPath, userID) {
 //     const getFeatureDir = path.join(folderPath, 'getFeature');
 //     const files = await readdir(getFeatureDir);
-//     console.log(`getFeature model for ${path.basename(folderPath)} with ${files.length} files`);
+//     console.log(`getFeature model for ${ path.basename(folderPath) } with ${ files.length } files`);
 
 //     const labeledDescriptors = [];
 //     let processedCount = 0;
@@ -1746,27 +1904,27 @@ const readFile = promisify(fs.readFile);
 //             });
 
 //             // Save image to public/Images folder with timestamp filename
-//             const targetFileName = `${Date.now()}${path.extname(file)}`;
+//             const targetFileName = `${ Date.now() }${ path.extname(file) } `;
 //             const targetPath = path.join('public', 'Images', targetFileName);
 //             fs.copyFileSync(imgPath, targetPath);
 
 //             processedCount++;
 //             const progress = (processedCount / files.length) * 100;
-//             console.log(`Progress for ${path.basename(folderPath)}: ${progress.toFixed(2)}%`);
+//             console.log(`Progress for ${ path.basename(folderPath) }: ${ progress.toFixed(2) }% `);
 
 //             // Convert Float32Array descriptor to JSON string for storage
 //             const faceDescriptorFloat32 = Array.from(detection.descriptor); // Convert Float32Array to regular array
 //             const faceDescriptorJSON = JSON.stringify(faceDescriptorFloat32);
 
 //             // Save face descriptor to database
-//             const sqlInsert = `INSERT INTO userimage (Label, Image, ID_User, FaceDescriptor) VALUES (?, ?, ?, ?)`;
+//             const sqlInsert = `INSERT INTO userimage(Label, Image, ID_User, FaceDescriptor) VALUES(?, ?, ?, ?)`;
 //             db.query(sqlInsert, [label, targetFileName, userID, faceDescriptorJSON], (err, result) => {
 //                 if (err) throw err;
-//                 console.log(`Saved face descriptor for ${label}`);
+//                 console.log(`Saved face descriptor for ${ label }`);
 //             });
 
 //         } catch (error) {
-//             console.error(`Error processing file ${file} in ${folderPath}:`, error);
+//             console.error(`Error processing file ${ file } in ${ folderPath }: `, error);
 //         }
 //     }
 
@@ -1786,7 +1944,7 @@ const readFile = promisify(fs.readFile);
 //     const maxEarlyCheckOutMinutes = 120; // Số phút tối đa check-out sớm
 
 //     // Định nghĩa sqlQuery ở đây để sử dụng trong các hàm con
-//     const sqlQuery = `SELECT * FROM userimage WHERE ID_User = ?`;
+//     const sqlQuery = `SELECT * FROM userimage WHERE ID_User = ? `;
 
 //     // Hàm để tạo một tập hợp các ngày ngẫu nhiên tăng dần
 //     function getRandomDates(startDate, endDate, count) {
@@ -1828,9 +1986,9 @@ const readFile = promisify(fs.readFile);
 //                 earlyLeaveMinutes = 0;
 //             }
 
-//             console.log(`Processing date: ${currentDate.toLocaleDateString()}`);
-//             console.log(`Check-in time: ${checkInTime}`);
-//             console.log(`Check - out time: ${checkOutTime}`);
+//             console.log(`Processing date: ${ currentDate.toLocaleDateString() } `);
+//             console.log(`Check -in time: ${ checkInTime } `);
+//             console.log(`Check - out time: ${ checkOutTime } `);
 
 //             // Chọn ngẫu nhiên 1 ảnh trong thư mục attendanceSimulator cho check-in và 1 ảnh khác cho check-out
 //             const randomFiles = [];
@@ -1852,7 +2010,7 @@ const readFile = promisify(fs.readFile);
 
 //                 // Đọc tệp ảnh và chuyển đổi thành base64
 //                 const checkInImageBuffer = await readFile(checkInImgPath);
-//                 const checkInImageBase64 = `data: image/jpeg;base64,${checkInImageBuffer.toString('base64')}`;
+//                 const checkInImageBase64 = `data: image / jpeg; base64, ${ checkInImageBuffer.toString('base64') } `;
 
 //                 // Truy vấn bảng userimage để tìm một bản khớp với face descriptor hiện tại
 //                 const checkInResults = await new Promise((resolve, reject) => {
@@ -1871,7 +2029,7 @@ const readFile = promisify(fs.readFile);
 //                     if (distance < 0.6) { // Điều chỉnh ngưỡng khoảng cách khi cần
 //                         // Chèn bản ghi check-in vào bảng attendance
 //                         const sqlInsertAttendance =
-//                             `INSERT INTO attendance (ID_User, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes)
+//                             `INSERT INTO attendance(ID_User, timestamp, Status, Image, LateMinutes, EarlyLeaveMinutes, OvertimeMinutes)
 //                         VALUES(?, ?, ?, ?, ?, ?, ?)`
 //                             ;
 //                         await new Promise((resolve, reject) => {

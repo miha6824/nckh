@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import '@coreui/coreui/dist/css/coreui.min.css';
 import styles from './UserUpdate.module.css';
 
@@ -19,7 +21,6 @@ function UserUpdate() {
 
     const [departments, setDepartments] = useState([]);
     const [salaryScales, setSalaryScales] = useState([]);
-    const [positions, setPositions] = useState([]); // State for positions
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -47,10 +48,6 @@ function UserUpdate() {
 
         axios.get('http://localhost:8081/HSLuong')
             .then(res => setSalaryScales(res.data))
-            .catch(err => console.log(err));
-
-        axios.get('http://localhost:8081/positions')
-            .then(res => setPositions(res.data))
             .catch(err => console.log(err));
     }, [id]);
 
@@ -83,9 +80,14 @@ function UserUpdate() {
             })
             .catch(err => console.log(err));
     };
-
+    const handleGoBack = () => {
+        navigate(-1);
+    };
     return (
         <div className={styles.userUpdateContainer}>
+            <div className={styles.backButton} onClick={handleGoBack}>
+                <FontAwesomeIcon icon={faArrowLeft} />
+            </div>
             <h2>Sửa nhân sự</h2>
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-6">
@@ -142,7 +144,7 @@ function UserUpdate() {
                         <input
                             type="tel"
                             name="phoneNumber"
-                            value={formData.phoneNumber}
+                            value={`0${formData.phoneNumber}`}
                             onChange={handlePhoneNumberInput}
                             required
                             className="form-control"
@@ -191,23 +193,6 @@ function UserUpdate() {
                             ))}
                         </select>
                     </div>
-                </div>
-                <div className="form-group">
-                    <label>Chức vụ:</label>
-                    <select
-                        name="position"
-                        value={formData.position}
-                        onChange={handleChange}
-                        required
-                        className="form-control"
-                    >
-                        <option>Chọn chức vụ</option>
-                        {positions.map(pos => (
-                            <option key={pos.ID} value={pos.ID}>
-                                {pos.TenCV}
-                            </option>
-                        ))}
-                    </select>
                 </div>
                 <div className="col-12">
                     <button type="submit" className="btn btn-primary">Lưu</button>

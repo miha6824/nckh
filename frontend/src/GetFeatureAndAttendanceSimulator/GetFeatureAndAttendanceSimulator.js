@@ -12,7 +12,7 @@ const GetFeatureAndAttendanceSimulator = () => {
             const response = await axios.post('http://localhost:8081/getFeature_and_attendanceSimulator');
             setMessage(response.data.message);
         } catch (error) {
-            setMessage(error.response?.data?.error || 'Error during getFeature and attendanceSimulator');
+            setMessage(error.response?.data?.error || 'lỗi khi giả lập chấm công');
         } finally {
             setLoading(false);
         }

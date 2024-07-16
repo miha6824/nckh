@@ -1,21 +1,90 @@
-.form-group {
-    margin: 10px;
+.schedule-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
 }
 
-.table {
-    margin-top: 20px;
-    width: 80%;
-    max-width: 800px;
-    border: 1px solid #ddd;
-    border-collapse: collapse;
+.controls-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
 }
 
-.table th, .table td {
+.control-group {
+    margin-right: 10px;
+    justify-content: flex-end;
+}
+
+.form-control {
+    width: 80px;
     padding: 8px;
-    border: 1px solid #ddd;
-    text-align: center;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
-.table th {
-    background-color: #f4f4f4;
+.schedule-button {
+    margin-left: 10px; /* Khoảng cách giữa input và nút */
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.schedule-button:hover {
+    background-color: #0056b3;
+}
+
+.week-container {
+    width: 100%;
+}
+
+.week {
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.week-header {
+    font-weight: bold;
+    background-color: #f2f2f2;
+    padding: 5px;
+}
+
+.days-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.day {
+    width: calc(20% - 10px);
+    border: 1px solid #ccc;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.day:hover {
+    background-color: #f2f2f2;
+}
+
+.selected {
+    background-color: #e6f7ff;
+}
+
+.date {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.time {
+    font-size: 14px;
+    color: #666;
 }

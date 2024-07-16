@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import styles from './LoginPage.module.css';
 
 const LoginPage = () => {
     const [values, setValues] = useState({
@@ -16,7 +17,7 @@ const LoginPage = () => {
         axios.post('http://localhost:8081/login', values)
             .then(res => {
                 if (res.data.message === "Đăng nhập thành công") {
-                    localStorage.setItem('ID_user', res.data.userData.ID); // Thêm dòng này để lưu ID_user vào localStorage
+                    localStorage.setItem('ID_user', res.data.userData.ID);
                     const role = values.email === 'admin1@gmail.com' ? 'admin' : 'user';
                     if (role === 'admin') {
                         navigate('/FormReportComponent');
@@ -34,23 +35,23 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="d-flex justify-content-center align-items-center bg-primary vh-100">
-            <div className="bg-white p-3 rounded w-25">
-                <h2>Đăng Nhập</h2>
+        <div className={styles.background}>
+            <div className={styles.loginContainer}>
+                <h2 className={styles.title}>Đăng Nhập</h2>
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-3">
+                    <div className={styles.formGroup}>
                         <label htmlFor="email">Email:</label>
                         <input type="email" id="email" name="email" placeholder="Nhập email của bạn"
-                            onChange={e => setValues({ ...values, email: e.target.value })} className='form-control rounded-0' />
+                            onChange={e => setValues({ ...values, email: e.target.value })} className={styles.formControl} />
                     </div>
-                    <div className="mb-3">
+                    <div className={styles.formGroup}>
                         <label htmlFor="password">Mật khẩu:</label>
                         <input type="password" id="password" name="password" placeholder="Nhập mật khẩu của bạn"
-                            onChange={e => setValues({ ...values, password: e.target.value })} className='form-control rounded-0' />
+                            onChange={e => setValues({ ...values, password: e.target.value })} className={styles.formControl} />
                     </div>
-                    {error && <div className="mb-3 text-danger">{error}</div>}
-                    <button type='submit' className='btn btn-success w-100 rounded-0'>Sign in</button>
-                    <Link to={'/register'} className='mt-3 btn btn-success w-100 rounded-0'>Sign Up</Link >
+                    {error && <div className={styles.error}>{error}</div>}
+                    <button type='submit' className={styles.btnPrimary}>Đăng nhập</button>
+                    <Link to={'/register'} className={styles.btnSecondary}>Đăng kí</Link>
                 </form>
             </div>
         </div>

@@ -19,72 +19,60 @@ import {
     cilSettings,
     cilAccountLogout,
     cilBell,
-    cilClock,
-    cilTask,
-    cilPeople
+    cilImage,
+    cilClipboard
 } from '@coreui/icons';
 import '@coreui/coreui/dist/css/coreui.min.css';
-import './UserNavbar.css'; // Import file CSS tùy chỉnh
-import axios from 'axios';
+import './UserNavbar.css';
+import { useNavigate } from 'react-router-dom';
+import logo from '../../assets/png-clipart-facial-recognition-system-computer-icons-face-detection-iris-recognition-scanner-blue-electronics.png'
+import DefaultAvatar from '../../assets/avatarinUploadpage.png';
 
 const AppNavbar = () => {
-
+    const navigate = useNavigate();
     const handleLogout = () => {
-        axios.get('http://localhost:8081/logout', { withCredentials: true })
-            .then(res => {
-                window.location.href = '/login';
-            })
-            .catch(err => {
-                console.log(err);
-            });
+        localStorage.removeItem('ID_user');
+        navigate('/login');
     };
 
     return (
         <CNavbar expand="lg" colorScheme="dark" className="bg-dark custom-navbar">
             <CContainer fluid>
-                <CNavbarBrand href="/home">Logo</CNavbarBrand>
-                <CNavbarToggler aria-label="Toggle navigation" />
+                <CNavbarBrand href="/home"><img src={logo} alt="Logo" style={{ height: 'auto', maxHeight: '50px' }} /></CNavbarBrand>
                 <CCollapse className="navbar-collapse">
                     <CNavbarNav className="me-auto ms-5">
                         <CNavItem className="mx-3">
-                            <CNavLink href="/tasks" className="nav-link-highlight">
-                                <CIcon icon={cilTask} className="me-2" />
-                                Công việc
+                            <CNavLink href="/UserWorkSchedule" className="nav-link-highlight">
+                                <CIcon icon={cilClipboard} />
+                                Lịch làm việc
                             </CNavLink>
                         </CNavItem>
                         <CNavItem className="mx-3">
-                            <CNavLink href="/clients" className="nav-link-highlight">
-                                <CIcon icon={cilPeople} className="me-2" />
-                                Khách hàng
+                            <CNavLink href="/profile" className="nav-link-highlight">
+                                <CIcon icon={cilUser} />
+                                Thông tin cá nhân
+                            </CNavLink>
+                        </CNavItem>
+                        <CNavItem className="mx-3">
+                            <CNavLink href="/UploadPhotoPage" className="nav-link-highlight">
+                                <CIcon icon={cilImage} />
+                                Thêm ảnh xác thực
                             </CNavLink>
                         </CNavItem>
                     </CNavbarNav>
-                    <div className="d-flex align-items-center">
-                        <CIcon icon={cilBell} size="lg" className="me-3 text-white" />
-                        {/* <span className="text-white me-3">{userName}</span> */}
-                        <CDropdown>
-                            <CDropdownToggle color="secondary">
-                                <CIcon icon={cilUser} size="lg" />
-                            </CDropdownToggle>
-                            <CDropdownMenu>
-                                <CDropdownItem href="/profile">
-                                    <CIcon icon={cilUser} className="me-2" />
-                                    Thông tin cá nhân
-                                </CDropdownItem>
-                                <CDropdownItem href="/change-password">
-                                    <CIcon icon={cilSettings} className="me-2" />
-                                    Đổi mật khẩu
-                                </CDropdownItem>
-                                <CDropdownItem href="/UploadPhotoPage">
-                                    <CIcon icon={cilUser} className="me-2" />
-                                    Thêm ảnh xác thực
-                                </CDropdownItem>
-                                <CDropdownItem onClick={handleLogout}>
-                                    <CIcon icon={cilAccountLogout} className="me-2" />
-                                    Đăng xuất
-                                </CDropdownItem>
-                            </CDropdownMenu>
-                        </CDropdown>
+                    <div className="d-flex align-items-center mr-4">
+                        <div>
+                            <CIcon
+                                icon={cilAccountLogout}
+                                size="lg"
+                                className="cursor-pointer text-white"
+                                onClick={handleLogout}
+                            />
+                        </div>
+                        <div className=".avatarContainer">
+                            <div className="placeholderAvatar"><img src={DefaultAvatar} alt="Default Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
+                            /></div>
+                        </div>
                     </div>
                 </CCollapse>
             </CContainer>

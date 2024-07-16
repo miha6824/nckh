@@ -1,0 +1,106 @@
+.scheduleContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    margin: -20px auto;
+}
+
+.controlsContainer {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.controlGroup {
+    margin-right: 10px;
+    justify-content: flex-end;
+}
+
+.formControl {
+    width: 80px;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.scheduleButton {
+    margin-left: 10px; /* Khoảng cách giữa input và nút */
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.scheduleButton:hover {
+    background-color: #0056b3;
+}
+
+.weekContainer {
+    width: 100%;
+}
+
+.week {
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+.weekHeader {
+    font-weight: bold;
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.daysContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.day {
+    width: calc(20% - 10px);
+    border: 1px solid #ccc;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 5px;
+}
+
+.day:hover {
+    background-color: #f2f2f2;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.selected {
+    background-color: #e6f7ff;
+    border: 2px solid #007bff;
+}
+
+.date {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.time {
+    font-size: 14px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}

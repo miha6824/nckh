@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';  // Import useNavigate
-import AdSidebar from '../AdNav/AdSidebar';
-import AdNavbar from '../AdNav/AdNavbar';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import styles from './CreateAccount.module.css'; // Import the CSS for styling
 
 function CreateAccount() {
@@ -58,10 +58,16 @@ function CreateAccount() {
                 alert('Thêm tài khoản thất bại');// Log error for debugging
             });
     };
+    const handleGoBack = () => {
+        navigate(-1);
+    };
 
     return (
 
         <div className={styles.accountCreateContainer}>
+            <div className={styles.backButton} onClick={handleGoBack}>
+                <FontAwesomeIcon icon={faArrowLeft} />
+            </div>
             <h2>Tạo tài khoản</h2>
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-6">

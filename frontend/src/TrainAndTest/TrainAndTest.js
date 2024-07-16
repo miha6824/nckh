@@ -8,8 +8,8 @@ const TrainAndSimulate = () => {
             const response = await axios.post('http://localhost:8081/train_and_evaluate');
             alert(response.data.message);
         } catch (error) {
-            console.error('Error during training and attendance simulation:', error);
-            alert('Error during training and attendance simulation');
+            console.error('Lỗi khi đang TrainandTest:', error);
+            alert('Lỗi khi đang TrainandTest');
         }
     };
 

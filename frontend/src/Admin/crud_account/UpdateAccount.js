@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import '@coreui/coreui/dist/css/coreui.min.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import styles from './UpdateAccount.module.css';
 
 function UpdateAccount() {
@@ -78,9 +79,15 @@ function UpdateAccount() {
                 setErrorMessage('Có lỗi xảy ra trong quá trình cập nhật tài khoản.');
             });
     };
+    const handleGoBack = () => {
+        navigate(-1);
+    };
 
     return (
         <div className={styles.accountUpdateContainer}>
+            <div className={styles.backButton} onClick={handleGoBack}>
+                <FontAwesomeIcon icon={faArrowLeft} />
+            </div>
             <h2>Cập nhật người dùng</h2>
             {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
             <form onSubmit={handleSubmit} className="row">
@@ -97,7 +104,7 @@ function UpdateAccount() {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Role:</label>
+                        <label>Vai trò:</label>
                         <input
                             type="text"
                             name="role"

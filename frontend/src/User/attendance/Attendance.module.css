@@ -1,43 +1,84 @@
-.App {
-    text-align: center;
-    margin-top: 150px; 
-    margin-left: 200px;
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Chia layout thành hai cột bằng tỷ lệ 1:1 */
-    gap: 20px; /* Khoảng cách giữa các phần tử */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Roboto', sans-serif;
+    color: #fff;
+    padding: 20px;
 }
 
 .btn {
     position: fixed;
     top: 20px;
     right: 20px;
+    background-color: #28a745;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
-.displayflex {
-    display: flex;
-    align-items: center; /* Căn chỉnh các phần tử theo chiều dọc */
-    justify-content: center; /* Căn chỉnh các phần tử theo chiều ngang */
-    grid-column: 1 / span 1; /* Cột đầu tiên */
+.btn:hover {
+    background-color: #218838;
 }
 
-.positionabsolute {
+.app {
+    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia layout thành hai cột bằng tỷ lệ 1:1 */
+    gap: 20px; /* Khoảng cách giữa các phần tử */
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.initializing {
+    font-size: 24px;
+    font-weight: bold;
+    grid-column: span 2;
+}
+
+.videoContainer {
+    position: relative;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 640px;
+    margin: auto;
+}
+
+.canvas {
     position: absolute;
+    top: 0;
+    left: 0;
 }
 
-.userinfocontainer {
-    grid-column: 2 / span 1; /* Cột thứ hai */
+.userInfoContainer {
+    background: rgba(255, 255, 255, 0.8);
+    color: #000;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 400px;
+    margin: auto;
     display: flex;
-    flex-direction: column; /* Xếp các phần tử theo chiều dọc */
-    align-items: flex-start; /* Căn chỉnh các phần tử theo chiều dọc */
-    margin-top: 100px;
-    margin-left: 100px;
+    flex-direction: column;
 }
 
-.userinfocontainer h2 {
-    margin-bottom: 20px; /* Khoảng cách giữa tiêu đề và các thông tin người dùng */
+.userInfoContainer h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
 }
 
-.userinfocontainer p {
-    margin: 5px 0; /* Khoảng cách giữa các thông tin người dùng */
-    padding: 0; /* Xóa padding mặc định của các thẻ p */
+.userInfoContainer p {
+    margin: 0;
+    font-size: 18px;
+    align-self: flex-start;
 }
+

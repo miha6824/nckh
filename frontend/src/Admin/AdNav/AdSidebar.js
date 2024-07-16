@@ -1,67 +1,55 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     CSidebar,
     CSidebarHeader,
-    CSidebarBrand,
+    CNavbarBrand,
     CSidebarNav,
-    CNavTitle,
     CNavItem,
     CNavGroup,
-    CBadge
 } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilSpeedometer, cilPuzzle, cilCloudDownload, cilLayers } from '@coreui/icons';
+import { cilSpeedometer, cilUser, cilFile, cilBriefcase, cilBuilding, cilClock, cilClipboard, cilLockLocked, cilImage } from '@coreui/icons';
 import '@coreui/coreui/dist/css/coreui.min.css';
+import logo from '../../assets/png-clipart-facial-recognition-system-computer-icons-face-detection-iris-recognition-scanner-blue-electronics.png'
 
 function AdSidebar() {
     return (
         <CSidebar className="vh-100 bg-dark" colorScheme="dark">
-            <CSidebarHeader className="border-bottom">
-                <CSidebarBrand>CUI</CSidebarBrand>
+            <CSidebarHeader className="">
+                <CNavbarBrand href="/home"><img src={logo} alt="Logo" style={{ height: 'auto', maxHeight: '40px', marginLeft: '10px' }} /></CNavbarBrand>
             </CSidebarHeader>
             <CSidebarNav>
-                <CNavTitle>Nav Title</CNavTitle>
-                <CNavItem href="/FormReportComponent">
-                    <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
+                <CNavItem className="py-2.5" href="/FormReportComponent">
+                    <CIcon customClassName="nav-icon" icon={cilFile} />
                     Báo cáo
                 </CNavItem>
-                <CNavItem href="/CRUD_Positions">
-                    <CIcon customClassName="nav-icon" icon={cilSpeedometer} />
+                <CNavItem className="py-2" href="/CRUD_Positions">
+                    <CIcon customClassName="nav-icon" icon={cilBriefcase} />
                     Chức vụ
                 </CNavItem>
-                <CNavGroup toggler={<><CIcon customClassName="nav-icon" icon={cilPuzzle} /> Quản lý</>}>
-                    <CNavItem href="/CRUD_User">
-                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Quản lý nhân sự
-                    </CNavItem>
-                    <CNavItem href="/CRUD_Account">
-                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Quản lý tài khoản
-                    </CNavItem>
-                    <CNavItem href="/CRUD_Department">
-                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Quản lý phòng ban
-                    </CNavItem>
-                    <CNavItem href="/CRUD_ImgUser">
-                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Quản lý ảnh nhân viên
-                    </CNavItem>
-                    <CNavItem href="/CRUD_Attendance">
-                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Quản lý chấm công
-                    </CNavItem>
-                    <CNavItem href="/AttendanceSettings">
-                        <span className="nav-icon"><span className="nav-icon-bullet"></span></span>
-                        Lịch làm việc
-                    </CNavItem>
-                </CNavGroup>
-                <CNavItem href="https://coreui.io">
-                    <CIcon customClassName="nav-icon" icon={cilCloudDownload} />
-                    Download CoreUI
+                <CNavItem className="py-2" href="/CRUD_User">
+                    <CIcon customClassName="nav-icon" icon={cilUser} />
+                    Quản lý nhân viên
                 </CNavItem>
-                <CNavItem href="https://coreui.io/pro/">
-                    <CIcon customClassName="nav-icon" icon={cilLayers} />
-                    Try CoreUI PRO
+                <CNavItem className="py-2" href="/CRUD_Department">
+                    <CIcon customClassName="nav-icon" icon={cilBuilding} />
+                    Quản lý phòng ban
+                </CNavItem>
+                <CNavItem className="py-2" href="/CRUD_Account">
+                    <CIcon customClassName="nav-icon" icon={cilLockLocked} />
+                    Quản lý tài khoản
+                </CNavItem>
+                <CNavItem className="py-2" href="/CRUD_ImgUser">
+                    <CIcon customClassName="nav-icon" icon={cilImage} />
+                    Quản lý ảnh nhân viên
+                </CNavItem>
+                <CNavItem className="py-2" href="/CRUD_Attendance">
+                    <CIcon customClassName="nav-icon" icon={cilClock} />
+                    Quản lý chấm công
+                </CNavItem>
+                <CNavItem className="py-2" href="/WorkSchedule">
+                    <CIcon customClassName="nav-icon" icon={cilClipboard} />
+                    Lịch làm việc
                 </CNavItem>
             </CSidebarNav>
         </CSidebar>

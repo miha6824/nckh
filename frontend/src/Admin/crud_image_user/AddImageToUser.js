@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import AdSidebar from '../AdNav/AdSidebar';
-import AdNavbar from '../AdNav/AdNavbar';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import styles from './AddImageToUser.module.css'
+import styles from './AddImageToUser.module.css';
 
 function AddImageToUser() {
     const [formData, setFormData] = useState({
@@ -14,17 +12,19 @@ function AddImageToUser() {
         image: '',
         id_user: ''
     });
+    const [errorMessage, setErrorMessage] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const { id } = useParams();
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Lấy thông tin về UserName và ID_User từ server khi component được tải
         axios.get(`http://localhost:8081/userInfo4AddImg/${id}`)
             .then(res => {
                 const userInfo = res.data;
                 setFormData({
-                    ...formData, // Giữ lại các giá trị cũ
+                    ...formData,
                     username: userInfo.UserName,
                     id_user: userInfo.ID_User
                 });
@@ -32,7 +32,7 @@ function AddImageToUser() {
             .catch(err => {
                 console.error("Error fetching user info:", err);
             });
-    },);
+    }, [id]);
 
     const handleChange = (e) => {
         if (e.target.name === 'image') {
@@ -44,16 +44,35 @@ function AddImageToUser() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        setLoading(true);
         const data = new FormData();
         data.append('username', formData.username);
         data.append('image', formData.image);
         data.append('id_user', formData.id_user);
 
-        axios.post(`http://localhost:8081/ImgUserAdd/${id}`, data)
-            .then(res => console.log(res.data))
+        axios.post(`http://localhost:8081/ImgUserAdd/${id}`, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            onUploadProgress: progressEvent => {
+                const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                setUploadProgress(progress);
+            }
+        })
+            .then(res => {
+                console.log(res.data);
+                navigate('/CRUD_ImgUser');
+            })
             .catch(err => {
-                console.error("Error uploading image:", err);
-                console.error("Response data:", err.response.data);
+                if (err.response && err.response.data.error === "No face detected") {
+                    setErrorMessage("Không phát hiện được khuôn mặt trong ảnh. Vui lòng chọn ảnh khác.");
+                } else {
+                    console.error("Error uploading image:", err);
+                    console.error("Response data:", err.response.data);
+                }
+            })
+            .finally(() => {
+                setLoading(false);
             });
     };
 
@@ -62,15 +81,15 @@ function AddImageToUser() {
     };
 
     return (
-
-        <div className="card w-50">
+        <div className={styles.imgAddContainer}>
             <div className="card-header">
                 <div className={styles.backButton} onClick={handleGoBack}>
                     <FontAwesomeIcon icon={faArrowLeft} />
                 </div>
-                <h2 className="card-title">Create User</h2>
+                <h2 className="card-title">Thêm ảnh cho người dùng</h2>
             </div>
             <div className="card-body">
+                {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group mb-3">
                         <label htmlFor="username" className="form-label">Họ và tên</label>
@@ -84,11 +103,17 @@ function AddImageToUser() {
                         <label htmlFor="id_user" className="form-label">ID_User</label>
                         <input type="text" id="id_user" name="id_user" value={formData.id_user} onChange={handleChange} className="form-control" disabled />
                     </div>
-                    <button type="submit" className="btn btn-primary">Create</button>
+                    <button type="submit" className="btn btn-primary">Tạo mới</button>
                 </form>
+                {loading && (
+                    <div className="progress mt-3">
+                        <div className="progress-bar" role="progressbar" style={{ width: `${uploadProgress}%` }} aria-valuenow={uploadProgress} aria-valuemin="0" aria-valuemax="100">
+                            {uploadProgress}%
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
-
     );
 }
 

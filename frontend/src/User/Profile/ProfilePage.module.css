@@ -1,6 +1,7 @@
 .profileContainer {
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 1000px;
+    height: 500px;
+    margin: 100px auto;
     padding: 20px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
@@ -8,43 +9,61 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.profileTitle {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
+.backButton {
+    cursor: pointer;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
     color: #333;
+}
+
+.profileTitle {
     text-align: center;
+    margin-bottom: 20px;
 }
 
 .errorMessage {
     color: red;
+    text-align: center;
     margin-bottom: 10px;
 }
 
-.avatarContainer {
+.profileContent {
     display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
-.placeholderAvatar {
-    width: 150px;
-    height: 150px;
+.leftContent {
+    flex: 1;
+    padding: 0 20px;
+}
+
+.avatarContainer {
+    width: 190px;
+    height: 190px;
+    overflow: hidden;
     border-radius: 50%;
-    background-color: #ced4da;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
+    border: 2px solid #333;
+    margin-left: 40px;
 }
 
 .avatar {
     width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #ddd;
+    height: auto;
+}
+
+.userInfo {
+    text-align: center;
+}
+
+.middleContent {
+    flex: 1;
+    padding: 0 20px;
+}
+
+.rightContent {
+    flex: 1;
+    padding: 0 20px;
 }
 
 .formGroup {
@@ -53,108 +72,83 @@
 
 .formLabel {
     display: block;
-    font-weight: bold;
     margin-bottom: 5px;
+    font-weight: bold;
 }
 
 .formInput,
 .formSelect {
     width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
+    padding: 8px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
     border-radius: 5px;
     box-sizing: border-box;
 }
 
 .formSelect {
-    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>');
+    background-repeat: no-repeat;
+    background-position-x: calc(100% - 12px);
+    background-position-y: 50%;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
 }
 
 .submitButton,
 .changePasswordButton,
 .cancelButton {
-    display: inline-block;
     padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
     border: none;
     border-radius: 5px;
-    cursor: pointer;
 }
 
 .submitButton {
-    background-color: #007bff;
+    background-color: #4CAF50;
     color: white;
 }
 
 .changePasswordButton {
-    background-color: #28a745;
+    background-color: #2196F3;
     color: white;
-    margin-left: 10px;
 }
 
 .cancelButton {
-    background-color: #dc3545;
+    background-color: #f44336;
     color: white;
-}
-
-.buttonContainer {
-    text-align: center;
-    margin-top: 20px;
+    width: 120px;
 }
 
 .overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2;
+    z-index: 999;
 }
 
 .changePasswordForm {
-    background-color: #f9f9f9;
+    background-color: white;
     padding: 20px;
-    border: 1px solid #ccc;
+    width: 300px;
     border-radius: 5px;
-    width: 90%;
-    max-width: 400px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.changePasswordForm h3 {
     text-align: center;
-}
-
-.backButton {
-    cursor: pointer;
-    transition: font-size 0.3s, color 0.3s;
-}
-
-.backButton:hover {
-    font-size: 24px;
-    color: #007bff;
-}
-
-@media (max-width: 768px) {
-    .profileContainer {
-        padding: 10px;
-    }
-
-    .avatar {
-        width: 120px;
-        height: 120px;
-    }
-
-    .formInput,
-    .formSelect {
-        font-size: 14px;
-    }
-
-    .submitButton,
-    .changePasswordButton,
-    .cancelButton {
-        font-size: 14px;
-    }
+    margin-bottom: 20px;
 }

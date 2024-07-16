@@ -1,4 +1,4 @@
-.HomepageContainer {
+.homepageContainer {
     max-width: 1500px;
     margin: 0 auto;
     padding: 20px;
@@ -8,35 +8,75 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.HomepageTitle {
-    font-size: 24px;
+.homepageTitle {
+    font-size: 28px;
     font-weight: bold;
     margin-bottom: 20px;
-    color: #333;
+    color: #4CAF50;
     text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .errorMessage {
     color: red;
     margin-bottom: 10px;
+    text-align: center;
 }
 
-.HomepageTable {
+.homepageTable {
     width: 100%;
     border-collapse: collapse;
 }
 
-.HomepageTable th, .HomepageTable td {
+.homepageTable th, .homepageTable td {
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 10px;
     text-align: center;
+    font-size: 16px;
 }
 
-.HomepageTable th {
-    background-color: #f2f2f2;
+.homepageTable th {
+    background-color: #4CAF50;
+    color: white;
     font-weight: bold;
 }
 
-.HomepageTable tr:nth-child(even) {
-    background-color: #f9f9f9;
+.homepageTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.homepageTable tr:hover {
+    background-color: #ddd;
+}
+
+.tableRow {
+    transition: background-color 0.3s ease;
+}
+
+.tableRow:hover {
+    background-color: #f1f1f1;
+}
+
+.late, .earlyLeave, .onTime {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.late {
+    color: #ff4d4d;
+}
+
+.earlyLeave {
+    color: #ff8533;
+}
+
+.onTime {
+    color: #4CAF50;
+}
+
+.fa-icon {
+    font-size: 14px;
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa';
 import styles from './home.module.css';
 
 const Homepage = () => {
@@ -9,7 +10,6 @@ const Homepage = () => {
     useEffect(() => {
         const fetchAttendanceData = async () => {
             const userID = localStorage.getItem('ID_user');
-            console.log("User ID from localStorage:", userID);
             if (!userID) {
                 setError("Không tìm thấy User ID trong localStorage");
                 return;
@@ -20,43 +20,65 @@ const Homepage = () => {
                 setAttendanceData(res.data);
             } catch (err) {
                 setError(err.response ? err.response.data : "Lỗi khi lấy dữ liệu chấm công");
-                console.log(err);
+                console.error(err);
             }
         };
 
         fetchAttendanceData();
     }, []);
 
+    const formatTime = (time) => {
+        return time ? time : 'N/A';
+    };
+
     return (
-        <div>
-            <div className={styles.HomepageContainer}>
-                <h2 className={styles.HomepageTitle}>Lịch sử chấm công</h2>
-                {error && <p className={styles.errorMessage}>{error}</p>}
-                <table className={styles.HomepageTable}>
-                    <thead>
-                        <tr>
-                            <th>Ngày</th>
-                            <th>Giờ vào</th>
-                            <th>Giờ ra</th>
-                            <th>Đi trễ (phút)</th>
-                            <th>Về sớm (phút)</th>
-                            <th>Làm thêm (phút)</th>
+        <div className={styles.homepageContainer}>
+            <h2 className={styles.homepageTitle}>Lịch sử chấm công</h2>
+            {error && <p className={styles.errorMessage}>{error}</p>}
+            <table className={styles.homepageTable}>
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Giờ vào</th>
+                        <th>Giờ ra</th>
+                        <th>Đi trễ (phút)</th>
+                        <th>Về sớm (phút)</th>
+                        <th>Làm thêm (phút)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {attendanceData.map((record, index) => (
+                        <tr key={index} className={styles.tableRow}>
+                            <td>{record.Date}</td>
+                            <td>{formatTime(record.CheckIn)}</td>
+                            <td>{formatTime(record.CheckOut)}</td>
+                            <td>
+                                {record.LateMinutes ? (
+                                    <span className={styles.late}>
+                                        <FaTimesCircle /> {record.LateMinutes}
+                                    </span>
+                                ) : (
+                                    <span className={styles.onTime}>
+                                        <FaCheckCircle /> 0
+                                    </span>
+                                )}
+                            </td>
+                            <td>
+                                {record.EarlyLeaveMinutes ? (
+                                    <span className={styles.earlyLeave}>
+                                        <FaTimesCircle /> {record.EarlyLeaveMinutes}
+                                    </span>
+                                ) : (
+                                    <span className={styles.onTime}>
+                                        <FaCheckCircle /> 0
+                                    </span>
+                                )}
+                            </td>
+                            <td>{record.OvertimeMinutes ? <FaClock /> : '0'}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {attendanceData.map((record, index) => (
-                            <tr key={index}>
-                                <td>{record.Date}</td>
-                                <td>{record.CheckIn || 'N/A'}</td>
-                                <td>{record.CheckOut || 'N/A'}</td>
-                                <td>{record.LateMinutes || 0}</td>
-                                <td>{record.EarlyLeaveMinutes || 0}</td>
-                                <td>{record.OvertimeMinutes || 0}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }

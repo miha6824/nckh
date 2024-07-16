@@ -110,3 +110,9 @@
   color: white;
   border: 1px solid #007bff;
 }
+.pageItem.active .pageLink,
+.pageLink.activeLink {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}

@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import UserNavbar from '../Navbar/UserNavbar';
 import DefaultAvatar from '../../assets/avatarinUploadpage.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import styles from './ProfilePage.module.css';
 
-const Profile = () => {
+const ProfilePage = () => {
     const [userInfo, setUserInfo] = useState({
         email: '',
         fullName: '',
         dob: '',
         phoneNumber: '',
         address: '',
-        gender: ''
+        gender: '',
+        id_department: '',
+        hsl: ''
+    });
+
+    const [departmentName, setDepartmentName] = useState('');
+    const [positionInfo, setPositionInfo] = useState({
+        position: ''
     });
 
     const [showChangePassword, setShowChangePassword] = useState(false);
@@ -32,16 +38,32 @@ const Profile = () => {
             }
 
             try {
-                const res = await axios.get(`http://localhost:8081/user/${userID}`);
-                const PreUserInfo = res.data;
+                const userRes = await axios.get(`http://localhost:8081/user/${userID}`);
+                const positionRes = await axios.get(`http://localhost:8081/user_position/${userID}`);
+
+                const userData = userRes.data;
                 setUserInfo({
-                    email: PreUserInfo.Email,
-                    fullName: PreUserInfo.FullName,
-                    dob: new Date(PreUserInfo.BirthDay).toISOString().split('T')[0],
-                    phoneNumber: PreUserInfo.Telephone,
-                    address: PreUserInfo.Address,
-                    gender: PreUserInfo.Sex
+                    email: userData.Email,
+                    fullName: userData.FullName,
+                    dob: new Date(userData.BirthDay).toISOString().split('T')[0],
+                    phoneNumber: userData.Telephone,
+                    address: userData.Address,
+                    gender: userData.Sex,
+                    id_department: userData.ID_Department,
+                    hsl: userData.HSLuong
                 });
+
+                const positions = positionRes.data;
+                setPositionInfo({
+                    position: positions.position
+                });
+
+                if (userData.ID_Department) {
+                    const departmentRes = await axios.get(`http://localhost:8081/DepartmentName/${userData.ID_Department}`);
+                    setDepartmentName(departmentRes.data);
+                } else {
+                    setDepartmentName("Không thuộc phòng ban nào");
+                }
 
             } catch (err) {
                 setError(err.response ? err.response.data : "Lỗi khi lấy dữ liệu người dùng");
@@ -118,85 +140,106 @@ const Profile = () => {
                 </div>
                 <h2 className={styles.profileTitle}>Thông tin cá nhân</h2>
                 {error && <p className={styles.errorMessage}>{error}</p>}
-                <form onSubmit={handleSubmit} className={styles.profileForm}>
-                    <div className={styles.avatarContainer}>
-                        <div className={styles.placeholderAvatar}><img src={DefaultAvatar} alt="Default Avatar" className={styles.avatar} /></div>
+                <div className={styles.profileContent}>
+                    <div className={styles.leftContent}>
+                        <div className={styles.avatarContainer}>
+                            <img src={DefaultAvatar} alt="Avatar" className={styles.avatar} />
+                        </div>
+                        <div className={styles.userInfo}>
+                            <text><strong>{userInfo.fullName}</strong></text>
+                            <p>{positionInfo.position}</p>
+                        </div>
                     </div>
-                    <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>Email:</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={userInfo.email}
-                            onChange={handleChange}
-                            className={styles.formInput}
-                            required
-                            disabled
-                        />
+                    <div className={styles.middleContent}>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Email:</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={userInfo.email}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                required
+                                disabled
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Ngày sinh:</label>
+                            <input
+                                type="date"
+                                name="dob"
+                                value={userInfo.dob}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                required
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Số điện thoại:</label>
+                            <input
+                                type="tel"
+                                name="phoneNumber"
+                                value={`0${userInfo.phoneNumber}`}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                required
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Hệ số lương:</label>
+                            <input
+                                type="text"
+                                name="address"
+                                value={userInfo.hsl}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                disabled
+                            />
+                        </div>
                     </div>
-                    <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>Họ và tên:</label>
-                        <input
-                            type="text"
-                            name="fullName"
-                            value={userInfo.fullName}
-                            onChange={handleChange}
-                            className={styles.formInput}
-                            required
-                        />
+                    <div className={styles.rightContent}>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Địa chỉ:</label>
+                            <input
+                                type="text"
+                                name="address"
+                                value={userInfo.address}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                required
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Giới tính:</label>
+                            <select
+                                name="gender"
+                                value={userInfo.gender}
+                                onChange={handleChange}
+                                className={styles.formSelect}
+                                required
+                            >
+                                <option value="">Chọn giới tính</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Phòng ban:</label>
+                            <input
+                                type="text"
+                                name="departmentName"
+                                value={departmentName}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                disabled
+                            />
+                        </div>
+                        <div className={styles.buttonContainer}>
+                            <button type="submit" onClick={handleSubmit} className={styles.submitButton}>Lưu thông tin</button>
+                            <button type="button" onClick={() => setShowChangePassword(true)} className={styles.changePasswordButton}>Đổi mật khẩu</button>
+                        </div>
                     </div>
-                    <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>Ngày sinh:</label>
-                        <input
-                            type="date"
-                            name="dob"
-                            value={userInfo.dob}
-                            onChange={handleChange}
-                            className={styles.formInput}
-                            required
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>Số điện thoại:</label>
-                        <input
-                            type="tel"
-                            name="phoneNumber"
-                            value={userInfo.phoneNumber}
-                            onChange={handleChange}
-                            className={styles.formInput}
-                            required
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>Địa chỉ:</label>
-                        <input
-                            type="text"
-                            name="address"
-                            value={userInfo.address}
-                            onChange={handleChange}
-                            className={styles.formInput}
-                            required
-                        />
-                    </div>
-                    <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>Giới tính:</label>
-                        <select
-                            name="gender"
-                            value={userInfo.gender}
-                            onChange={handleChange}
-                            className={styles.formSelect}
-                            required
-                        >
-                            <option value="">Chọn giới tính</option>
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                        </select>
-                    </div>
-                    <div className={styles.buttonContainer}>
-                        <button type="submit" className={styles.submitButton}>Lưu thông tin</button>
-                        <button type="button" className={styles.changePasswordButton} onClick={() => setShowChangePassword(true)}>Đổi mật khẩu</button>
-                    </div>
-                </form>
+                </div>
                 {showChangePassword && (
                     <div className={styles.overlay}>
                         <form onSubmit={handlePasswordSubmit} className={styles.changePasswordForm}>
@@ -223,7 +266,7 @@ const Profile = () => {
                                 />
                             </div>
                             <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>Nhập lại mật khẩu:</label>
+                                <label className={styles.formLabel}>Nhập lại mật khẩu mới:</label>
                                 <input
                                     type="password"
                                     name="confirmPassword"
@@ -235,7 +278,7 @@ const Profile = () => {
                             </div>
                             <div className={styles.buttonContainer}>
                                 <button type="submit" className={styles.submitButton}>Đổi mật khẩu</button>
-                                <button type="button" className={styles.cancelButton} onClick={() => setShowChangePassword(false)}>Hủy</button>
+                                <button type="button" onClick={() => setShowChangePassword(false)} className={styles.cancelButton}>Hủy</button>
                             </div>
                         </form>
                     </div>
@@ -243,6 +286,6 @@ const Profile = () => {
             </div>
         </div>
     );
-}
+};
 
-export default Profile;
+export default ProfilePage;

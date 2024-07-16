@@ -10,7 +10,7 @@ function CRUD_ImgUser() {
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedUserId, setExpandedUserId] = useState(null);
-    const usersPerPage = 7; // Display 5 images per page
+    const usersPerPage = 6;
 
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_ImgUser')
@@ -35,7 +35,7 @@ function CRUD_ImgUser() {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
-        setCurrentPage(0); // Reset to first page on new search
+        setCurrentPage(0);
     };
 
     const toggleExpand = (userId) => {
@@ -66,8 +66,8 @@ function CRUD_ImgUser() {
     const pageCount = Math.ceil(Object.keys(groupedUsers).length / usersPerPage);
 
     return (
-        <div className={styles.crudUserImgContainer}>
-            <div className="d-flex justify-content-between mb-2 align-items-center">
+        <div className={`${styles.crudUserImgContainer} container-fluid`}>
+            <div className="d-flex justify-content-between mb-3 align-items-center">
                 <h2>Quản lý ảnh nhân viên</h2>
                 <div className="d-flex align-items-center">
                     <input
@@ -77,11 +77,14 @@ function CRUD_ImgUser() {
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
+                    <Link to="/ImgUserAdd" className={styles.addButton}>
+                        <FaPlus />
+                    </Link>
                 </div>
             </div>
-            <div className={styles.tableContainer}>
-                <table className={`table ${styles.table}`}>
-                    <thead>
+            <div className={`${styles.tableContainer} table-responsive`}>
+                <table className="table table-bordered">
+                    <thead className={styles.tableHeader}>
                         <tr>
                             <th>ID_User</th>
                             <th>Họ và Tên</th>
@@ -117,11 +120,11 @@ function CRUD_ImgUser() {
                                     </div>
                                 </td>
                                 <td className={styles.actions}>
-                                    <Link to={`/ImgUserAdd/${userId}`} className={`btn btn-primary mr-2 ${styles['btn-primary']}`}>
+                                    <Link to={`/ImgUserAdd/${userId}`} className={`${styles.actionButton} ${styles.addButton}`}>
                                         <FaPlus className={styles.icon} /> Thêm
                                     </Link>
-                                    {images.length > 0 && images.length >= 1 && (
-                                        <button onClick={() => toggleExpand(userId)} className={`btn btn-info ${styles['btn-info']}`}>
+                                    {images.length > 0 && (
+                                        <button onClick={() => toggleExpand(userId)} className={`${styles.actionButton} ${styles.viewButton}`}>
                                             <FaEye className={styles.icon} /> {expandedUserId === userId ? 'Thu gọn' : 'Xem ảnh'}
                                         </button>
                                     )}
@@ -131,7 +134,6 @@ function CRUD_ImgUser() {
                                 </td>
                             </tr>
                         ))}
-                        {/* Display default row when no suitable data */}
                         {!currentPageData.length && (
                             <tr>
                                 <td colSpan="4" className="text-center">Không có dữ liệu phù hợp</td>
@@ -151,13 +153,13 @@ function CRUD_ImgUser() {
                     containerClassName={styles.pagination}
                     subContainerClassName={'pages pagination'}
                     activeClassName={'active'}
+                    activeLinkClassName={styles.activeLink}
                     previousClassName={styles.pageItem}
                     nextClassName={styles.pageItem}
                     previousLinkClassName={styles.pageLink}
                     nextLinkClassName={styles.pageLink}
                     pageClassName={styles.pageItem}
                     pageLinkClassName={styles.pageLink}
-                    activeLinkClassName={styles.pageItemActive}
                 />
             </div>
         </div>

@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import AdSidebar from '../AdNav/AdSidebar';
-import AdNavbar from '../AdNav/AdNavbar';
-import styles from './AttendanceSettings.module.css'; // Import CSS module
+import styles from './AttendanceSettings.module.css';
 
 const AttendanceSettings = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());

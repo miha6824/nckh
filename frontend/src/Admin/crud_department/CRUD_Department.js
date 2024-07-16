@@ -2,35 +2,44 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import ReactPaginate from 'react-paginate';
-import { FaEdit, FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaArrowLeft, FaArrowRight, FaTimes } from 'react-icons/fa';
 import styles from './CRUD_Department.module.css';
+import CreateDepartment from './CreateDepartment';
+import DepartmentUpdate from './UpdateDepartment';
 
 function CRUD_Department() {
     const [departments, setDepartments] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(0);
     const [error, setError] = useState('');
-    const departmentsPerPage = 10; // Number of departments per page
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [showUpdateForm, setShowUpdateForm] = useState(false);
+    const [currentDepartmentId, setCurrentDepartmentId] = useState(null);
+
+    const departmentsPerPage = 10;
 
     useEffect(() => {
+        fetchDepartments();
+    }, []);
+
+    const fetchDepartments = () => {
         axios.get('http://localhost:8081/CRUD_Department')
             .then(res => {
                 setDepartments(res.data);
             })
             .catch(err => console.log(err));
-    }, []);
+    };
 
     const handleDelete = async (id) => {
         try {
             const res = await axios.delete(`http://localhost:8081/Delete_department/${id}`);
             if (res.status === 200) {
-                setDepartments(departments.filter(data => data.ID !== id));
-                alert('Xóa thành công');
-                setError(''); // Clear error message if delete is successful
+                fetchDepartments();
+                setError('');
             }
         } catch (err) {
             if (err.response && err.response.data) {
-                setError(err.response.data); // Set error message from server
+                setError(err.response.data);
             } else {
                 console.log(err);
             }
@@ -39,10 +48,9 @@ function CRUD_Department() {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
-        setCurrentPage(0); // Reset to first page on new search
+        setCurrentPage(0);
     };
 
-    // Pagination logic
     const offset = currentPage * departmentsPerPage;
     const filteredDepartments = departments.filter(data =>
         data.TenPhongBan.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,6 +60,35 @@ function CRUD_Department() {
 
     const handlePageClick = ({ selected: selectedPage }) => {
         setCurrentPage(selectedPage);
+    };
+
+    const toggleCreateForm = () => {
+        setShowCreateForm(!showCreateForm);
+    };
+
+    const handleCloseCreateForm = () => {
+        setShowCreateForm(false);
+    };
+
+    const handleCreateSuccess = () => {
+        fetchDepartments();
+        setShowCreateForm(false);
+    };
+
+    const handleUpdateClick = (id) => {
+        setCurrentDepartmentId(id);
+        setShowUpdateForm(true);
+    };
+
+    const handleCloseUpdateForm = () => {
+        setShowUpdateForm(false);
+        setCurrentDepartmentId(null);
+    };
+
+    const handleUpdateSuccess = () => {
+        fetchDepartments();
+        setShowUpdateForm(false);
+        setCurrentDepartmentId(null);
     };
 
     return (
@@ -66,9 +103,9 @@ function CRUD_Department() {
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
-                    <Link to="/create_department" className={styles.addButton}>
+                    <button className={styles.addButton} onClick={toggleCreateForm}>
                         <FaPlus />
-                    </Link>
+                    </button>
                 </div>
             </div>
             {error && <div className="text-danger mb-3">{error}</div>}
@@ -77,7 +114,6 @@ function CRUD_Department() {
                     <thead className={styles.tableHeader}>
                         <tr>
                             <th>ID</th>
-                            <th>Kí hiệu</th>
                             <th>Tên Phòng Ban</th>
                             <th>Actions</th>
                         </tr>
@@ -85,14 +121,19 @@ function CRUD_Department() {
                     <tbody className={styles.tableBody}>
                         {currentPageData.map((data, index) => (
                             <tr key={data.ID}>
-                                <td>{data.ID}</td>
-                                <td>{data.KHPhongBan}</td>
+                                <td>PB{data.ID}</td>
                                 <td>{data.TenPhongBan}</td>
                                 <td className={styles.actions}>
-                                    <Link to={`/update_department/${data.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
+                                    <button
+                                        onClick={() => handleUpdateClick(data.ID)}
+                                        className={`${styles.actionButton} ${styles.editButton}`}
+                                    >
                                         <FaEdit /> Sửa
-                                    </Link>
-                                    <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(data.ID)}>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(data.ID)}
+                                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                                    >
                                         <FaTrash /> Xoá
                                     </button>
                                 </td>
@@ -110,6 +151,7 @@ function CRUD_Department() {
                 onPageChange={handlePageClick}
                 containerClassName={styles.pagination}
                 activeClassName={'active'}
+                activeLinkClassName={styles.activeLink}
                 previousClassName={styles.pageItem}
                 nextClassName={styles.pageItem}
                 previousLinkClassName={styles.pageLink}
@@ -117,6 +159,26 @@ function CRUD_Department() {
                 pageClassName={styles.pageItem}
                 pageLinkClassName={styles.pageLink}
             />
+            {showCreateForm && (
+                <div className={`${styles.createFormOverlay}`}>
+                    <div className={`${styles.createForm}`}>
+                        <button className={styles.closeButton} onClick={handleCloseCreateForm}>
+                            <FaTimes />
+                        </button>
+                        <CreateDepartment onClose={handleCloseCreateForm} onCreateSuccess={handleCreateSuccess} />
+                    </div>
+                </div>
+            )}
+            {showUpdateForm && (
+                <div className={`${styles.createFormOverlay}`}>
+                    <div className={`${styles.createForm}`}>
+                        <button className={styles.closeButton} onClick={handleCloseUpdateForm}>
+                            <FaTimes />
+                        </button>
+                        <DepartmentUpdate id={currentDepartmentId} onClose={handleCloseUpdateForm} onUpdateSuccess={handleUpdateSuccess} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

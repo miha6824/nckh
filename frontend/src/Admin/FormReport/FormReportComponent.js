@@ -52,7 +52,7 @@ const FormReportComponent = () => {
                 const downloadUrl = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = downloadUrl;
-                link.download = `${selectedEmployee} ${startDate} đến ${endDate}.xlsx`; // Example: John Doe 2024-06-24 to 2024-06-30.xlsx
+                link.download = `${selectedEmployee} ${startDate} đến ${endDate}.xlsx`;
                 link.click();
             })
             .catch(error => console.error('Error exporting to Excel:', error));

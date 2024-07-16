@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import UserNavbar from '../Navbar/UserNavbar';
 import axios from 'axios';
 import Webcam from 'react-webcam';
 import Slider from 'react-slick';
@@ -7,8 +6,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import styles from './UploadPhotoPage.module.css';
 import DefaultAvatar from '../../assets/avatarinUploadpage.png';
-import * as faceapi from 'face-api.js'; // Import face-api.js
-
+import * as faceapi from 'face-api.js';
 const UploadPhotoPage = () => {
     const [formData, setFormData] = useState({
         username: '',
@@ -94,7 +92,12 @@ const UploadPhotoPage = () => {
                 fetchUserImages(userID);
             })
             .catch(err => {
-                setError(err.response ? err.response.data : "Lỗi khi upload hình ảnh");
+                if (err.response && err.response.data.error === "No face detected") {
+                    setError("Không phát hiện được khuôn mặt trong ảnh. Vui lòng chọn ảnh khác.");
+                } else {
+                    console.error("Lỗi khi upload ảnh:", err);
+                    console.error("Response data:", err.response.data);
+                }
             });
     };
 

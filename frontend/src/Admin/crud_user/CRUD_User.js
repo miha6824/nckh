@@ -127,6 +127,7 @@ function CRUD_User() {
                 onPageChange={handlePageClick}
                 containerClassName={styles.pagination}
                 activeClassName={'active'}
+                activeLinkClassName={styles.activeLink}
                 previousClassName={styles.pageItem}
                 nextClassName={styles.pageItem}
                 previousLinkClassName={styles.pageLink}

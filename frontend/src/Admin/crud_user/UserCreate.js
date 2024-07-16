@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate
-import styles from './UserCreate.module.css'; // Import the CSS for styling
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import styles from './UserCreate.module.css';
 
 function UserCreate() {
     const navigate = useNavigate();
@@ -14,11 +16,11 @@ function UserCreate() {
         address: '',
         id_departments: '',
         hsl: '',
-        position: ''
+        // position: ''
     });
     const [departments, setDepartments] = useState([]);
     const [salaryScales, setSalaryScales] = useState([]);
-    const [positions, setPositions] = useState([]);
+    // const [positions, setPositions] = useState([]);
 
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_Department')
@@ -28,17 +30,30 @@ function UserCreate() {
         axios.get('http://localhost:8081/HSLuong')
             .then(res => setSalaryScales(res.data))
             .catch(err => console.log(err));
-        axios.get('http://localhost:8081/positions')
-            .then(res => setPositions(res.data))
-            .catch(err => console.log(err));
+        // axios.get('http://localhost:8081/positions')
+        //     .then(res => setPositions(res.data))
+        //     .catch(err => console.log(err));
     }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
+    const handlePhoneNumberInput = (e) => {
+        // Chỉ cho phép các ký tự số
+        const newValue = e.target.value.replace(/\D/g, '');
+        setFormData({ ...formData, phoneNumber: newValue });
+    };
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        // Kiểm tra ngày sinh
+        const currentDate = new Date();
+        const dobDate = new Date(formData.dob);
+        if (dobDate > currentDate) {
+            alert('Ngày sinh không được lớn hơn ngày hiện tại');
+            return; // Không thực hiện gửi dữ liệu
+        }
         axios.post('http://localhost:8081/create_user', formData)
             .then(res => {
                 console.log('Response:', res.data); // Log successful response
@@ -54,10 +69,15 @@ function UserCreate() {
                 }// Log error for debugging
             });
     };
-
+    const handleGoBack = () => {
+        navigate(-1);
+    };
     return (
-        <div className={styles.userCreateContainer}> {/* Use the same container class */}
-            <h2>Create User</h2>
+        <div className={styles.userCreateContainer}>
+            <div className={styles.backButton} onClick={handleGoBack}>
+                <FontAwesomeIcon icon={faArrowLeft} />
+            </div>
+            <h2>Thêm nhân viên</h2>
             <form onSubmit={handleSubmit} className="row">
                 <div className="col-md-6">
                     <div className="form-group">
@@ -72,7 +92,7 @@ function UserCreate() {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Full Name:</label>
+                        <label>Họ và Tên:</label>
                         <input
                             type="text"
                             name="fullName"
@@ -97,7 +117,7 @@ function UserCreate() {
                         </select>
                     </div>
                     <div className="form-group">
-                        <label>Date of Birth:</label>
+                        <label>Ngày sinh:</label>
                         <input
                             type="date"
                             name="dob"
@@ -115,7 +135,7 @@ function UserCreate() {
                             type="number"
                             name="phoneNumber"
                             value={formData.phoneNumber}
-                            onChange={handleChange}
+                            onChange={handlePhoneNumberInput}
                             required
                             className="form-control"
                         />
@@ -133,6 +153,7 @@ function UserCreate() {
                     </div>
                     <div className="form-group">
                         <label>Phòng ban:</label>
+
                         <select
                             name="id_departments"
                             value={formData.id_departments}
@@ -148,7 +169,7 @@ function UserCreate() {
                             ))}
                         </select>
                     </div>
-                    <div className="form-group">
+                    {/* <div className="form-group">
                         <label>Chức vụ:</label>
                         <select
                             name="position"
@@ -164,23 +185,24 @@ function UserCreate() {
                                 </option>
                             ))}
                         </select>
+                    </div> */}
+                    <div className="form-group">
+                        <label>Hệ số lương:</label>
+                        <select
+                            name="hsl"
+                            value={formData.hsl}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        >
+                            <option>Chọn hệ số lương</option>
+                            {salaryScales.map(salary => (
+                                <option key={salary.HSLuong} value={salary.HSLuong}>
+                                    {salary.HSLuong}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-                <div className="form-group">
-                    <label>Hệ số lương:</label>
-                    <select
-                        name="hsl"
-                        value={formData.hsl}
-                        onChange={handleChange}
-                        required
-                        className="form-control"
-                    >
-                        {salaryScales.map(salary => (
-                            <option key={salary.HSLuong} value={salary.HSLuong}>
-                                {salary.HSLuong}
-                            </option>
-                        ))}
-                    </select>
                 </div>
                 <button type="submit" className="btn btn-primary">Tạo</button>
             </form>
