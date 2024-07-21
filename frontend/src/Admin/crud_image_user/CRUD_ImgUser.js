@@ -10,7 +10,7 @@ function CRUD_ImgUser() {
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedUserId, setExpandedUserId] = useState(null);
-    const usersPerPage = 6;
+    const usersPerPage = 4;
 
     useEffect(() => {
         axios.get('http://localhost:8081/CRUD_ImgUser')
@@ -66,7 +66,7 @@ function CRUD_ImgUser() {
     const pageCount = Math.ceil(Object.keys(groupedUsers).length / usersPerPage);
 
     return (
-        <div className={`${styles.crudUserImgContainer} container-fluid`}>
+        <div className={styles.crudUserImgContainer}>
             <div className="d-flex justify-content-between mb-3 align-items-center">
                 <h2>Quản lý ảnh nhân viên</h2>
                 <div className="d-flex align-items-center">
@@ -77,12 +77,9 @@ function CRUD_ImgUser() {
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
-                    <Link to="/ImgUserAdd" className={styles.addButton}>
-                        <FaPlus />
-                    </Link>
                 </div>
             </div>
-            <div className={`${styles.tableContainer} table-responsive`}>
+            <div className={styles.tableContainer}>
                 <table className="table table-bordered">
                     <thead className={styles.tableHeader}>
                         <tr>
@@ -99,8 +96,8 @@ function CRUD_ImgUser() {
                                 <td>{userName}</td>
                                 <td>
                                     <div className={styles.imageContainer}>
-                                        {expandedUserId === userId && (
-                                            images.length > 0 ? (
+                                        {images.length > 0 ? (
+                                            expandedUserId === userId ? (
                                                 images.map(image => (
                                                     <div key={image.ImageID} className={styles.imageWrapper}>
                                                         <img
@@ -114,22 +111,39 @@ function CRUD_ImgUser() {
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className={styles.noImageText}>Chưa có ảnh</div>
+                                                images.slice(0, 5).map(image => (
+                                                    <div key={image.ImageID} className={styles.imageWrapper}>
+                                                        <img
+                                                            src={`http://localhost:8081/Images/${image.Image}`}
+                                                            alt={userName}
+                                                            className={styles.image}
+                                                        />
+                                                        <button onClick={() => handleDelete(image.ImageID)} className={styles.deleteButton}>
+                                                            <FaTimes />
+                                                        </button>
+                                                    </div>
+                                                ))
                                             )
+                                        ) : (
+                                            <div className={styles.noImageText}>Chưa có ảnh</div>
+                                        )}
+                                        {images.length > 5 && expandedUserId !== userId && (
+                                            <div>...</div>
                                         )}
                                     </div>
                                 </td>
                                 <td className={styles.actions}>
                                     <Link to={`/ImgUserAdd/${userId}`} className={`${styles.actionButton} ${styles.addButton}`}>
-                                        <FaPlus className={styles.icon} /> Thêm
+                                        <FaPlus className={styles.icon} />
+                                        <span className="d-none d-md-inline">Thêm</span>
                                     </Link>
-                                    {images.length > 0 && (
+                                    {images.length > 0 && images.length > 5 && (
                                         <button onClick={() => toggleExpand(userId)} className={`${styles.actionButton} ${styles.viewButton}`}>
-                                            <FaEye className={styles.icon} /> {expandedUserId === userId ? 'Thu gọn' : 'Xem ảnh'}
+                                            <FaEye className={styles.icon} /> <span className="d-none d-md-inline">{expandedUserId === userId ? 'Thu gọn' : 'Toàn bộ ảnh'}</span>
                                         </button>
                                     )}
-                                    {images.length === 0 && (
-                                        <div className={styles.noImageText}>Chưa có ảnh</div>
+                                    {images.length <= 5 && (
+                                        <div className={styles.noImageText}>Đã có {images.length} ảnh</div>
                                     )}
                                 </td>
                             </tr>

@@ -1,11 +1,10 @@
 .crudAccountContainer {
-  width: 100%;
-  padding: 20px;
-  overflow-y: auto;
+  width: 90%;
+  margin: 20px auto;
 }
 
 .tableContainer {
-  max-height: calc(100vh - 300px);
+  max-height: 500px;
   overflow-y: auto;
 }
 
@@ -14,11 +13,11 @@
   top: 0;
   background-color: #f8f9fa;
   z-index: 1;
+  text-align: center;
 }
 
 .searchInput {
   width: 200px;
-  margin-right: 10px;
   padding: 8px 15px;
   border: 1px solid #ced4da;
 }
@@ -40,17 +39,8 @@
   border-collapse: collapse;
 }
 
-.tableHeader {
-  position: sticky;
-  top: 0;
+.tableBody {
   text-align: center;
-  z-index: 1;
-}
-.tableBody{
-  position: sticky;
-  top: 0;
-  text-align: center;
-  z-index: 1;
 }
 
 .actions {
@@ -66,7 +56,6 @@
   text-decoration: none;
   text-align: center;
   cursor: pointer;
-  
 }
 
 .editButton {
@@ -114,9 +103,114 @@
   color: white;
   border: 1px solid #007bff;
 }
-.pageItem.active .pageLink,
+
 .pageLink.activeLink {
   background-color: #007bff;
   color: white;
   border: 1px solid #007bff;
+}
+
+@media (max-width: 769px) {
+  .crudAccountContainer {
+    width: 90%;
+    margin: 10px auto;
+  }
+
+  .tableContainer {
+    max-height: 500px;
+    width: auto;
+  }
+
+  .searchInput {
+    width: 150px; 
+  }
+
+  .addButton {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+
+  .table {
+    font-size: 14px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .actionButton{
+  margin-left: 12px;
+  }
+
+  .editButton{
+    width: 30px;
+    padding: 2px;
+  }
+
+  .editButton span {
+    display: none; 
+  }
+}
+
+@media (max-width: 480px) {
+  .crudAccountContainer {
+    padding: 10px;
+  }
+
+  .searchInput {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .addButton {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .table {
+    font-size: 12px;
+  }
+
+  .tableContainer {
+    overflow-x: auto; 
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .actionButton {
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pageItem {
+    margin: 2px 0;
+  }
+
+  .pageLink {
+    padding: 3px 6px;
+  }
+
+  .actionButton{
+    margin-left: 12px;
+    }
+  
+  .editButton{
+      width: 30px;
+      padding: 2px;
+  }
+  
+  .editButton span {
+      display: none; 
+  }
 }

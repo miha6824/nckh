@@ -11,14 +11,11 @@ import UserCreate from './Admin/crud_user/UserCreate';
 import UserUpdate from './Admin/crud_user/UserUpdate';
 import FormReportComponent from './Admin/FormReport/FormReportComponent';
 import CRUD_ImgUser from './Admin/crud_image_user/CRUD_ImgUser';
-import ImgUserCreate from './Admin/crud_image_user/ImgUserCreate';
 import AddImageToUser from './Admin/crud_image_user/AddImageToUser';
 import CRUD_Account from './Admin/crud_account/CRUD_Account';
 import CreateAccount from './Admin/crud_account/CreateAccount';
 import UpdateAccount from './Admin/crud_account/UpdateAccount';
 import CRUD_Department from './Admin/crud_department/CRUD_Department';
-import CreateDepartment from './Admin/crud_department/CreateDepartment';
-import DepartmentUpdate from './Admin/crud_department/UpdateDepartment';
 import CRUD_Attendance from './Admin/crud_attendance/CRUD_Attendance';
 import AddAttendance from './Admin/crud_attendance/AddAttendance';
 import AttendanceSettings from './Admin/crud_attendance/AttendanceSettings';
@@ -54,21 +51,18 @@ function App() {
         <Route path="/create_User" element={<AdminLayout><UserCreate /></AdminLayout>} />
         <Route path="/update_user/:id" element={<AdminLayout><UserUpdate /></AdminLayout>} />
         <Route path="/CRUD_ImgUser" element={<AdminLayout><CRUD_ImgUser /></AdminLayout>} />
-        <Route path="/create_ImgUser" element={<AdminLayout><ImgUserCreate /></AdminLayout>} />
         <Route path="/ImgUserAdd/:id" element={<AdminLayout><AddImageToUser /></AdminLayout>} />
         <Route path="/CRUD_Account" element={<AdminLayout><CRUD_Account /></AdminLayout>} />
         <Route path="/create_Account" element={<AdminLayout><CreateAccount /></AdminLayout>} />
         <Route path="/update_Account/:id" element={<AdminLayout><UpdateAccount /></AdminLayout>} />
         <Route path="/CRUD_Department" element={<AdminLayout><CRUD_Department /></AdminLayout>} />
-        <Route path="/create_department" element={<AdminLayout><CreateDepartment /></AdminLayout>} />
-        <Route path="/DepartmentUpdate/:id" element={<AdminLayout><DepartmentUpdate /></AdminLayout>} />
         <Route path="/CRUD_Attendance" element={<AdminLayout><CRUD_Attendance /></AdminLayout>} />
         <Route path="/AddAttendance" element={<AdminLayout><AddAttendance /></AdminLayout>} />
         <Route path="/AttendanceSettings" element={<AdminLayout><AttendanceSettings /></AdminLayout>} />
         <Route path="/WorkSchedule" element={<AdminLayout><WorkSchedule /></AdminLayout>} />
         <Route path="/FormReportComponent" element={<AdminLayout><FormReportComponent /></AdminLayout>} />
         <Route path="/CreatePosition" element={<AdminLayout><AssignPosition /></AdminLayout>} />
-        <Route path="/CRUD_Positions" element={<AdminLayout><CRUD_PositionDetails /></AdminLayout>} />
+        <Route path="/CRUD_PositionDetails" element={<AdminLayout><CRUD_PositionDetails /></AdminLayout>} />
         <Route path="/PositionUpdate/:id" element={<AdminLayout><PositionDetailUpdate /></AdminLayout>} />
         <Route path="/Crud_Position" element={<AdminLayout><Crud_Position /></AdminLayout>} />
         <Route path="/GetFeatureAndAttendanceSimulator" element={<AdminLayout><GetFeatureAndAttendanceSimulator /></AdminLayout>} />

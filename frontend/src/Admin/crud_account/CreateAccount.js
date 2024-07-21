@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import styles from './CreateAccount.module.css'; // Import the CSS for styling
+import styles from './CreateAccount.module.css';
 
 function CreateAccount() {
     const navigate = useNavigate();
@@ -49,13 +49,13 @@ function CreateAccount() {
         e.preventDefault();
         axios.post('http://localhost:8081/create_account', formData)
             .then(res => {
-                console.log('Response:', res.data); // Log successful response
-                alert('Thêm tài khoản thành công'); // Display success alert
+                console.log('Response:', res.data);
+                alert('Thêm tài khoản thành công');
                 navigate('/CRUD_Account');
             })
             .catch(err => {
                 console.error('Error:', err);
-                alert('Thêm tài khoản thất bại');// Log error for debugging
+                alert('Thêm tài khoản thất bại');
             });
     };
     const handleGoBack = () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './FormReportComponent.module.css';
+import moment from 'moment';
 
 const FormReportComponent = () => {
     const [departments, setDepartments] = useState([]);
@@ -19,15 +20,23 @@ const FormReportComponent = () => {
 
     const handleDepartmentChange = (ID) => {
         setSelectedDepartment(ID);
+        setSelectedEmployee('');
+        setReportData(null);
+
         axios.get(`http://localhost:8081/employees/${ID}`)
             .then(response => setEmployees(response.data))
             .catch(error => console.error('Error fetching employees:', error));
     };
 
+    const handleEmployeeChange = (employeeID) => {
+        setSelectedEmployee(employeeID);
+        setReportData(null);
+    };
+
     const handleGenerateReport = () => {
         const requestData = {
             department: selectedDepartment,
-            employee: selectedEmployee,
+            employee: selectedEmployee === '' ? 'Tất cả nhân viên' : selectedEmployee,
             startDate,
             endDate
         };
@@ -43,7 +52,8 @@ const FormReportComponent = () => {
         const requestData = {
             employee: selectedEmployee,
             startDate,
-            endDate
+            endDate,
+            departmentId: selectedDepartment
         };
 
         axios.post('http://localhost:8081/export-to-excel', requestData, { responseType: 'blob' })
@@ -64,6 +74,10 @@ const FormReportComponent = () => {
         return `${hours}:${minutes}`;
     };
 
+    const formatDateString = (dateString) => {
+        return moment(dateString).format('YYYY-MM-DD');
+    };
+
     return (
         <div className={styles.formReportContainer}>
             <div className={`d-flex flex-wrap align-items-center ${styles.formRow}`}>
@@ -78,15 +92,16 @@ const FormReportComponent = () => {
                 </div>
                 <div className={`${styles.formGroup}`}>
                     <label>Chọn nhân viên:</label>
-                    <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)}>
+                    <select value={selectedEmployee} onChange={(e) => handleEmployeeChange(e.target.value)}>
                         <option value="">-- Chọn nhân viên --</option>
+                        <option value="Tất cả nhân viên">Tất cả nhân viên</option>
                         {employees.map(employee => (
                             <option key={employee.ID} value={employee.ID}>{employee.FullName}</option>
                         ))}
                     </select>
                 </div>
                 <div className={`${styles.datePickerGroup}`}>
-                    <label>Phạm vi báo cáo:</label>
+                    <label>Phạm vi thống kê:</label>
                     <div className={styles.datePickerContainer}>
                         <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                         <span> đến </span>
@@ -94,39 +109,68 @@ const FormReportComponent = () => {
                     </div>
                 </div>
                 <div className={`${styles.generateButtonContainer}`}>
-                    <button className={`${styles.generateButton}`} onClick={handleGenerateReport}>Xem báo cáo</button>
+                    <button className={`${styles.generateButton}`} onClick={handleGenerateReport}>Thống kê</button>
                 </div>
             </div>
             {reportData && (
                 <div className={`${styles.reportContainer}`}>
-                    <h2>Bảng chấm công</h2>
-                    <button className={`${styles.exportButton}`} onClick={handleExportToExcel}>Xuất Excel</button>
-                    <table className={`${styles.reportTable}`}>
-                        <thead>
-                            <tr>
-                                <th>Full Name</th>
-                                <th>Date</th>
-                                <th>Check-in</th>
-                                <th>Check-out</th>
-                                <th>Đi trễ (phút)</th>
-                                <th>Về sớm (phút)</th>
-                                <th>Tăng ca (phút)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {reportData.map((record, index) => (
-                                <tr key={index}>
-                                    <td>{record.FullName}</td>
-                                    <td>{record.Date}</td>
-                                    <td>{formatTime(record.CheckIn)}</td>
-                                    <td>{formatTime(record.CheckOut)}</td>
-                                    <td>{record.LateMinutes}</td>
-                                    <td>{record.EarlyLeaveMinutes}</td>
-                                    <td>{record.OvertimeMinutes}</td>
+                    <div className={`${styles.reportHeader}`}>
+                        <h2>Bảng chấm công</h2>
+                        <button className={`${styles.exportButton}`} onClick={handleExportToExcel}>Xuất Excel</button>
+                    </div>
+                    {selectedEmployee === 'Tất cả nhân viên' ? (
+                        <table className={`${styles.reportTable}`}>
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Tổng thời gian đi trễ (phút)</th>
+                                    <th>Tổng thời gian về sớm (phút)</th>
+                                    <th>Tổng thời gian tăng ca (phút)</th>
+                                    <th>Tổng thời gian làm việc</th>
+                                    <th>Số công</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {reportData.map((record, index) => (
+                                    <tr key={index}>
+                                        <td>{record.FullName}</td>
+                                        <td>{record.TotalLateMinutes}</td>
+                                        <td>{record.TotalEarlyLeaveMinutes}</td>
+                                        <td>{record.TotalOvertimeMinutes}</td>
+                                        <td>{record.TotalWorkHours} giờ</td>
+                                        <td>{record.TotalWorkDays}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <table className={`${styles.reportTable}`}>
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Date</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Late Minutes</th>
+                                    <th>Early Leave Minutes</th>
+                                    <th>Overtime Minutes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {reportData.map((record, index) => (
+                                    <tr key={index}>
+                                        <td>{record.FullName}</td>
+                                        <td>{formatDateString(record.Date)}</td>
+                                        <td>{formatTime(record.CheckIn)}</td>
+                                        <td>{formatTime(record.CheckOut)}</td>
+                                        <td>{record.LateMinutes}</td>
+                                        <td>{record.EarlyLeaveMinutes}</td>
+                                        <td>{record.OvertimeMinutes}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             )}
         </div>

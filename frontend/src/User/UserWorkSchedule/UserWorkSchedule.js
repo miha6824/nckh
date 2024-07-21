@@ -3,7 +3,6 @@ import axios from 'axios';
 import moment from 'moment';
 import { FaClock, FaCalendarAlt } from 'react-icons/fa';
 import styles from './UserWorkSchedule.module.css';
-import { Link } from 'react-router-dom';
 
 const WorkSchedule = () => {
     const [schedule, setSchedule] = useState([]);
@@ -42,8 +41,8 @@ const WorkSchedule = () => {
         sortedSchedule.forEach(day => {
             const dayOfWeek = moment(day.date).isoWeekday();
 
-            if (dayOfWeek >= 2 && dayOfWeek <= 6) {
-                if (dayOfWeek === 2 && currentWeek.length > 0) {
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                if (dayOfWeek === 1 && currentWeek.length > 0) {
                     weeks.push(currentWeek);
                     currentWeek = [];
                 }

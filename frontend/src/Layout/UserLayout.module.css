@@ -1,0 +1,23 @@
+/* UserLayout.module.css */
+
+/* Mặc định cho các màn hình lớn */
+.userLayout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.userNavbar {
+    height: 60px;
+    background-color: #333; /* Màu nền của Navbar */
+    color: #fff; /* Màu chữ của Navbar */
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ cho Navbar */
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+}

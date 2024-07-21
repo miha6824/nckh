@@ -3,17 +3,86 @@
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-width: 800px;
+  max-width: 1000px;
   width: 100%;
-  margin: 100px auto;
+  margin: 150px auto; 
+  box-sizing: border-box;
 }
 
 .backButton {
   cursor: pointer;
   transition: font-size 0.3s, color 0.3s;
+  display: flex; 
+  align-items: center;
+  margin-bottom: 20px; 
 }
 
 .backButton:hover {
   font-size: 24px;
   color: #007bff;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+form .form-group {
+  margin-bottom: 15px; 
+}
+
+textarea.form-control {
+  resize: vertical; 
+}
+
+@media (max-width: 768px) {
+  .updatePositionContainer {
+    margin: 10px; 
+    padding: 15px; 
+    justify-content: center;
+    align-items: center;
+    width: 530px;
+    margin: 20px auto;
+  }
+
+  .form-group {
+    width: 100%;
+  }
+  
+  .form-control {
+    width: 100%;
+  }
+
+  h2 {
+    font-size: 1.5rem; 
+  }
+  
+  .backButton {
+    font-size: 20px; 
+  }
+}
+
+@media (max-width: 480px) {
+  .updatePositionContainer {
+    margin: 10px auto; 
+    padding: 10px; 
+    justify-content: center;
+    align-items: center;
+    width: auto;
+  }
+
+  .form-group {
+    margin-bottom: 10px; 
+  }
+
+  .form-control {
+    font-size: 0.875rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+  
+  .backButton {
+    font-size: 18px; 
+  }
 }

@@ -1,14 +1,15 @@
 import React from 'react';
 import AdNavbar from '../Admin/AdNav/AdNavbar';
 import AdSidebar from '../Admin/AdNav/AdSidebar';
+import styles from './AdminLayout.module.css';
 
 const AdminLayout = ({ children }) => {
     return (
-        <div className="d-flex vh-100">
-            <AdSidebar />
-            <div className="d-flex flex-column flex-grow-1  ">
-                <AdNavbar />
-                <div className="container-fluid vh-100 overflow-auto">
+        <div className={styles.container}>
+            <AdNavbar className={styles.navbar} />
+            <div className={styles.content}>
+                <AdSidebar className={styles.sidebar} />
+                <div className={styles.mainContent}>
                     {children}
                 </div>
             </div>

@@ -1,131 +1,230 @@
+.crudPositionContainer {
+  width: 90%;
+  margin: 20px auto;
+}
+
+.tableContainer {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.tableHeader {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  text-align: center;
+  z-index: 1;
+  font-weight: bold;
+}
+
+.tableBody {
+  text-align: center;
+}
+
+.searchInput {
+  width: 200px;
+  margin-right: 10px;
+  padding: 8px 15px;
+}
+
+.departmentSelect {
+  padding: 8px 12px;
+  background-color: #fff;
+  color: #495057;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #28a745;
+  color: #fff;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.addButton:hover {
+  background-color: #218838;
+}
+
+.positionTable {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.actionButton {
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.editButton {
+  background-color: #004d9f;
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.editButton:hover {
+  background-color: #0079fb;
+}
+
+.deleteButton {
+  background-color: #dc3545;
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.deleteButton:hover {
+  background-color: #c82333;
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  list-style-type: none;
+  padding: 0;
+}
+
+.pageItem {
+  margin: 0 2px;
+}
+
+.pageLink {
+  border: 1px solid #dee2e6;
+  padding: 5px 10px;
+  color: #007bff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pageItem.active .pageLink,
+.pageLink.activeLink {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}
+
+.controlsContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -10px;
+}
+
+.actionButton1 {
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.naviButton{
+  background-color: #004d9f;
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.naviButton:hover{
+  background-color: #0079fb;
+}
+
+@media (max-width: 769px) {
   .crudPositionContainer {
-    width: 90%;
-    margin: 20px auto;
+    width: 95%;
+    margin: 10px auto;
   }
 
-  .tableContainer {
-    max-height: 500px;
-    overflow-y: auto;
-  }
-
-  .tableHeader {
-    position: sticky;
-    top: 0;
-    background-color: #f8f9fa; /* Background color for sticky header */
-    text-align: center;
-    z-index: 1;
-    font-weight: bold;
-  }
-
-  .tableBody {
-    text-align: center;
-  }
-
-  .searchInput {
-    width: 200px;
-    margin-right: 10px;
-    padding: 8px 15px;
-    border: 1px solid #ced4da;
-  
-  }
-
-  .departmentSelect {
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    background-color: #fff;
-    color: #495057;
-    cursor: pointer;
-    margin-right: 10px;
+  .searchInput,
+  .departmentSelect,
+  .addButton {
+    width: 100%;
+    margin: 5px 5px;
+    padding: 8px 10px;
   }
 
   .addButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
     height: 40px;
-    background-color: #28a745;
-    color: #fff;
-    font-size: 18px;
-    text-decoration: none;
+    width: 50px;
+    font-size: 16px;
   }
 
-  .addButton:hover {
-    background-color: #218838;
+  .searchInput,
+  .departmentSelect{
+    height: 40px;
   }
 
-  .positionTable {
-    width: 100%;
-  }
 
-  .actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
+  .tableHeader, .tableBody {
+    font-size: 14px;
   }
 
   .actionButton {
-    padding: 8px 12px;
-    border-radius: 4px;
-    text-decoration: none;
-    text-align: center;
-  }
-
-  .editButton {
-    background-color: #004d9f;
-    color: #fff;
-    border: 1px solid transparent;
-  }
-
-  .editButton:hover {
-    background-color: #0079fb;
-  }
-
-  .deleteButton {
-    background-color: #dc3545;
-    color: #fff;
-    border: 1px solid transparent;
-  }
-
-  .deleteButton:hover {
-    background-color: #c82333;
+    padding: 8px;
+    font-size: 14px;
   }
 
   .pagination {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 1rem;
-    list-style-type: none;
-    padding: 0;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .crudPositionContainer {
+    width: 90%;
+    margin: 10px auto;
+    padding: 10px;
   }
 
-  .pageItem {
-    margin: 0 2px;
+  .searchInput, 
+  .departmentSelect{
+    width: 70px;
+    height: 30px;
+    margin: 5px 5px;
+    padding: 8px 10px;
   }
 
-  .pageLink {
-    border: 1px solid #dee2e6;
-    padding: 5px 10px;
-    color: #007bff;
-    text-decoration: none;
-    cursor: pointer;
+  .addButton {
+    height: 30px;
+    width: 30px;
+    font-size: 16px;
   }
 
-  .pageItem.active .pageLink,
-  .pageLink.activeLink {
-    background-color: #007bff;
-    color: white;
-    border: 1px solid #007bff;
+  .tableHeader, .tableBody {
+    font-size: 12px;
   }
+
+  .actionButton {
+    padding: 6px;
+    font-size: 0; 
+  }
+
+  .actionButton .FaEdit,
+  .actionButton .FaTrash {
+    font-size: 16px; 
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+
   .controlsContainer {
-    display: flex;
-    justify-content: space-between; /* Căn phần tử con vào hai bên */
-    align-items: center; /* Căn các phần tử con theo chiều dọc */
-    margin-top: -10px;
+    flex-direction: column;
+    align-items: flex-start;
   }
-  .actionButton1{
-    padding: 4px 12px;
-    border-radius: 4px;
-    text-decoration: none;
-    text-align: center;
+
+  .actionButton1 {
+    padding: 6px 12px;
+    font-size: 14px;
   }
+}

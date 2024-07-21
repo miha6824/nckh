@@ -1,11 +1,11 @@
 .imgAddContainer {
-    width: 50%;
+    width: 90%;
     background-color: #f8f9fa;
-    padding: 2rem;
+    padding: 1rem;
     border-radius: 0.5rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    margin: 0 auto;
-    margin-top: 150px;
+    margin: 110px auto;
+    position: relative;
 }
 
 
@@ -17,4 +17,100 @@
 .backButton:hover {
     font-size: 24px;
     color: #007bff;
+}
+
+.blurForm {
+    filter: blur(5px);
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    background: white; 
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.successMessage {
+    color: green;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+@media (max-width: 769px) {
+    .imgAddContainer {
+        width: 95%;
+        margin: 40px auto;
+    }
+
+    .card-header {
+        font-size: 1.25rem;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .backButton {
+        font-size: 20px;
+    }
+
+    .successMessage {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .imgAddContainer {
+        width: 100%;
+        margin: 30px auto;
+        padding: 0.5rem;
+    }
+
+    .card-header {
+        font-size: 1rem;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+    }
+
+    .form-group {
+        margin-bottom: 0.75rem;
+    }
+
+    .btn {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .backButton {
+        font-size: 18px;
+    }
+
+    .successMessage {
+        font-size: 0.75rem;
+    }
 }

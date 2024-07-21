@@ -1,0 +1,92 @@
+.customNavbar {
+  position: relative;
+  background-color: #1b1a1a; 
+  height: 80px !important;
+  margin: 0 !important;
+}
+
+.logo {
+  height: 50px;
+  margin-left: 10px;
+}
+
+.avatarContainer {
+  display: flex;
+  align-items: center;
+}
+
+.placeholderAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ced4da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.dropdownToggle {
+  color: #fff !important;
+  position: relative;
+  margin-right: 10px; 
+}
+
+.dropdownMenu {
+  background-color: #1b1a1a !important;
+  position: absolute;
+  top: 100%;
+  z-index: 1000;
+}
+
+.dropdownItem {
+  color: #fff !important; 
+}
+
+.dropdownItem:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+@media (max-width: 769px) {
+  .navbarNav {
+    display: none; 
+  }
+
+
+  .logoBrand {
+    height: auto;
+    max-height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbarBrand img {
+    max-height: 30px;
+    position: absolute;
+    bottom: 10px;
+    left: 10px; 
+  }
+
+  .navLink {
+    font-size: 14px;
+    padding: 0.5rem;
+  }
+
+  .avatarContainer {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .placeholderAvatar {
+    margin-left: 0;
+  }
+}

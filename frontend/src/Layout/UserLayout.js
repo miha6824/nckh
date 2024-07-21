@@ -1,11 +1,12 @@
 import React from 'react';
-import UserNavbar from '../User/Navbar/UserNavbar'
+import UserNavbar from '../User/Navbar/UserNavbar';
+import styles from './UserLayout.module.css';
 
 const UserLayout = ({ children }) => {
     return (
-        <div className="user-layout">
-            <UserNavbar />
-            <div className="content">
+        <div className={styles.userLayout}>
+            <UserNavbar className={styles.userNavbar} />
+            <div className={styles.content}>
                 {children}
             </div>
         </div>

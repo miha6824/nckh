@@ -1,12 +1,11 @@
 .crudDepartmentContainer {
   position: relative;
-  width: 100%;
-  padding: 20px;
-  overflow-y: auto;
+  width: 90%;
+  margin: 20px auto;
 }
 
 .tableContainer {
-  max-height: calc(100vh - 300px);
+  max-height: 500px;
   overflow-y: auto;
 }
 
@@ -30,12 +29,15 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  background-color: #24c74a;
+  background-color: #28a745;
   color: #fff;
   font-size: 18px;
   margin-left: 10px;
 }
 
+.departmentTable {
+  width: 100%;
+}
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -47,7 +49,8 @@
   text-align: center;
   z-index: 1;
 }
-.tableBody{
+
+.tableBody {
   position: sticky;
   top: 0;
   text-align: center;
@@ -61,32 +64,30 @@
 }
 
 .actionButton {
-  display: inline-block;
-  padding: 5px 6px;
+  padding: 8px 12px;
   border-radius: 4px;
   text-decoration: none;
   text-align: center;
-  cursor: pointer;
 }
 
 .editButton {
-  background-color: #0056b3;
+  background-color: #004d9f;
   color: #fff;
   border: 1px solid transparent;
 }
 
 .editButton:hover {
-  background-color: #003f7f;
+  background-color: #0079fb;
 }
 
 .deleteButton {
-  background-color: #ff0000;
+  background-color: #dc3545;
   color: #fff;
   border: 1px solid transparent;
 }
 
 .deleteButton:hover {
-  background-color: #a71d2a;
+  background-color: #c82333;
 }
 
 .pagination {
@@ -114,19 +115,21 @@
   color: white;
   border: 1px solid #007bff;
 }
+
 .pageItem.active .pageLink,
 .pageLink.activeLink {
   background-color: #007bff;
   color: white;
   border: 1px solid #007bff;
 }
+
 .createFormOverlay {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(255, 255, 255, 0.8); /* Transparent background for overlay */
-  z-index: 1000; /* Ensure it's above other content */
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 1000;
   width: 100%;
 }
 
@@ -139,11 +142,75 @@
   border: 1px solid #000000;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 400px; 
+  width: 400px;
 }
+
 .closeButton {
   position: absolute;
   top: 10px;
   right: 10px;
   color: #ff0000;
+}
+
+@media (max-width: 769px) {
+  .crudDepartmentContainer {
+    width: 95%;
+    margin: 10px auto;
+  }
+
+  .searchInput,
+  .addButton  {
+    width: 150px;
+    margin-right: 5px;
+    padding: 6px 10px;
+    height: 40px;
+  }
+
+  .addButton {
+    width: 50px;
+    font-size: 16px;
+  }
+
+  .tableHeader, .tableBody {
+    font-size: 14px;
+  }
+
+  .actionButton {
+    padding: 8px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .crudDepartmentContainer {
+    padding: 5px;
+  }
+
+  .searchInput {
+    width: 100px;
+    margin-right: 2px;
+    padding: 5px 8px;
+  }
+
+  .addButton {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    margin-left: 3px;
+  }
+
+  .tableHeader,
+  .tableBody {
+    font-size: 12px;
+  }
+
+  .actionButton {
+    padding: 6px;
+    font-size: 0; 
+  }
+
+  .actionButton .FaEdit,
+  .actionButton .FaTrash {
+    font-size: 16px; 
+  }
 }

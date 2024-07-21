@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import styles from './AddAttendance.module.css';
 
 function AddAttendance() {
@@ -45,14 +46,21 @@ function AddAttendance() {
         }
     };
 
+    const handleGoBack = () => {
+        navigate(-1);
+    };
+
     return (
         <div className={styles.addAttendanceContainer}>
+            <div className={styles.backButton} onClick={handleGoBack}>
+                <FontAwesomeIcon icon={faArrowLeft} />
+            </div>
             <h2>Thêm chấm công</h2>
             <form onSubmit={handleSubmit} className={styles.attendanceForm}>
-                <div className="form-group">
+                <div className={styles.formGroup}>
                     <label>Chọn người:</label>
                     <select
-                        className="form-control"
+                        className={styles.formControl}
                         value={selectedUser}
                         onChange={(e) => setSelectedUser(e.target.value)}
                         required
@@ -63,39 +71,36 @@ function AddAttendance() {
                         ))}
                     </select>
                 </div>
-                <div className="form-group">
+                <div className={styles.formGroup}>
                     <label>Thời gian check-in:</label>
                     <input
                         type="datetime-local"
-                        className="form-control"
+                        className={styles.formControl}
                         value={checkinTime}
                         onChange={(e) => setCheckinTime(e.target.value)}
                         required
                     />
                 </div>
-                <div className="form-group">
+                <div className={styles.formGroup}>
                     <label>Thời gian check-out:</label>
                     <input
                         type="datetime-local"
-                        className="form-control"
+                        className={styles.formControl}
                         value={checkoutTime}
                         onChange={(e) => setCheckoutTime(e.target.value)}
                         required
                     />
                 </div>
-                <div className="form-group">
+                <div className={styles.formGroup}>
                     <label>Ảnh:</label>
                     <input
                         type="file"
-                        className="form-control"
+                        className={styles.formControl}
                         onChange={handleImageChange}
                         required
                     />
                 </div>
-                <button type="submit" className="btn btn-primary">Thêm</button>
-                <Link to="/CRUD_Attendance" className="btn btn-secondary ml-2">
-                    <FaArrowLeft /> Quay lại
-                </Link>
+                <button type="submit" className={styles.btnPrimary}>Thêm</button>
             </form>
         </div>
     );

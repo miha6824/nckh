@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import ReactPaginate from 'react-paginate';
 import { FaEdit, FaTrash, FaPlus, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import styles from './CRUD_Account.module.css'; // Assuming you have a CSS module for CRUD_Account
+import styles from './CRUD_Account.module.css';
 
 function CRUD_Account() {
     const [accounts, setAccounts] = useState([]);
@@ -16,7 +16,6 @@ function CRUD_Account() {
             .then(res => {
                 const formattedAccounts = res.data.map(item => ({
                     ...item,
-                    // Format date of birth if needed
                 }));
                 setAccounts(formattedAccounts);
             })
@@ -38,7 +37,7 @@ function CRUD_Account() {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
-        setCurrentPage(0); // Reset to first page on new search
+        setCurrentPage(0);
     };
 
     const offset = currentPage * accountsPerPage;
@@ -50,10 +49,10 @@ function CRUD_Account() {
     const pageCount = Math.ceil(filteredAccounts.length / accountsPerPage);
 
     return (
-        <div className={`${styles.crudAccountContainer} container-fluid`}>
-            <div className="d-flex justify-content-between mb-3 align-items-center">
+        <div className={styles.crudAccountContainer}>
+            <div className={`d-flex justify-content-between mb-3 align-items-center`}>
                 <h2>Quản lý tài khoản</h2>
-                <div className="d-flex align-items-center">
+                <div className={`d-flex align-items-center`}>
                     <input
                         type="text"
                         className={styles.searchInput}
@@ -66,11 +65,10 @@ function CRUD_Account() {
                     </Link> */}
                 </div>
             </div>
-            <div className={`${styles.tableContainer} table-responsive`}>
-                <table className="table table-bordered">
+            <div className={styles.tableContainer}>
+                <table className={`table table-bordered`}>
                     <thead className={styles.tableHeader}>
                         <tr>
-                            <th>ID</th>
                             <th>Email</th>
                             <th>Password</th>
                             <th>ID_User</th>
@@ -81,17 +79,17 @@ function CRUD_Account() {
                     <tbody className={styles.tableBody}>
                         {currentPageData.map(acc => (
                             <tr key={acc.ID}>
-                                <td>{acc.ID}</td>
                                 <td>{acc.Email}</td>
                                 <td>{acc.Password}</td>
                                 <td>{acc.ID_User}</td>
                                 <td>{acc.Role}</td>
                                 <td className={styles.actions}>
                                     <Link to={`/update_Account/${acc.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
-                                        <FaEdit /> Sửa
+                                        <FaEdit />
+                                        <span>Sửa</span>
                                     </Link>
                                     {/* <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(acc.ID)}>
-                                        <FaTrash /> Xoá
+                                                <FaTrash /> Xoá
                                     </button> */}
                                 </td>
                             </tr>

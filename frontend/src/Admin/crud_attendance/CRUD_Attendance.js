@@ -12,6 +12,7 @@ function CRUD_Attendance() {
     const [attendanceData, setAttendanceData] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
     const attendancesPerPage = 4;
 
     useEffect(() => {
@@ -19,11 +20,13 @@ function CRUD_Attendance() {
     }, []);
 
     const fetchAttendanceData = () => {
+        setLoading(true); // Bắt đầu tải dữ liệu
         axios.get('http://localhost:8081/CRUD_Attendance')
             .then(res => {
                 setAttendanceData(res.data);
             })
-            .catch(err => console.log('Error fetching attendance data:', err));
+            .catch(err => console.log('Error fetching attendance data:', err))
+            .finally(() => setLoading(false)); // Dữ liệu đã được tải xong
     };
 
     const handleDelete = async (id) => {
@@ -41,7 +44,7 @@ function CRUD_Attendance() {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
-        setCurrentPage(0); // Reset to first page on new search
+        setCurrentPage(0);
     };
 
     const offset = currentPage * attendancesPerPage;
@@ -69,57 +72,67 @@ function CRUD_Attendance() {
                 </div>
             </div>
             <div className={`${styles.tableContainer} table-responsive`}>
-                <table className="table table-bordered">
-                    <thead className={styles.tableHeader}>
-                        <tr>
-                            <th>Họ Và Tên</th>
-                            <th>Thời gian</th>
-                            <th>Ảnh</th>
-                            <th>Trạng thái</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className={styles.tableBody}>
-                        {currentPageData.map(data => (
-                            <tr key={data.ID}>
-                                <td>{data.FullName}</td>
-                                <td>{moment(data.timestamp).format('YYYY-MM-DD HH:mm:ss')}</td>
-                                <td>
-                                    <LazyLoadImage
-                                        alt={`attendance_${data.ID}`}
-                                        src={data.Image}
-                                        effect="blur"
-                                        className={styles.image}
-                                    />
-                                </td>
-                                <td>{data.Status}</td>
-                                <td className={styles.actions}>
-                                    <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(data.ID)}>
-                                        <FaTrash className={styles.icon} /> Xoá
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                {loading ? (
+                    <div className={styles.loadingContainer}>
+                        <div className={styles.spinner}></div>
+                        <p>Đang tải dữ liệu...</p>
+                    </div>
+                ) : (
+                    <>
+                        <table className="table table-bordered">
+                            <thead className={styles.tableHeader}>
+                                <tr>
+                                    <th>Họ Và Tên</th>
+                                    <th>Thời gian</th>
+                                    <th>Ảnh</th>
+                                    <th>Trạng thái</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className={styles.tableBody}>
+                                {currentPageData.map(data => (
+                                    <tr key={data.ID}>
+                                        <td>{data.FullName}</td>
+                                        <td>{moment(data.timestamp).format('YYYY-MM-DD HH:mm:ss')}</td>
+                                        <td>
+                                            <LazyLoadImage
+                                                alt={`attendance_${data.ID}`}
+                                                src={data.Image}
+                                                effect="blur"
+                                                className={styles.image}
+                                            />
+                                        </td>
+                                        <td>{data.Status}</td>
+                                        <td className={styles.actions}>
+                                            <button className={`btn btn-danger ${styles['btn-danger']}`} onClick={() => handleDelete(data.ID)}>
+                                                <FaTrash className={styles.icon} />
+                                                <span className="d-none d-md-inline">Xoá</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <ReactPaginate
+                            previousLabel={<FaArrowLeft />}
+                            nextLabel={<FaArrowRight />}
+                            pageCount={pageCount}
+                            marginPagesDisplayed={2}
+                            pageRangeDisplayed={5}
+                            onPageChange={handlePageClick}
+                            containerClassName={styles.pagination}
+                            activeClassName={'active'}
+                            activeLinkClassName={styles.activeLink}
+                            previousClassName={styles.pageItem}
+                            nextClassName={styles.pageItem}
+                            previousLinkClassName={styles.pageLink}
+                            nextLinkClassName={styles.pageLink}
+                            pageClassName={styles.pageItem}
+                            pageLinkClassName={styles.pageLink}
+                        />
+                    </>
+                )}
             </div>
-            <ReactPaginate
-                previousLabel={<FaArrowLeft />}
-                nextLabel={<FaArrowRight />}
-                pageCount={pageCount}
-                marginPagesDisplayed={2}
-                pageRangeDisplayed={5}
-                onPageChange={handlePageClick}
-                containerClassName={styles.pagination}
-                activeClassName={'active'}
-                activeLinkClassName={styles.activeLink}
-                previousClassName={styles.pageItem}
-                nextClassName={styles.pageItem}
-                previousLinkClassName={styles.pageLink}
-                nextLinkClassName={styles.pageLink}
-                pageClassName={styles.pageItem}
-                pageLinkClassName={styles.pageLink}
-            />
         </div>
     );
 }

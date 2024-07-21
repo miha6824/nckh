@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 import ReactPaginate from 'react-paginate';
 import { FaEdit, FaTrash, FaPlus, FaArrowLeft, FaArrowRight, FaTimes } from 'react-icons/fa';
 import styles from './CRUD_Department.module.css';
@@ -92,7 +91,7 @@ function CRUD_Department() {
     };
 
     return (
-        <div className={`${styles.crudDepartmentContainer} container-fluid`}>
+        <div className={styles.crudDepartmentContainer}>
             <div className="d-flex justify-content-between mb-3 align-items-center">
                 <h2>Quản lý phòng ban</h2>
                 <div className="d-flex align-items-center">
@@ -109,8 +108,8 @@ function CRUD_Department() {
                 </div>
             </div>
             {error && <div className="text-danger mb-3">{error}</div>}
-            <div className={`${styles.tableContainer} table-responsive`}>
-                <table className="table table-bordered">
+            <div className={styles.tableContainer}>
+                <table className={`table table-bordered ${styles.departmentTable}`}>
                     <thead className={styles.tableHeader}>
                         <tr>
                             <th>ID</th>
@@ -128,13 +127,15 @@ function CRUD_Department() {
                                         onClick={() => handleUpdateClick(data.ID)}
                                         className={`${styles.actionButton} ${styles.editButton}`}
                                     >
-                                        <FaEdit /> Sửa
+                                        <FaEdit />
+                                        <span className="d-none d-md-inline">Sửa</span>
                                     </button>
                                     <button
                                         onClick={() => handleDelete(data.ID)}
                                         className={`${styles.actionButton} ${styles.deleteButton}`}
                                     >
-                                        <FaTrash /> Xoá
+                                        <FaTrash />
+                                        <span className="d-none d-md-inline">Xoá</span>
                                     </button>
                                 </td>
                             </tr>

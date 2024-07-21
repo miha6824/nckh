@@ -58,13 +58,6 @@
     background-color: #f1f1f1;
 }
 
-.late, .earlyLeave, .onTime {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
 .late {
     color: #ff4d4d;
 }
@@ -79,4 +72,43 @@
 
 .fa-icon {
     font-size: 14px;
+}
+
+.statusIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.timeValue {
+    display: inline-block;
+    width: 40px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .homepageTitle {
+        font-size: 24px;
+    }
+
+    .homepageTable th, .homepageTable td {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .homepageTitle {
+        font-size: 20px;
+    }
+
+    .homepageTable th, .homepageTable td {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .homepageContainer {
+        padding: 10px;
+    }
 }

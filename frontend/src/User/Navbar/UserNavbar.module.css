@@ -1,0 +1,153 @@
+.bgDark {
+  background-color: #000 !important; 
+}
+
+.logoBrand {
+  height: auto;
+  max-height: 50px;
+  position: absolute; 
+  bottom: 6px; 
+  left: 10px;
+}
+
+.customNavbar {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 0 20px;
+  position: relative;
+}
+
+.navbarBrand {
+  color: #fff !important;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navbarNav {
+  display: flex;
+  margin-left: auto;
+}
+
+.navLink {
+  color: #fff !important;
+  position: relative;
+  padding: 0.75rem 1.25rem;
+}
+
+.ms5 {
+  margin-left: 3rem !important;
+}
+
+.mx3 {
+  margin-left: 1rem !important;
+  margin-right: 1rem !important;
+}
+
+.dropdownToggle {
+  color: #fff !important;
+  position: relative;
+  right: 10px;
+}
+
+.dropdownMenu {
+  background-color: #000 !important;
+  position: absolute;
+  top: 100%;
+  z-index: 1000;
+}
+
+.dropdownItem {
+  color: #fff !important;
+}
+
+.dropdownItem:hover {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+.textWhite {
+  color: #fff !important;
+}
+
+.navLinkHighlight {
+  transition: color 0.3s, transform 0.3s;
+}
+
+.navLinkHighlight:hover {
+  color: #ffc107 !important;
+  transform: scale(1.1);
+}
+
+.navLinkHighlight::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 2px;
+  background-color: #ffc107;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease-in-out;
+}
+
+.navLinkHighlight:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.avatarContainer {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.placeholderAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ced4da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  margin-left: 20px;
+}
+
+@media (max-width: 768px) {
+  .navbarNav {
+    display: none; 
+  }
+
+  .avatarContainer {
+    display: none;
+  }
+  .logoBrand {
+    height: auto;
+    max-height: 50px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .navbarBrand img {
+    max-height: 30px;
+    position: absolute;
+    bottom: 10px;
+    left: 10px; 
+  }
+
+  .navLink {
+    font-size: 14px;
+    padding: 0.5rem;
+  }
+
+  .avatarContainer {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .placeholderAvatar {
+    margin-left: 0;
+  }
+}

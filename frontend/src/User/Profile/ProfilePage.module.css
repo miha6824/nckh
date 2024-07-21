@@ -1,17 +1,16 @@
 .profileContainer {
     max-width: 1000px;
-    height: 500px;
-    margin: 100px auto;
+    margin: 20px auto;
     padding: 20px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
 }
 
 .backButton {
     cursor: pointer;
-    margin-bottom: 10px;
     font-size: 1.5rem;
     color: #333;
 }
@@ -29,22 +28,24 @@
 
 .profileContent {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    flex-wrap: wrap; 
+    gap: 20px;
 }
 
-.leftContent {
+.leftContent,
+.middleContent,
+.rightContent {
     flex: 1;
-    padding: 0 20px;
+    min-width: 280px;
 }
 
 .avatarContainer {
-    width: 190px;
-    height: 190px;
+    width: 150px;
+    height: 150px;
     overflow: hidden;
     border-radius: 50%;
     border: 2px solid #333;
-    margin-left: 40px;
+    margin: 0 auto;
 }
 
 .avatar {
@@ -54,16 +55,7 @@
 
 .userInfo {
     text-align: center;
-}
-
-.middleContent {
-    flex: 1;
-    padding: 0 20px;
-}
-
-.rightContent {
-    flex: 1;
-    padding: 0 20px;
+    margin-top: 10px;
 }
 
 .formGroup {
@@ -97,8 +89,10 @@
 
 .buttonContainer {
     display: flex;
-    justify-content: space-between;
-    margin-top: 40px;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
 }
 
 .submitButton,
@@ -143,7 +137,8 @@
 .changePasswordForm {
     background-color: white;
     padding: 20px;
-    width: 300px;
+    width: 90%;
+    max-width: 400px;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -151,4 +146,60 @@
 .changePasswordForm h3 {
     text-align: center;
     margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .profileContent {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .avatarContainer {
+        width: 120px;
+        height: 120px;
+    }
+
+    .formInput,
+    .formSelect {
+        font-size: 0.9rem;
+    }
+
+    .buttonContainer {
+        flex-direction: column;
+    }
+
+    .cancelButton {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .profileContainer {
+        padding: 10px;
+    }
+
+    .avatarContainer {
+        width: 100px;
+        height: 100px;
+    }
+
+    .profileTitle {
+        font-size: 1.2rem;
+    }
+
+    .formInput,
+    .formSelect {
+        font-size: 0.8rem;
+    }
+
+    .submitButton,
+    .changePasswordButton,
+    .cancelButton {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+    }
+
+    .buttonContainer {
+        flex-direction: column;
+    }
 }

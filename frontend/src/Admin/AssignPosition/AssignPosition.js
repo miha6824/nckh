@@ -10,7 +10,7 @@ function AssignPosition() {
     const [formData, setFormData] = useState({
         MaCV: '',
         ID_User: '',
-        ID_Department: '', // Thêm ID_Department vào formData
+        ID_Department: '',
         LyDo: ''
     });
     const [positions, setPositions] = useState([]);
@@ -29,7 +29,7 @@ function AssignPosition() {
             .then(res => setUsers(res.data))
             .catch(err => console.log(err));
 
-        axios.get('http://localhost:8081/CRUD_Department') // Gọi endpoint để lấy danh sách phòng ban
+        axios.get('http://localhost:8081/CRUD_Department')
             .then(res => setDepartments(res.data))
             .catch(err => console.log(err));
     }, []);

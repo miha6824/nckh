@@ -75,14 +75,16 @@ function UserUpdate() {
         axios.put(`http://localhost:8081/update_user/${id}`, formData)
             .then(res => {
                 console.log(res.data);
-                alert('Update successful');
+                alert('Cập nhật thành công');
                 navigate('/CRUD_User');
             })
             .catch(err => console.log(err));
     };
+
     const handleGoBack = () => {
         navigate(-1);
     };
+
     return (
         <div className={styles.userUpdateContainer}>
             <div className={styles.backButton} onClick={handleGoBack}>
@@ -144,7 +146,7 @@ function UserUpdate() {
                         <input
                             type="tel"
                             name="phoneNumber"
-                            value={`0${formData.phoneNumber}`}
+                            value={formData.phoneNumber}
                             onChange={handlePhoneNumberInput}
                             required
                             className="form-control"

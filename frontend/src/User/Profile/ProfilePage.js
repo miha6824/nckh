@@ -82,6 +82,14 @@ const ProfilePage = () => {
         }));
     };
 
+    const handlePhoneNumberInput = (e) => {
+        // Chỉ cho phép các ký tự số
+        const newValue = e.target.value.replace(/\D/g, '');
+        setUserInfo({ ...userInfo, phoneNumber: newValue });
+    };
+
+
+
     const handlePasswordChange = (e) => {
         const { name, value } = e.target;
         if (name === 'password') {
@@ -146,7 +154,7 @@ const ProfilePage = () => {
                             <img src={DefaultAvatar} alt="Avatar" className={styles.avatar} />
                         </div>
                         <div className={styles.userInfo}>
-                            <text><strong>{userInfo.fullName}</strong></text>
+                            <label><strong>{userInfo.fullName}</strong></label>
                             <p>{positionInfo.position}</p>
                         </div>
                     </div>
@@ -178,9 +186,9 @@ const ProfilePage = () => {
                             <label className={styles.formLabel}>Số điện thoại:</label>
                             <input
                                 type="tel"
-                                name="phoneNumber"
-                                value={`0${userInfo.phoneNumber}`}
-                                onChange={handleChange}
+                                name="phoneNsumber"
+                                value={userInfo.phoneNumber}
+                                onChange={handlePhoneNumberInput}
                                 className={styles.formInput}
                                 required
                             />

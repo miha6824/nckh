@@ -10,16 +10,15 @@ function PositionDetailUpdate() {
     const [formData, setFormData] = useState({
         MaCV: '',
         ID_User: '',
-        ID_Department: '', // Thêm ID_Department vào formData
+        ID_Department: '',
         LyDo: ''
     });
 
     const [departments, setDepartments] = useState([]);
     const [users, setUser] = useState([]);
-    const [positions, setPositions] = useState([]); // State for positions
+    const [positions, setPositions] = useState([]);
     const { id } = useParams();
     const navigate = useNavigate();
-
 
     useEffect(() => {
         axios.get(`http://localhost:8081/position_details/${id}`)
@@ -29,6 +28,7 @@ function PositionDetailUpdate() {
                     MaCV: PrePositionInfo.MaCV,
                     ID_User: PrePositionInfo.ID_User,
                     ID_Department: PrePositionInfo.ID_Department,
+                    LyDo: PrePositionInfo.LyDo
                 });
             })
             .catch(err => console.log(err));
@@ -60,19 +60,19 @@ function PositionDetailUpdate() {
             })
             .catch(err => console.log(err));
     };
+
     const handleGoBack = () => {
         navigate(-1);
     };
 
     return (
-
         <div className={styles.updatePositionContainer}>
             <div className={styles.backButton} onClick={handleGoBack}>
                 <FontAwesomeIcon icon={faArrowLeft} />
             </div>
             <h2>Sửa chức vụ nhân viên</h2>
             <form onSubmit={handleSubmit} className="row">
-                <div className="col-md-6">
+                <div className="col-md-6 col-12">
                     <div className="form-group">
                         <label>Chức vụ:</label>
                         <select
@@ -91,7 +91,7 @@ function PositionDetailUpdate() {
                         </select>
                     </div>
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-6 col-12">
                     <div className="form-group">
                         <label>Nhân viên:</label>
                         <select
@@ -111,39 +111,42 @@ function PositionDetailUpdate() {
                         </select>
                     </div>
                 </div>
-                <div className="form-group">
-                    <label>Phòng ban:</label>
-                    <select
-                        name="ID_Department"
-                        value={formData.ID_Department}
-                        onChange={handleChange}
-                        className="form-control"
-                        disabled
-                    >
-                        <option>Chọn phòng ban</option>
-                        {departments.map(department => (
-                            <option key={department.ID} value={department.ID}>
-                                {department.TenPhongBan}
-                            </option>
-                        ))}
-                    </select>
+                <div className="col-12">
+                    <div className="form-group">
+                        <label>Phòng ban:</label>
+                        <select
+                            name="ID_Department"
+                            value={formData.ID_Department}
+                            onChange={handleChange}
+                            className="form-control"
+                            disabled
+                        >
+                            <option>Chọn phòng ban</option>
+                            {departments.map(department => (
+                                <option key={department.ID} value={department.ID}>
+                                    {department.TenPhongBan}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
-                <div className="form-group">
-                    <label>Lý do:</label>
-                    <textarea
-                        name="LyDo"
-                        value={formData.LyDo}
-                        onChange={handleChange}
-                        required
-                        className="form-control"
-                    ></textarea>
+                <div className="col-12">
+                    <div className="form-group">
+                        <label>Lý do:</label>
+                        <textarea
+                            name="LyDo"
+                            value={formData.LyDo}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                        ></textarea>
+                    </div>
                 </div>
                 <div className="col-12">
                     <button type="submit" className="btn btn-primary">Sửa</button>
                 </div>
             </form>
         </div>
-
     );
 }
 

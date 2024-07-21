@@ -54,27 +54,40 @@ const Homepage = () => {
                             <td>{formatTime(record.CheckOut)}</td>
                             <td>
                                 {record.LateMinutes ? (
-                                    <span className={styles.late}>
-                                        <FaTimesCircle /> {record.LateMinutes}
+                                    <span className={`${styles.statusIcon} ${styles.late}`}>
+                                        <FaTimesCircle />
+                                        <span className={styles.timeValue}>{record.LateMinutes}</span>
                                     </span>
                                 ) : (
-                                    <span className={styles.onTime}>
-                                        <FaCheckCircle /> 0
+                                    <span className={`${styles.statusIcon} ${styles.onTime}`}>
+                                        <FaCheckCircle />
+                                        <span className={styles.timeValue}>0</span>
                                     </span>
                                 )}
                             </td>
                             <td>
                                 {record.EarlyLeaveMinutes ? (
-                                    <span className={styles.earlyLeave}>
-                                        <FaTimesCircle /> {record.EarlyLeaveMinutes}
+                                    <span className={`${styles.statusIcon} ${styles.earlyLeave}`}>
+                                        <FaTimesCircle />
+                                        <span className={styles.timeValue}>{record.EarlyLeaveMinutes}</span>
                                     </span>
                                 ) : (
-                                    <span className={styles.onTime}>
-                                        <FaCheckCircle /> 0
+                                    <span className={`${styles.statusIcon} ${styles.onTime}`}>
+                                        <FaCheckCircle />
+                                        <span className={styles.timeValue}>0</span>
                                     </span>
                                 )}
                             </td>
-                            <td>{record.OvertimeMinutes ? <FaClock /> : '0'}</td>
+                            <td className={styles.statusIcon}>
+                                {record.OvertimeMinutes ? (
+                                    <>
+                                        <FaClock />
+                                        <span className={styles.timeValue}>{record.OvertimeMinutes}</span>
+                                    </>
+                                ) : (
+                                    'Không tăng ca'
+                                )}
+                            </td>
                         </tr>
                     ))}
                 </tbody>

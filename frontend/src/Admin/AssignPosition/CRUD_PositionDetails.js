@@ -99,17 +99,19 @@ const PositionDetails = () => {
                         </tr>
                     </thead>
                     <tbody className={styles.tableBody}>
-                        {currentPageData.map((data, index) => (
+                        {currentPageData.map((data) => (
                             <tr key={data.ID}>
                                 <td>{data.TenCV}</td>
                                 <td>{data.FullName}</td>
                                 <td>{data.TenPhongBan}</td>
                                 <td className={styles.actions}>
                                     <Link to={`/PositionUpdate/${data.ID}`} className={`${styles.actionButton} ${styles.editButton}`}>
-                                        <FaEdit /> Sửa
+                                        <FaEdit />
+                                        <span className="d-none d-md-inline">Sửa</span>
                                     </Link>
                                     <button className={`${styles.actionButton} ${styles.deleteButton}`} onClick={() => handleDelete(data.ID)}>
-                                        <FaTrash /> Xoá
+                                        <FaTrash />
+                                        <span className="d-none d-md-inline">Xoá</span>
                                     </button>
                                 </td>
                             </tr>
@@ -118,7 +120,9 @@ const PositionDetails = () => {
                 </table>
             </div>
             <div className={styles.controlsContainer}>
-                <Link to={'/Crud_Position'} className={`${styles.actionButton1} ${styles.editButton}`}>Các chức vụ</Link>
+                <Link to={'/Crud_Position'} className={`${styles.actionButton1} ${styles.naviButton}`}>
+                    Các chức vụ
+                </Link>
                 <ReactPaginate
                     previousLabel={<FaArrowLeft />}
                     nextLabel={<FaArrowRight />}

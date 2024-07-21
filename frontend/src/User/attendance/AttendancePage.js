@@ -166,7 +166,7 @@ function AttendancePage() {
         <div className={styles.container}>
             <Link to='/login' className={`${styles.btn} btn btn-success rounded-0`}>Sign-In</Link>
             <div className={styles.app}>
-                {initializing && <span className={styles.initializing}>Initializing...</span>}
+                {initializing && <span className={styles.initializing}>Đang truy cập camera...</span>}
                 <div className={styles.videoContainer}>
                     <video ref={videoRef} autoPlay muted height={videoHeight} width={videoWidth} onPlay={handleVideoOnPlay} />
                     <canvas ref={canvasRef} className={styles.canvas} width={videoWidth} height={videoHeight} />

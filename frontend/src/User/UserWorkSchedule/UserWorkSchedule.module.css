@@ -104,3 +104,15 @@
     align-items: center;
     gap: 5px;
 }
+
+@media (max-width: 768px) {
+    .day {
+        width: calc(33.33% - 10px);
+    }
+}
+
+@media (max-width: 480px) {
+    .day {
+        width: calc(20% - 10px);
+    }
+}

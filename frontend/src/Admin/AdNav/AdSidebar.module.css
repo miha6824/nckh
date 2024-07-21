@@ -1,0 +1,20 @@
+.customNavbar {
+    position: relative;
+    background-color: #1f1d1d;
+    margin: 0;
+}
+
+
+.logo {
+    height: auto;
+    max-height: 40px;
+    margin-left: 10px;
+}
+
+.navItemText {
+    color: #fff !important; 
+}
+
+.navItemText:hover {
+    background-color: #333 !important;
+}
